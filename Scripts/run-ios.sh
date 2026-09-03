@@ -43,4 +43,4 @@ xcrun simctl boot "$udid" 2>/dev/null || true
 open -a Simulator
 app_path="$(find .build-xcode/Build/Products -name 'Photo Diary.app' -type d | head -1)"
 xcrun simctl install "$udid" "$app_path"
-xcrun simctl launch "$udid" fi.misaki.photo-diary
+xcrun simctl launch "$udid" fi.misaki.photodiary

@@ -46,7 +46,7 @@ targets:
         # server's "Open in app" button links to
         # `photodiary://sso?host=<host>&token=<ticket>`.
         CFBundleURLTypes:
-          - CFBundleURLName: fi.misaki.photo-diary.sso
+          - CFBundleURLName: fi.misaki.photodiary.sso
             CFBundleURLSchemes:
               - photodiary
         UILaunchScreen: {}
@@ -58,7 +58,7 @@ targets:
           - 1
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.photo-diary
+        PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.photodiary
         PRODUCT_NAME: Photo Diary
         MARKETING_VERSION: "0.0.1"
         CURRENT_PROJECT_VERSION: "1"

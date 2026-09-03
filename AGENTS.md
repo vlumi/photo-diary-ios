@@ -20,7 +20,7 @@ When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and int
 ## Conventions
 
 - **Toolchain:** Xcode + Swift 6, **XcodeGen** (`.xcodeproj` generated, gitignored, never committed). Team ID committed in `project.yml` (not a secret; the release lane's headless signing needs it); certs/profiles fetched by `-allowProvisioningUpdates`.
-- **Bundle id:** `fi.misaki.photo-diary`.
+- **Bundle id:** `fi.misaki.photodiary`.
 - **Deployment target:** current-latest iOS only. No `#available` guards, no `@available` markers on public API, no legacy layout branches. Swift 6 strict concurrency clean from day one.
 - **Device family:** iPhone. Portrait-only.
 - **Localization:** English-only for v1, but String Catalog + `Text(_, bundle:)` / `String(localized:)` from day one — never hardcoded literals.
@@ -30,7 +30,7 @@ When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and int
 
 ## Layout
 
-```
+```text
 Packages/PhotoDiaryCore/            SPM: pure API + models + persistence, no UI
   Sources/PhotoDiaryCore/           API client, auth, keychain, todo-pin store
   Sources/PhotoDiaryKit/            SwiftUI views + MapKit surface
