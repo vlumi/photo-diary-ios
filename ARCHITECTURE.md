@@ -35,6 +35,26 @@ Multiple photo-diary instances per install. Each is a hostname + credentials pai
 
 The active instance is per-app, not per-tab. Switching instances is a top-level action in Settings.
 
+### The `Instance` protocol
+
+All data access above `PhotoDiaryCore` goes through a single `Instance` protocol — `listGalleries()`, `queryPhotos(gallery, filter)`, `getPhoto(id)`, `listEvolution(...)`, etc. Two implementations:
+
+- **`RemoteInstance`** — talks to a real photo-diary server. HTTPS, cookies, refresh loop, Keychain-backed session.
+- **`DemoInstance`** — returns bundled fixture data. ~30 real-EXIF photos across 2 galleries embedded as SPM resources. No network, no auth, no server. Runs identically on-device and in unit tests.
+
+Views only ever depend on the protocol, never on either concrete implementation. Swapping between them is a registry-level operation.
+
+### Demo mode
+
+The first-run onboarding offers **"Try demo mode"** alongside "Scan pairing QR" / "Paste pairing link". Choosing it adds a `DemoInstance` to the registry — indistinguishable from a real instance from the UI's perspective. Purposes:
+
+- **Development without a server.** The entire UI can be built and tested against `DemoInstance` before the SSO pairing endpoint or `RemoteInstance` code exists.
+- **App Store review.** Apple reviewers can't sign into the operator's servers. Demo mode IS the review credential — the app is fully explorable via it.
+- **Screenshots** for the App Store listing come from demo mode. Consistent, no personal photos leaked.
+- **Working offline.** Even after the app has been paired with real instances, the demo instance stays in the registry (unless the user removes it), so a subway-tunnel session still has something to browse.
+
+Demo mode is read-only like the rest of the app; todo pins added while in demo mode live in the same SwiftData store as any other pins (they're local-only regardless).
+
 ## Auth
 
 Same cookie flow the SPA uses:
