@@ -1,0 +1,24 @@
+# Generated Xcode project (XcodeGen owns it; signing/team live here, never committed)
+*.xcodeproj
+
+# Build output
+.build/
+.build-xcode/
+# Any one-off DerivedData folder named like the above.
+.build*/
+DerivedData/
+
+# Editor / OS
+.vscode/
+.DS_Store
+
+# SwiftPM per-user state (schemes, user data)
+.swiftpm/
+
+# Release lane output + local ASC credentials
+dist/
+Scripts/.asc-config
+
+# Local secrets copied out of the server's per-instance config
+.env
+.env.*

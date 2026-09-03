@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XcodeGen writes everything else from project.yml. This file is
+     kept minimal because GENERATE_INFOPLIST_FILE=NO. Any values the
+     app needs at runtime that aren't already in project.yml go here. -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTD/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+</dict>
+</plist>

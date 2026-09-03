@@ -1,0 +1,82 @@
+name: PhotoDiary
+
+options:
+  bundleIdPrefix: fi.misaki
+  # Latest iOS only. No back-compat guards anywhere. Bump this file's
+  # target when a new major iOS ships and we've had a chance to test.
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+packages:
+  PhotoDiaryCore:
+    path: Packages/PhotoDiaryCore
+
+targets:
+  PhotoDiary-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/iOS
+      - path: Sources/Shared
+    entitlements:
+      path: Sources/iOS/PhotoDiary.entitlements
+    info:
+      path: Sources/iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Photo Diary
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # No encryption beyond HTTPS to the operator's own server —
+        # standard export exemption applies.
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.photography
+        # Location + camera are optional per-user features. The strings
+        # explain what the app does with them; iOS shows them at the
+        # first request.
+        NSLocationWhenInUseUsageDescription:
+          Photo Diary shows your current location on the map so you can
+          see photos you've taken nearby. Location is never sent to the
+          server or stored beyond the map view.
+        NSCameraUsageDescription:
+          Photo Diary uses the camera to scan a pairing QR code from
+          another device. Nothing is recorded or sent.
+        # Custom URL scheme for the same-device SSO pairing flow — the
+        # server's "Open in app" button links to
+        # `photodiary://sso?host=<host>&token=<ticket>`.
+        CFBundleURLTypes:
+          - CFBundleURLName: fi.misaki.photo-diary.sso
+            CFBundleURLSchemes:
+              - photodiary
+        UILaunchScreen: {}
+        # iPhone-only, portrait-only. iPad multitasking not supported.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        UIDeviceFamily:
+          - 1
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.photo-diary
+        PRODUCT_NAME: Photo Diary
+        MARKETING_VERSION: "0.0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # TARGETED_DEVICE_FAMILY: 1 = iPhone. No iPad slice.
+        TARGETED_DEVICE_FAMILY: "1"
+        # Swift 6 strict concurrency clean from day one.
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_VERSION: "6.0"
+        # Team committed on purpose (not a secret): the release lane
+        # archives headlessly with automatic signing, and the generated
+        # project needs the team for that to work.
+        # TODO: fill in when Apple Developer account details are decided.
+        # DEVELOPMENT_TEAM: XXXXXXXXXX
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: PhotoDiaryCore
+        product: PhotoDiaryKit
+    scheme:
+      configVariants: []

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTD/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Keychain sharing keyed on the bundle id — refresh tokens for
+         each configured instance live here. Prefix is the team id +
+         bundle id at signing time. -->
+</dict>
+</plist>
