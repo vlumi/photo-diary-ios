@@ -1,14 +1,27 @@
+import SwiftData
 import SwiftUI
 
 /// Root view. Owns the `InstanceRegistry` for the process and hosts
-/// the tab bar.
+/// the tab bar. Also mounts the SwiftData ModelContainer for todo
+/// pins so any surface that wants @Query'd pins gets one.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
+    private let todoPinContainer: ModelContainer
 
     public init() {
         _registry = State(initialValue: InstanceRegistry(seedingDemo: true))
         self.imageLoader = DemoImageLoader()
+        do {
+            self.todoPinContainer = try ModelContainer(for: TodoPin.self)
+        } catch {
+            // A ModelContainer failure at launch is not recoverable
+            // and indicates a genuine environmental problem
+            // (permissions, disk full, corrupt store). Better to
+            // crash loudly with the underlying reason than to
+            // present a maimed app that silently loses writes.
+            fatalError("Failed to create TodoPin ModelContainer: \(error)")
+        }
     }
 
     public var body: some View {
@@ -21,6 +34,7 @@ public struct AppShell: View {
         }
         .environment(registry)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
+        .modelContainer(todoPinContainer)
     }
 }
 
