@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// Root view. Owns the `InstanceRegistry` for the process and hands
-/// the tab bar its two placeholder surfaces. Concrete Map + Calendar
-/// implementations land in their own PRs; this shell is the seam they
-/// slot into.
+/// Root view. Owns the `InstanceRegistry` for the process and hosts
+/// the tab bar. Calendar is the real surface; Map is still a
+/// placeholder until its own PR lands.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
@@ -15,10 +14,10 @@ public struct AppShell: View {
 
     public var body: some View {
         TabView {
-            SurfacePlaceholder(kind: .map)
+            MapTabPlaceholder()
                 .tabItem { Label("Map", systemImage: "map") }
 
-            SurfacePlaceholder(kind: .calendar)
+            CalendarView()
                 .tabItem { Label("Calendar", systemImage: "calendar") }
         }
         .environment(registry)
@@ -26,91 +25,28 @@ public struct AppShell: View {
     }
 }
 
-/// Placeholder tab that lets you preview the viewer end-to-end while
-/// the real Map + Calendar surfaces are still being built. Fetches
-/// the first photo from the active instance's first gallery, then
-/// mounts PhotoViewerSheet in a full-screen cover.
-private struct SurfacePlaceholder: View {
-    enum Kind {
-        case map, calendar
-
-        var title: String { self == .map ? "Map" : "Calendar" }
-        var symbol: String { self == .map ? "map" : "calendar" }
-    }
-
-    let kind: Kind
-
+/// Minimal placeholder until MapSurfaceView lands. No 'Preview a
+/// photo' plumbing — the calendar surface now covers the end-to-end
+/// viewer path, so this can stay a straight message.
+private struct MapTabPlaceholder: View {
     @Environment(InstanceRegistry.self) private var registry
-    @Environment(\.imageLoader) private var loaderBox
-    @State private var previewPhoto: Photo?
-    @State private var loadError: String?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: kind.symbol)
+        VStack(spacing: 12) {
+            Image(systemName: "map")
                 .font(.system(size: 48))
                 .foregroundStyle(.tint)
-            Text(kind.title)
+            Text("Map")
                 .font(.title2.bold())
-            Text(activeSummary)
+            Text("Coming in the next PR.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-            Button("Preview a photo") { Task { await loadFirstPhoto() } }
-                .buttonStyle(.borderedProminent)
-                .disabled(registry.activeInstance == nil)
-            if let loadError {
-                Text(loadError)
+            if let name = registry.activeInstance?.displayName {
+                Text("Active instance: \(name)")
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(.tertiary)
             }
         }
-        .modifier(PreviewCoverModifier(photo: $previewPhoto, loader: loaderBox.loader))
-    }
-
-    private var activeSummary: String {
-        if let name = registry.activeInstance?.displayName {
-            return "Active instance: \(name)"
-        }
-        return "No active instance"
-    }
-
-    private func loadFirstPhoto() async {
-        loadError = nil
-        guard let instance = registry.activeInstance else { return }
-        do {
-            guard let firstGallery = try await instance.listGalleries().first else {
-                loadError = "No galleries on this instance."
-                return
-            }
-            guard let first = try await instance.listPhotos(inGallery: firstGallery.id).first
-            else {
-                loadError = "No photos in \(firstGallery.title)."
-                return
-            }
-            previewPhoto = first
-        } catch {
-            loadError = "Fetch failed: \(error.localizedDescription)"
-        }
-    }
-}
-
-// Presents PhotoViewerSheet as a full-screen cover on iOS; on macOS
-// (where swift test runs) fullScreenCover(item:) is unavailable, so
-// we degrade to a sheet — the app itself never runs on macOS.
-private struct PreviewCoverModifier: ViewModifier {
-    @Binding var photo: Photo?
-    let loader: any ImageLoader
-
-    func body(content: Content) -> some View {
-        #if canImport(UIKit)
-        content.fullScreenCover(item: $photo) { photo in
-            PhotoViewerSheet(photo: photo, loader: loader, onDismiss: { self.photo = nil })
-        }
-        #else
-        content.sheet(item: $photo) { photo in
-            PhotoViewerSheet(photo: photo, loader: loader, onDismiss: { self.photo = nil })
-        }
-        #endif
     }
 }
 
