@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 import PackageDescription
 
 let package = Package(
@@ -10,6 +10,10 @@ let package = Package(
         // Match the app's iOS-latest-only stance. When iOS 26 goes GA and
         // we've tested on the release, bump both this and project.yml.
         .iOS(.v26),
+        // macOS floor exists solely so `swift test` on CI (which builds
+        // for the host, not iOS) can see modern availability like
+        // @Observable. The app itself never runs on macOS.
+        .macOS(.v14),
     ],
     products: [
         // Pure API + models + persistence. Headlessly testable, no UI
