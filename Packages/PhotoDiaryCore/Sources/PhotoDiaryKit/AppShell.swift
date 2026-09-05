@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// Root view. Owns the `InstanceRegistry` for the process and hosts
-/// the tab bar. Calendar is the real surface; Map is still a
-/// placeholder until its own PR lands.
+/// the tab bar.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
@@ -14,7 +13,7 @@ public struct AppShell: View {
 
     public var body: some View {
         TabView {
-            MapTabPlaceholder()
+            MapPhotoView()
                 .tabItem { Label("Map", systemImage: "map") }
 
             CalendarView()
@@ -22,31 +21,6 @@ public struct AppShell: View {
         }
         .environment(registry)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
-    }
-}
-
-/// Minimal placeholder until MapSurfaceView lands. No 'Preview a
-/// photo' plumbing — the calendar surface now covers the end-to-end
-/// viewer path, so this can stay a straight message.
-private struct MapTabPlaceholder: View {
-    @Environment(InstanceRegistry.self) private var registry
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "map")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
-            Text("Map")
-                .font(.title2.bold())
-            Text("Coming in the next PR.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            if let name = registry.activeInstance?.displayName {
-                Text("Active instance: \(name)")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
     }
 }
 
