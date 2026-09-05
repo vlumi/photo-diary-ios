@@ -22,5 +22,9 @@ if ! command -v xcodegen >/dev/null; then
     exit 1
 fi
 
+# xcodegen writes the merged Info.plist under .build-xcode/generated/;
+# create the directory ahead of time so the first-run doesn't fail.
+mkdir -p .build-xcode/generated
+
 xcodegen generate
 echo "Generated PhotoDiary.xcodeproj"

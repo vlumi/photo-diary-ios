@@ -10,8 +10,10 @@ help:  ## List the available commands
 		/^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # Inputs xcodegen reads — regenerate the project when any of these change.
+# Info.plist is not in this list: xcodegen synthesises it under
+# .build-xcode/generated/ from project.yml properties, so project.yml
+# alone captures every plist-affecting change.
 PROJECT_INPUTS := project.yml \
-	$(wildcard Sources/*/Info.plist) \
 	$(wildcard Sources/*/*.entitlements) \
 	$(wildcard Sources/*/*.xcstrings)
 
