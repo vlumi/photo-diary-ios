@@ -20,6 +20,7 @@ public struct MapPhotoView: View {
     // Keep the loaded photos around so tap-to-viewer can resolve a
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
+    @State private var locator = UserLocationController()
 
     private enum LoadState {
         case loading
@@ -86,6 +87,57 @@ public struct MapPhotoView: View {
                 }
             }
         }
+        .overlay(alignment: .bottomTrailing) { locateButton }
+        .overlay(alignment: .top) { locationErrorBanner }
+        .onChange(of: locator.lastLocation?.latitude) {
+            centerOnUserLocation()
+        }
+    }
+
+    private var locateButton: some View {
+        Button {
+            locator.locate()
+        } label: {
+            Image(systemName: "location.fill")
+                .font(.title3)
+                .foregroundStyle(.white)
+                .padding(12)
+                .background(Color.accentColor)
+                .clipShape(Circle())
+                .shadow(radius: 3)
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, 16)
+        .padding(.bottom, 24)
+        .accessibilityLabel("Center on my location")
+    }
+
+    @ViewBuilder
+    private var locationErrorBanner: some View {
+        if let error = locator.lastError {
+            Text(error)
+                .font(.footnote)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.regularMaterial)
+                .clipShape(Capsule())
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    private func centerOnUserLocation() {
+        guard let coord = locator.lastLocation else { return }
+        cameraPosition = .region(
+            MKCoordinateRegion(
+                center: coord,
+                latitudinalMeters: 2000,
+                longitudinalMeters: 2000
+            )
+        )
+        // One-shot: clear so a subsequent tap on the button triggers
+        // a fresh location read + re-centre.
+        locator.clearLast()
     }
 
     private func load() async {
