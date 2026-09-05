@@ -22,8 +22,12 @@ targets:
       - path: Sources/Shared
     entitlements:
       path: Sources/iOS/PhotoDiary.entitlements
+    # Info.plist is a build artifact: xcodegen materializes it under
+    # .build-xcode/ (gitignored) from the properties below plus the
+    # target's own build settings. Nothing is source-controlled; the
+    # values live here.
     info:
-      path: Sources/iOS/Info.plist
+      path: .build-xcode/generated/Info-iOS.plist
       properties:
         CFBundleDisplayName: Photo Diary
         CFBundleShortVersionString: $(MARKETING_VERSION)
@@ -51,11 +55,12 @@ targets:
               - photodiary
         UILaunchScreen: {}
         # iPhone-only, portrait-only. iPad multitasking not supported.
+        # TARGETED_DEVICE_FAMILY (build setting) is the iPhone-only
+        # gate; UIRequiresFullScreen is deprecated in iOS 26 with no
+        # replacement — the app is iPhone-only anyway, so
+        # multitasking modes never apply.
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-        UIRequiresFullScreen: true
-        UIDeviceFamily:
-          - 1
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.photodiary
