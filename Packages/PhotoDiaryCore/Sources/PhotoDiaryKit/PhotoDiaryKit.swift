@@ -1,18 +1,4 @@
-// Placeholder — the SwiftUI shell, tab bar, Map / Calendar / Photo / Todo
-// views land here in follow-up PRs (see ROADMAP.md).
-import SwiftUI
-import PhotoDiaryCore
-
-public struct PhotoDiaryRootView: View {
-    public init() {}
-    public var body: some View {
-        VStack {
-            Text("Photo Diary companion — scaffold \(PhotoDiaryCore.scaffoldVersion)")
-                .font(.headline)
-            Text("See ROADMAP.md for what lands next.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-    }
-}
+// PhotoDiaryKit is the SwiftUI + MapKit layer. Root view + app shell
+// land here in follow-up commits — this file re-exports Core for
+// convenience so app-target sources only import PhotoDiaryKit.
+@_exported import PhotoDiaryCore
