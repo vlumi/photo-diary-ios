@@ -1,5 +1,6 @@
 #if canImport(MapKit) && canImport(UIKit)
 import MapKit
+import SwiftData
 import SwiftUI
 
 /// Map of every geotagged photo across the active instance's
@@ -21,6 +22,22 @@ public struct MapPhotoView: View {
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State private var locator = UserLocationController()
+    @State private var editorPresentation: EditorPresentation?
+    @State private var currentRegion: MKCoordinateRegion?
+    @State private var showingList = false
+    @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
+
+    private enum EditorPresentation: Identifiable {
+        case create(latitude: Double, longitude: Double)
+        case edit(TodoPin)
+
+        var id: String {
+            switch self {
+            case .create(let lat, let lng): return "create:\(lat),\(lng)"
+            case .edit(let pin): return "edit:\(pin.id)"
+            }
+        }
+    }
 
     private enum LoadState {
         case loading
@@ -41,6 +58,40 @@ public struct MapPhotoView: View {
                     onDismiss: { presented = nil }
                 )
             }
+            .sheet(item: $editorPresentation) { presentation in
+                switch presentation {
+                case .create(let lat, let lng):
+                    TodoPinEditor(
+                        mode: .create(latitude: lat, longitude: lng),
+                        onDismiss: { editorPresentation = nil }
+                    )
+                case .edit(let pin):
+                    TodoPinEditor(
+                        mode: .edit(pin),
+                        onDismiss: { editorPresentation = nil }
+                    )
+                }
+            }
+            .sheet(isPresented: $showingList) {
+                TodoPinListSheet(
+                    onDismiss: { showingList = false },
+                    onSelect: { pin in
+                        showingList = false
+                        centerOnTodoPin(pin)
+                        editorPresentation = .edit(pin)
+                    }
+                )
+            }
+    }
+
+    private func centerOnTodoPin(_ pin: TodoPin) {
+        cameraPosition = .region(
+            MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude),
+                latitudinalMeters: 500,
+                longitudinalMeters: 500
+            )
+        )
     }
 
     @ViewBuilder
@@ -48,18 +99,17 @@ public struct MapPhotoView: View {
         switch state {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .empty:
-            ContentUnavailableView(
-                "No map-plottable photos",
-                systemImage: "mappin.slash",
-                description: Text("No photo on this instance has GPS coordinates.")
-            )
         case .failed(let message):
             ContentUnavailableView(
                 "Couldn't load map",
                 systemImage: "exclamationmark.triangle",
                 description: Text(message)
             )
+        case .empty:
+            // Instance had zero geotagged photos, but todo pins can
+            // still be dropped anywhere so keep the map interactive
+            // instead of hiding it behind an empty-state view.
+            map(pins: [])
         case .loaded(let pins):
             map(pins: pins)
         }
@@ -68,30 +118,125 @@ public struct MapPhotoView: View {
     private func map(pins: [PhotoMapPin]) -> some View {
         Map(position: $cameraPosition) {
             ForEach(pins) { pin in
-                Annotation("", coordinate: pin.coordinate) {
-                    Button {
-                        if let photo = photosById[pin.photoId] {
-                            presented = photo
-                        }
-                    } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.caption)
-                            .foregroundStyle(.white)
-                            .padding(6)
-                            .background(Color.accentColor)
-                            .clipShape(Circle())
-                            .shadow(radius: 2)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Open photo")
-                }
+                photoAnnotation(pin)
             }
+            ForEach(todoPins) { todoPin in
+                todoAnnotation(todoPin)
+            }
+            UserAnnotation()
         }
-        .overlay(alignment: .bottomTrailing) { locateButton }
+        .onMapCameraChange(frequency: .onEnd) { context in
+            currentRegion = context.region
+        }
+        .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .top) { locationErrorBanner }
         .onChange(of: locator.lastLocation?.latitude) {
             centerOnUserLocation()
         }
+    }
+
+    private func photoAnnotation(_ pin: PhotoMapPin) -> Annotation<Text, some View> {
+        Annotation("", coordinate: pin.coordinate) {
+            Button {
+                if let photo = photosById[pin.photoId] {
+                    presented = photo
+                }
+            } label: {
+                Image(systemName: "camera.fill")
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(6)
+                    .background(Color.accentColor)
+                    .clipShape(Circle())
+                    .shadow(radius: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open photo")
+        }
+    }
+
+    private func todoAnnotation(_ todoPin: TodoPin) -> Annotation<Text, some View> {
+        let coord = CLLocationCoordinate2D(
+            latitude: todoPin.latitude, longitude: todoPin.longitude
+        )
+        return Annotation("", coordinate: coord) {
+            Button {
+                editorPresentation = .edit(todoPin)
+            } label: {
+                Image(systemName: "checklist")
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(6)
+                    .background(Color.orange)
+                    .clipShape(Circle())
+                    .shadow(radius: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(todoPin.note.isEmpty ? "Todo pin" : "Todo: \(todoPin.note)")
+        }
+    }
+
+    private var controls: some View {
+        VStack(spacing: 12) {
+            listPinsButton
+            dropPinButton
+            locateButton
+        }
+        .padding(.trailing, 16)
+        .padding(.bottom, 24)
+    }
+
+    private var listPinsButton: some View {
+        Button {
+            showingList = true
+        } label: {
+            Image(systemName: "list.bullet")
+                .font(.title3)
+                .foregroundStyle(.white)
+                .padding(12)
+                .background(Color.secondary)
+                .clipShape(Circle())
+                .shadow(radius: 3)
+                .overlay(alignment: .topTrailing) {
+                    if !todoPins.isEmpty {
+                        Text("\(todoPins.count)")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .clipShape(Capsule())
+                            .offset(x: 6, y: -6)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("List todo pins")
+    }
+
+    private var dropPinButton: some View {
+        Button {
+            dropPinAtMapCenter()
+        } label: {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.title3)
+                .foregroundStyle(.white)
+                .padding(12)
+                .background(Color.orange)
+                .clipShape(Circle())
+                .shadow(radius: 3)
+        }
+        .buttonStyle(.plain)
+        .disabled(currentRegion == nil)
+        .accessibilityLabel("Drop pin at map centre")
+    }
+
+    private func dropPinAtMapCenter() {
+        guard let region = currentRegion else { return }
+        editorPresentation = .create(
+            latitude: region.center.latitude,
+            longitude: region.center.longitude
+        )
     }
 
     private var locateButton: some View {
@@ -107,8 +252,6 @@ public struct MapPhotoView: View {
                 .shadow(radius: 3)
         }
         .buttonStyle(.plain)
-        .padding(.trailing, 16)
-        .padding(.bottom, 24)
         .accessibilityLabel("Center on my location")
     }
 
