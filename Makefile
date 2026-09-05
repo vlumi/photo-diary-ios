@@ -46,6 +46,12 @@ format:  ## Rewrite sources with swift-format
 	@swift format --in-place --recursive --configuration .swift-format \
 		Packages/PhotoDiaryCore/Sources Packages/PhotoDiaryCore/Tests Sources
 
+.PHONY: ci
+ci:  ## Run every check CI runs (lint + test + build), so a green run here is a green run there
+	@$(MAKE) --no-print-directory lint
+	@$(MAKE) --no-print-directory test
+	@$(MAKE) --no-print-directory build
+
 .PHONY: sync-schema
 sync-schema:  ## Fetch server/openapi.json for TAG and regenerate the Swift client (TAG=v1.0.5)
 	@Scripts/sync-schema.sh $(TAG)

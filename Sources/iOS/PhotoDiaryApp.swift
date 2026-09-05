@@ -1,5 +1,5 @@
-import SwiftUI
 import PhotoDiaryKit
+import SwiftUI
 
 @main
 struct PhotoDiaryApp: App {

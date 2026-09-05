@@ -9,7 +9,9 @@ final class PhotoTimestampTests: XCTestCase {
     }
 
     func testOrderingAcrossYears() {
-        let earlier = PhotoTimestamp(year: 2023, month: 12, day: 31, hour: 23, minute: 59, second: 59)
+        let earlier = PhotoTimestamp(
+            year: 2023, month: 12, day: 31, hour: 23, minute: 59, second: 59
+        )
         let later = PhotoTimestamp(year: 2024, month: 1, day: 1, hour: 0, minute: 0, second: 0)
         XCTAssertLessThan(earlier, later)
     }

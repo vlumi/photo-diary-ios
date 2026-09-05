@@ -9,7 +9,11 @@ public struct PhotoLocation: Hashable, Sendable {
     public let coordinates: CLLocationCoordinate2D?
     public let altitude: Double?
 
-    public init(country: String? = nil, coordinates: CLLocationCoordinate2D? = nil, altitude: Double? = nil) {
+    public init(
+        country: String? = nil,
+        coordinates: CLLocationCoordinate2D? = nil,
+        altitude: Double? = nil
+    ) {
         self.country = country
         self.coordinates = coordinates
         self.altitude = altitude
