@@ -24,6 +24,7 @@ public struct MapPhotoView: View {
     @State private var locator = UserLocationController()
     @State private var editorPresentation: EditorPresentation?
     @State private var currentRegion: MKCoordinateRegion?
+    @State private var showingList = false
     @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
 
     private enum EditorPresentation: Identifiable {
@@ -71,6 +72,26 @@ public struct MapPhotoView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingList) {
+                TodoPinListSheet(
+                    onDismiss: { showingList = false },
+                    onSelect: { pin in
+                        showingList = false
+                        centerOnTodoPin(pin)
+                        editorPresentation = .edit(pin)
+                    }
+                )
+            }
+    }
+
+    private func centerOnTodoPin(_ pin: TodoPin) {
+        cameraPosition = .region(
+            MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude),
+                latitudinalMeters: 500,
+                longitudinalMeters: 500
+            )
+        )
     }
 
     @ViewBuilder
@@ -157,11 +178,40 @@ public struct MapPhotoView: View {
 
     private var controls: some View {
         VStack(spacing: 12) {
+            listPinsButton
             dropPinButton
             locateButton
         }
         .padding(.trailing, 16)
         .padding(.bottom, 24)
+    }
+
+    private var listPinsButton: some View {
+        Button {
+            showingList = true
+        } label: {
+            Image(systemName: "list.bullet")
+                .font(.title3)
+                .foregroundStyle(.white)
+                .padding(12)
+                .background(Color.secondary)
+                .clipShape(Circle())
+                .shadow(radius: 3)
+                .overlay(alignment: .topTrailing) {
+                    if !todoPins.isEmpty {
+                        Text("\(todoPins.count)")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .clipShape(Capsule())
+                            .offset(x: 6, y: -6)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("List todo pins")
     }
 
     private var dropPinButton: some View {
