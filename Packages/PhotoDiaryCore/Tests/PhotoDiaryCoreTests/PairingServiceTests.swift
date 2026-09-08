@@ -43,7 +43,8 @@ final class PairingServiceTests: XCTestCase {
             PairingTicket(host: "photos.example.test", token: "tkt")
         )
 
-        XCTAssertEqual(instance.id, "photos.example.test")
+        XCTAssertEqual(instance.id, "https://photos.example.test")
+        XCTAssertEqual(StubProtocol.requests[0].url!.scheme, "https")
         let sso = StubProtocol.requests[0]
         XCTAssertEqual(sso.url!.path, "/api/v1/tokens/sso")
         XCTAssertTrue(sso.url!.query!.contains("token=tkt"))
@@ -54,7 +55,7 @@ final class PairingServiceTests: XCTestCase {
             "the verify call carries the cookies the 302 set"
         )
         XCTAssertEqual(
-            try store.load(host: "photos.example.test"),
+            try store.load(host: "https://photos.example.test"),
             SessionCookies(access: "a1", refresh: "r1"),
             "cookies reached the store through the factory hook"
         )
@@ -72,10 +73,30 @@ final class PairingServiceTests: XCTestCase {
         } catch {
             XCTFail("wrong error: \(error)")
         }
-        XCTAssertNil(try? store.load(host: "photos.example.test"))
+        XCTAssertNil(try? store.load(host: "https://photos.example.test"))
         XCTAssertEqual(
             StubProtocol.requests.count, 1,
             "no refresh attempt without a refresh cookie"
+        )
+    }
+
+    func testHttpTicketTalksPlainHttp() async throws {
+        StubProtocol.handler = { request in
+            if request.url!.path == "/api/v1/tokens/sso" {
+                return .init(
+                    status: 302,
+                    headers: ["Set-Cookie": "pd_access=a; Path=/, pd_refresh=r; Path=/"]
+                )
+            }
+            return .init(status: 200, body: #"{"id":"u","isAdmin":false,"editorGalleries":[]}"#)
+        }
+        let service = PairingService(factory: factory(store: InMemorySessionStore()))
+        let instance = try await service.pair(
+            PairingTicket(host: "localhost:3000", token: "t", scheme: "http")
+        )
+        XCTAssertEqual(instance.id, "http://localhost:3000")
+        XCTAssertTrue(
+            StubProtocol.requests[0].url!.absoluteString.hasPrefix("http://localhost:3000/")
         )
     }
 

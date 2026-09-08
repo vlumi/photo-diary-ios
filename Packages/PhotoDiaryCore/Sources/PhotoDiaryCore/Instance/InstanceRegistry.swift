@@ -47,9 +47,9 @@ public final class InstanceRegistry {
         let ids = persistence.loadInstanceIds() ?? (seedingDemo ? [DemoInstance.instanceId] : [])
         instances = ids.map { id -> any Instance in
             if id == DemoInstance.instanceId { return DemoInstance() }
-            return remoteFactory.restore(host: id)
+            return remoteFactory.restore(origin: RemoteInstanceFactory.canonicalOrigin(id))
         }
-        let savedActive = persistence.loadActiveId()
+        let savedActive = persistence.loadActiveId().map(RemoteInstanceFactory.canonicalOrigin)
         activeInstanceId =
             instances.contains(where: { $0.id == savedActive }) ? savedActive : instances.first?.id
         persist()

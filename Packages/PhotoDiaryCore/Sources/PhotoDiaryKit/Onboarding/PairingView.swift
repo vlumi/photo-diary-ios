@@ -77,11 +77,19 @@ public struct PairingView: View {
 
     private func confirmation(_ ticket: PairingTicket) -> some View {
         Section("Add this instance?") {
-            Text(ticket.host)
+            Text(ticket.origin)
                 .font(.headline)
             Text("The app will sign in to this server with the pairing code.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            if ticket.scheme == "http" {
+                Label(
+                    "Unencrypted connection — only for a test instance on your own network.",
+                    systemImage: "lock.open"
+                )
+                .font(.footnote)
+                .foregroundStyle(.orange)
+            }
             Button {
                 Task { await pair(ticket) }
             } label: {

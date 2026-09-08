@@ -17,12 +17,13 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
 
     func testRestoresRemoteHostsAndActiveFromPersistence() {
         let persistence = InMemoryInstancePersistence(
-            ids: ["demo", "photos.example.test"], active: "photos.example.test")
+            ids: ["demo", "https://photos.example.test"], active: "https://photos.example.test")
         let store = InMemorySessionStore()
-        try? store.save(SessionCookies(access: "a", refresh: "r"), host: "photos.example.test")
+        try? store.save(
+            SessionCookies(access: "a", refresh: "r"), host: "https://photos.example.test")
         let registry = InstanceRegistry(persistence: persistence, sessionStore: store)
-        XCTAssertEqual(registry.instances.map(\.id), ["demo", "photos.example.test"])
-        XCTAssertEqual(registry.activeInstanceId, "photos.example.test")
+        XCTAssertEqual(registry.instances.map(\.id), ["demo", "https://photos.example.test"])
+        XCTAssertEqual(registry.activeInstanceId, "https://photos.example.test")
         XCTAssertFalse(registry.activeInstance?.isDemo ?? true)
     }
 
@@ -44,12 +45,14 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
     }
 
     func testRemovingARemoteInstanceDeletesItsSession() throws {
-        let persistence = InMemoryInstancePersistence(ids: ["photos.example.test"], active: nil)
+        let persistence = InMemoryInstancePersistence(
+            ids: ["https://photos.example.test"], active: nil)
         let store = InMemorySessionStore()
-        try store.save(SessionCookies(access: "a", refresh: "r"), host: "photos.example.test")
+        try store.save(
+            SessionCookies(access: "a", refresh: "r"), host: "https://photos.example.test")
         let registry = InstanceRegistry(persistence: persistence, sessionStore: store)
-        registry.remove(id: "photos.example.test")
-        XCTAssertNil(try store.load(host: "photos.example.test"))
+        registry.remove(id: "https://photos.example.test")
+        XCTAssertNil(try store.load(host: "https://photos.example.test"))
         XCTAssertEqual(persistence.loadInstanceIds(), [])
     }
 
@@ -58,7 +61,9 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
         let registry = InstanceRegistry(
             persistence: persistence, sessionStore: InMemorySessionStore()
         )
-        registry.setActive("h.example")
-        XCTAssertEqual(persistence.loadActiveId(), "h.example")
+        // A pre-origin id is read as https and persisted canonically.
+        XCTAssertEqual(registry.instances.map(\.id), ["demo", "https://h.example"])
+        registry.setActive("https://h.example")
+        XCTAssertEqual(persistence.loadActiveId(), "https://h.example")
     }
 }
