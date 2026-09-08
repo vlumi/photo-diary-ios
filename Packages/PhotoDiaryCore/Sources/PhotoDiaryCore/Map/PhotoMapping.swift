@@ -42,6 +42,14 @@ public enum PhotoMapping {
         }
     }
 
+    /// The most recently taken photo that has a coordinate — where the
+    /// map opens. nil when nothing is geotagged.
+    public static func latestGeotagged(in photos: [Photo]) -> Photo? {
+        photos
+            .filter { $0.location.coordinates != nil }
+            .max { $0.timestamp < $1.timestamp }
+    }
+
     /// Bounding box that fits every pin, or nil if there are none.
     /// Used to fit the map viewport on first load. The caller adds
     /// padding — the pad amount depends on the map's rendered height.
