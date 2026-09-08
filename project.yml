@@ -82,8 +82,7 @@ targets:
         # Team committed on purpose (not a secret): the release lane
         # archives headlessly with automatic signing, and the generated
         # project needs the team for that to work.
-        # TODO: fill in when Apple Developer account details are decided.
-        # DEVELOPMENT_TEAM: XXXXXXXXXX
+        DEVELOPMENT_TEAM: U84DT7P75P
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: PhotoDiaryCore

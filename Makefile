@@ -54,6 +54,18 @@ ci:  ## Run every check CI runs (lint + test + build), so a green run here is a 
 	@$(MAKE) --no-print-directory test
 	@$(MAKE) --no-print-directory build
 
+.PHONY: distribute
+distribute: PhotoDiary.xcodeproj  ## Archive, export and upload to App Store Connect (TestFlight)
+	@Scripts/distribute.sh
+
+.PHONY: distribute-build
+distribute-build: PhotoDiary.xcodeproj  ## Archive + export the .ipa into dist/ without uploading
+	@Scripts/distribute.sh --no-upload
+
+.PHONY: distribute-upload
+distribute-upload:  ## Upload the .ipa already in dist/
+	@Scripts/distribute.sh --upload-only
+
 .PHONY: sync-schema
 sync-schema:  ## Fetch server/openapi.json for TAG and regenerate the Swift client (TAG=v1.0.5)
 	@Scripts/sync-schema.sh $(TAG)
