@@ -9,7 +9,9 @@ import Foundation
 /// written yet, so the photo viewer will show a placeholder until
 /// that's wired up in a follow-up commit.
 public struct DemoInstance: Instance {
-    public let id = "demo"
+    /// Registry sentinel: the one id that isn't a hostname.
+    public static let instanceId = "demo"
+    public let id = DemoInstance.instanceId
     public let displayName = "Demo"
     public let isDemo = true
 

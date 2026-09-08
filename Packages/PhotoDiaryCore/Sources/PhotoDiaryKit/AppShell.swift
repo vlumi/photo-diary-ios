@@ -3,14 +3,22 @@ import SwiftUI
 
 /// Root view. Owns the `InstanceRegistry` for the process and hosts
 /// the tab bar. Also mounts the SwiftData ModelContainer for todo
-/// pins so any surface that wants @Query'd pins gets one.
+/// pins so any surface that wants @Query'd pins gets one, and catches
+/// `photodiary://` launches to route a pairing ticket into the
+/// onboarding sheet.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
     private let todoPinContainer: ModelContainer
+    @State private var pendingTicket: PairingTicket?
 
     public init() {
-        _registry = State(initialValue: InstanceRegistry(seedingDemo: true))
+        _registry = State(
+            initialValue: InstanceRegistry(
+                persistence: UserDefaultsInstancePersistence(),
+                sessionStore: KeychainSessionStore()
+            )
+        )
         self.imageLoader = SchemeRoutingImageLoader()
         do {
             self.todoPinContainer = try ModelContainer(for: TodoPin.self)
@@ -31,10 +39,24 @@ public struct AppShell: View {
 
             CalendarView()
                 .tabItem { Label("Calendar", systemImage: "calendar") }
+
+            SettingsView()
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .environment(registry)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
         .modelContainer(todoPinContainer)
+        .onOpenURL { url in
+            // Same-device pairing: the site's "Open in app" link.
+            // Anything that isn't a pairing link is ignored.
+            if let ticket = PairingTicket.parse(url) {
+                pendingTicket = ticket
+            }
+        }
+        .sheet(item: $pendingTicket) { ticket in
+            PairingView(initialTicket: ticket)
+                .environment(registry)
+        }
     }
 }
 
