@@ -96,7 +96,33 @@ final class MapClusteringTests: XCTestCase {
     func testFittingADegenerateBoxYieldsAUsableWindow() {
         let box = PhotoMapping.BoundingBox(minLat: 35, maxLat: 35, minLng: 139, maxLng: 139)
         let region = MapRegion.fitting(box)
-        XCTAssertGreaterThan(region.latitudeDelta, 0.005)
-        XCTAssertGreaterThan(region.longitudeDelta, 0.005)
+        XCTAssertGreaterThan(region.latitudeDelta, 0.0004)
+        XCTAssertGreaterThan(region.longitudeDelta, 0.0004)
+    }
+
+    func testTapOnASpreadClusterZoomsToIt() {
+        // ~50 m apart: a 1 km window would not have split these before.
+        let pins = [pin("a", 35.6800, 139.7600), pin("b", 35.6804, 139.7605)]
+        let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
+        XCTAssertEqual(cluster.count, 2)
+        guard case .zoom(let region) = MapClustering.tapAction(for: cluster, pins: pins) else {
+            return XCTFail("expected zoom")
+        }
+        XCTAssertEqual(region.centerLatitude, 35.6802, accuracy: 1e-9)
+        XCTAssertEqual(MapClustering.clusters(pins: pins, in: region).count, 2)
+    }
+
+    func testTapOnPhotosTooCloseToSeparateListsThem() {
+        // Half a metre apart: no zoom level separates them.
+        let pins = [pin("a", 35.680000, 139.760000), pin("b", 35.680005, 139.760005)]
+        let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
+        XCTAssertFalse(cluster.isPile, "not identical, so isPile alone would not catch this")
+        XCTAssertEqual(MapClustering.tapAction(for: cluster, pins: pins), .list)
+    }
+
+    func testTapOnAPileListsIt() {
+        let pins = (0..<3).map { pin("p\($0)", 35.68, 139.76) }
+        let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
+        XCTAssertEqual(MapClustering.tapAction(for: cluster, pins: pins), .list)
     }
 }

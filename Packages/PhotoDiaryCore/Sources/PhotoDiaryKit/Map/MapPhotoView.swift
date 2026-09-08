@@ -152,7 +152,7 @@ public struct MapPhotoView: View {
                         PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
                     )
                 } else {
-                    clusterAnnotation(cluster)
+                    clusterAnnotation(cluster, pins: pins)
                 }
             }
             ForEach(todoPins) { todoPin in
@@ -191,13 +191,16 @@ public struct MapPhotoView: View {
         }
     }
 
-    private func clusterAnnotation(_ cluster: MapCluster) -> Annotation<Text, some View> {
+    private func clusterAnnotation(
+        _ cluster: MapCluster, pins: [PhotoMapPin]
+    ) -> Annotation<Text, some View> {
         Annotation("", coordinate: cluster.coordinate) {
             Button {
-                if cluster.isPile {
+                switch MapClustering.tapAction(for: cluster, pins: pins) {
+                case .zoom(let region):
+                    cameraPosition = .region(MKCoordinateRegion(region))
+                case .list:
                     pile = cluster
-                } else {
-                    zoom(to: cluster)
                 }
             } label: {
                 Text("\(cluster.count)")
@@ -213,12 +216,6 @@ public struct MapPhotoView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("\(cluster.count) photos")
         }
-    }
-
-    private func zoom(to cluster: MapCluster) {
-        cameraPosition = .region(
-            MKCoordinateRegion(MapRegion.fitting(cluster.boundingBox, padding: 0.3))
-        )
     }
 
     private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
