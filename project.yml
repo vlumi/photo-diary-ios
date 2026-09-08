@@ -54,6 +54,11 @@ targets:
             CFBundleURLSchemes:
               - photodiary
         UILaunchScreen: {}
+        # Plain http is allowed to local-network hosts only (a dev instance
+        # on the Mac / LAN, reached via scheme=http in the pairing link).
+        # Public hosts stay https-only under ATS.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         # iPhone-only, portrait-only. iPad multitasking not supported.
         # TARGETED_DEVICE_FAMILY (build setting) is the iPhone-only
         # gate; UIRequiresFullScreen is deprecated in iOS 26 with no
