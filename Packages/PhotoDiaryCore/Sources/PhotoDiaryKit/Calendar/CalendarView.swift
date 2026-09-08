@@ -4,6 +4,7 @@ import SwiftUI
 /// pushes a typed CalendarRoute so back-navigation and deep links can
 /// both target the same destinations.
 public struct CalendarView: View {
+    @Environment(InstanceRegistry.self) private var registry
     @State private var path: [CalendarRoute] = []
 
     public init() {}
@@ -21,6 +22,11 @@ public struct CalendarView: View {
                         PhotoGridView(galleryId: galleryId, year: year, month: month)
                     }
                 }
+        }
+        // A pushed year / month / grid belongs to the previous instance;
+        // drop back to the gallery list when the active one changes.
+        .onChange(of: registry.activeInstanceId) {
+            path = []
         }
     }
 }
