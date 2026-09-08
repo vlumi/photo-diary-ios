@@ -22,9 +22,16 @@ let package = Package(
         // SwiftUI views + MapKit surface. Depends on Core.
         .library(name: "PhotoDiaryKit", targets: ["PhotoDiaryKit"]),
     ],
+    dependencies: [
+        // Image pipeline for RemoteImageLoader: memory + disk cache,
+        // request coalescing, cancellation. DemoImageLoader stays
+        // dependency-free — its tiles are procedural.
+        .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
+    ],
     targets: [
         .target(
             name: "PhotoDiaryCore",
+            dependencies: [.product(name: "Nuke", package: "Nuke")],
             resources: [.process("Resources/Localizable.xcstrings")]
         ),
         .target(
