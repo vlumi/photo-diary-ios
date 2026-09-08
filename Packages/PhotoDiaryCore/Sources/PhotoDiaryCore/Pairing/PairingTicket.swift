@@ -1,18 +1,24 @@
 import Foundation
 
-/// A parsed pairing link: `photodiary://sso?host=<host>&token=<ticket>`.
+/// A parsed pairing link: `photodiary://sso?host=<host>&token=<ticket>`,
+/// optionally `&scheme=http` for a local plain-http instance.
 /// All three transports (QR scan, URL-scheme launch, paste) produce
 /// the same string, so this is the single entry point that decides
 /// whether input is a pairing link at all.
 public struct PairingTicket: Hashable, Sendable, Identifiable {
     public let host: String
     public let token: String
+    /// "https" unless the link says `scheme=http`. Plain http is only
+    /// reachable for local-network hosts (ATS blocks it elsewhere).
+    public let scheme: String
 
-    public var id: String { "\(host)|\(token)" }
+    public var origin: String { "\(scheme)://\(host)" }
+    public var id: String { "\(origin)|\(token)" }
 
-    public init(host: String, token: String) {
+    public init(host: String, token: String, scheme: String = "https") {
         self.host = host
         self.token = token
+        self.scheme = scheme
     }
 
     public static func parse(_ url: URL) -> PairingTicket? {
@@ -32,7 +38,9 @@ public struct PairingTicket: Hashable, Sendable, Identifiable {
             !token.isEmpty,
             rawHost.wholeMatch(of: hostPattern) != nil
         else { return nil }
-        return PairingTicket(host: rawHost, token: token)
+        let scheme = items.first(where: { $0.name == "scheme" })?.value?.lowercased() ?? "https"
+        guard scheme == "https" || scheme == "http" else { return nil }
+        return PairingTicket(host: rawHost, token: token, scheme: scheme)
     }
 
     /// Pasted text: trimmed, then parsed as a URL.

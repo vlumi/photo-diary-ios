@@ -9,6 +9,7 @@ final class PairingTicketTests: XCTestCase {
             "photodiary://sso?host=photos.example.com&token=abc.def.ghi"
         )
         XCTAssertEqual(ticket, PairingTicket(host: "photos.example.com", token: "abc.def.ghi"))
+        XCTAssertEqual(ticket?.origin, "https://photos.example.com")
     }
 
     func testTrimsWhitespaceAndLowercasesTheHost() {
@@ -41,6 +42,15 @@ final class PairingTicketTests: XCTestCase {
                 "accepted host \(bad)"
             )
         }
+    }
+
+    func testSchemeHttpIsHonouredAndOthersRejected() {
+        let dev = PairingTicket.parse("photodiary://sso?host=localhost:3000&token=t&scheme=http")
+        XCTAssertEqual(dev?.scheme, "http")
+        XCTAssertEqual(dev?.origin, "http://localhost:3000")
+        let upper = PairingTicket.parse("photodiary://sso?host=h.example&token=t&scheme=HTTPS")
+        XCTAssertEqual(upper?.scheme, "https")
+        XCTAssertNil(PairingTicket.parse("photodiary://sso?host=h.example&token=t&scheme=ftp"))
     }
 
     func testRejectsMissingOrEmptyToken() {

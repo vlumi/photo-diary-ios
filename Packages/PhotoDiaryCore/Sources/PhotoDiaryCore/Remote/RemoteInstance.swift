@@ -1,8 +1,10 @@
 import Foundation
 
 /// A real photo-diary server. Read-only, cookie-authenticated via
-/// PhotoDiaryAPI. The id is the host, which is also what the Keychain
-/// entry is keyed by.
+/// PhotoDiaryAPI. The id is the origin (scheme://host[:port]), which
+/// is also what the Keychain entry is keyed by. The display name
+/// drops a plain `https://` but keeps `http://…` visible, so an
+/// unencrypted local instance always looks like one.
 ///
 /// The photo root (where display/thumbnail bytes live) comes from the
 /// instance's `meta.cdn` when set and the API host otherwise — the
@@ -31,13 +33,14 @@ public actor RemoteInstance: Instance {
     private var photoCache: [String: CachedPhotos] = [:]
 
     public init(
-        host: String,
+        origin: String,
         api: PhotoDiaryAPI,
         lang: String? = nil,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
-        self.id = host
-        self.displayName = host
+        self.id = origin
+        self.displayName =
+            origin.hasPrefix("https://") ? String(origin.dropFirst("https://".count)) : origin
         self.api = api
         self.lang = lang ?? Locale.current.language.languageCode?.identifier ?? "en"
         self.now = now

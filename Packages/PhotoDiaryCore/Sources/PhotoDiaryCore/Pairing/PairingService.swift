@@ -30,7 +30,7 @@ public struct PairingService: Sendable {
     }
 
     public func pair(_ ticket: PairingTicket) async throws -> RemoteInstance {
-        let api = factory.makeAPI(host: ticket.host, cookies: SessionCookies())
+        let api = factory.makeAPI(origin: ticket.origin, cookies: SessionCookies())
 
         var components = URLComponents(url: api.baseURL, resolvingAgainstBaseURL: false)!
         components.path = "/api/v1/tokens/sso"
@@ -49,7 +49,7 @@ public struct PairingService: Sendable {
             throw PairingError.noSession
         }
         let _: SessionIdentity = try await api.get("/api/v1/tokens")
-        return factory.make(host: ticket.host, api: api)
+        return factory.make(origin: ticket.origin, api: api)
     }
 }
 
