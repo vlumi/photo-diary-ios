@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Archive, export, and upload the iOS app to App Store Connect — the
-# TestFlight lane. Internal testers get every processed build
-# automatically; nothing here touches App Store review.
+# Archive, export, and upload the iOS app to App Store Connect. The last
+# step of `make release` (see RELEASING.md); runnable alone to rebuild or
+# re-upload the version + build currently in project.yml.
 #
 # Usage:
 #   Scripts/distribute.sh                 # archive → export → upload
@@ -17,11 +17,6 @@
 #   • Signing is automatic against DEVELOPMENT_TEAM in project.yml, the same
 #     way Xcode's Organizer does it; -allowProvisioningUpdates fetches the
 #     distribution cert + profile on first run.
-#
-# Build number: the commit count on the current branch. App Store Connect
-# requires CFBundleVersion to increase per upload, and commit count is
-# monotonic on main without anyone editing project.yml per release. Run
-# uploads from main so a branch build can't come out lower than the last.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -46,8 +41,8 @@ archive="${out}/PhotoDiary-iOS.xcarchive"
 
 if [ "$build" -eq 1 ]; then
     [ -d "$project" ] || { echo "error: $project missing — run Scripts/generate.sh first." >&2; exit 1; }
-    build_number="$(git rev-list --count HEAD)"
     marketing="$(awk -F'"' '/^ *MARKETING_VERSION:/ { print $2; exit }' project.yml)"
+    build_number="$(awk -F'"' '/^ *CURRENT_PROJECT_VERSION:/ { print $2; exit }' project.yml)"
     rm -rf "$out"
     mkdir -p "$out"
 
@@ -58,7 +53,6 @@ if [ "$build" -eq 1 ]; then
         -destination "generic/platform=iOS" \
         -archivePath "$archive" \
         -allowProvisioningUpdates \
-        CURRENT_PROJECT_VERSION="$build_number" \
         -quiet
 
     echo "▶︎ Exporting .ipa…"
@@ -105,4 +99,4 @@ xcrun altool --upload-app \
     --apiKey "$ASC_KEY_ID" \
     --apiIssuer "$ASC_ISSUER_ID"
 
-echo "✓ Uploaded. Processing takes a few minutes; internal testers are notified automatically."
+echo "✓ Uploaded ${marketing:-} (${build_number:-}). Processing takes a few minutes; internal testers are notified automatically."
