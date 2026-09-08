@@ -5,25 +5,54 @@ import Observation
 /// pointer. `@Observable` so SwiftUI views can rebind when the
 /// registry mutates.
 ///
-/// v1 seeds the DemoInstance on first launch. Real (RemoteInstance)
-/// instances get added via the SSO pairing flow, which lands in a
-/// later PR — for now the registry is demo-only.
+/// Durable: the id list and active id go to InstancePersistence on
+/// every change; remote sessions live in the SessionStore and are
+/// rebuilt into RemoteInstances on launch. The demo instance is just
+/// another id in the list — seeded on first launch, gone once removed.
 ///
 /// The active instance is a single global — most UI surfaces are
-/// scoped to whichever instance is active, switched from a top-level
-/// Settings action.
+/// scoped to whichever instance is active, switched from Settings.
 @Observable
 @MainActor
 public final class InstanceRegistry {
     public private(set) var instances: [any Instance] = []
     public private(set) var activeInstanceId: String?
+    /// Shared with the pairing flow so a freshly paired instance
+    /// persists its cookies the same way a restored one does.
+    public let remoteFactory: RemoteInstanceFactory
 
-    public init(seedingDemo: Bool = true) {
-        if seedingDemo {
-            let demo = DemoInstance()
-            instances = [demo]
-            activeInstanceId = demo.id
+    private let persistence: any InstancePersistence
+    private let sessionStore: any SessionStore
+
+    /// Test / preview convenience: nothing persists.
+    public convenience init(seedingDemo: Bool = true) {
+        self.init(
+            persistence: InMemoryInstancePersistence(),
+            sessionStore: InMemorySessionStore(),
+            seedingDemo: seedingDemo
+        )
+    }
+
+    /// Restores whatever was persisted. On first launch (nothing
+    /// saved yet) seeds the demo instance when `seedingDemo`.
+    public init(
+        persistence: any InstancePersistence,
+        sessionStore: any SessionStore,
+        seedingDemo: Bool = true
+    ) {
+        self.persistence = persistence
+        self.sessionStore = sessionStore
+        self.remoteFactory = RemoteInstanceFactory(sessionStore: sessionStore)
+
+        let ids = persistence.loadInstanceIds() ?? (seedingDemo ? [DemoInstance.instanceId] : [])
+        instances = ids.map { id -> any Instance in
+            if id == DemoInstance.instanceId { return DemoInstance() }
+            return remoteFactory.restore(host: id)
         }
+        let savedActive = persistence.loadActiveId()
+        activeInstanceId =
+            instances.contains(where: { $0.id == savedActive }) ? savedActive : instances.first?.id
+        persist()
     }
 
     public var activeInstance: (any Instance)? {
@@ -34,6 +63,7 @@ public final class InstanceRegistry {
     public func setActive(_ id: String) {
         guard instances.contains(where: { $0.id == id }) else { return }
         activeInstanceId = id
+        persist()
     }
 
     public func add(_ instance: any Instance) {
@@ -48,12 +78,24 @@ public final class InstanceRegistry {
         if activeInstanceId == nil {
             activeInstanceId = instance.id
         }
+        persist()
     }
 
+    /// Forgets the instance and, for a remote one, its session.
     public func remove(id: String) {
+        guard let removed = instances.first(where: { $0.id == id }) else { return }
         instances.removeAll(where: { $0.id == id })
+        if !removed.isDemo {
+            try? sessionStore.delete(host: id)
+        }
         if activeInstanceId == id {
             activeInstanceId = instances.first?.id
         }
+        persist()
+    }
+
+    private func persist() {
+        persistence.saveInstanceIds(instances.map(\.id))
+        persistence.saveActiveId(activeInstanceId)
     }
 }
