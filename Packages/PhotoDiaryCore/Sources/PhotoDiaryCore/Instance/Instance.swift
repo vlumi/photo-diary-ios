@@ -40,4 +40,12 @@ public enum InstanceError: Error, Sendable {
     case galleryNotFound(String)
     case photoNotFound(String)
     case notImplemented
+    /// The refresh token was rejected; the user must pair again.
+    case sessionExpired
+    /// Non-2xx from the server that isn't a session problem.
+    case server(status: Int)
+    /// Network-level failure (offline, DNS, TLS).
+    case transport(String)
+    /// The response didn't match the wire shape we expect.
+    case decoding(String)
 }

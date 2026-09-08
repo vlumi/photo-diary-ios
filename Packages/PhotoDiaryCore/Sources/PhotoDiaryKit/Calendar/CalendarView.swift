@@ -70,9 +70,11 @@ struct GalleryListView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("\(gallery.photoCount) photos")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+                        if let count = gallery.photoCount {
+                            Text("\(count) photos")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                 }
             }

@@ -11,7 +11,7 @@ public struct AppShell: View {
 
     public init() {
         _registry = State(initialValue: InstanceRegistry(seedingDemo: true))
-        self.imageLoader = DemoImageLoader()
+        self.imageLoader = SchemeRoutingImageLoader()
         do {
             self.todoPinContainer = try ModelContainer(for: TodoPin.self)
         } catch {
@@ -50,7 +50,7 @@ struct ImageLoaderBox {
 }
 
 private struct ImageLoaderKey: EnvironmentKey {
-    static let defaultValue = ImageLoaderBox(DemoImageLoader())
+    static let defaultValue = ImageLoaderBox(SchemeRoutingImageLoader())
 }
 
 extension EnvironmentValues {

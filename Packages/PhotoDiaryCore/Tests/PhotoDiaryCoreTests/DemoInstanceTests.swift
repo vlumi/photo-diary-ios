@@ -13,7 +13,7 @@ final class DemoInstanceTests: XCTestCase {
         for gallery in try await instance.listGalleries() {
             let photos = try await instance.listPhotos(inGallery: gallery.id)
             XCTAssertEqual(
-                photos.count, gallery.photoCount,
+                photos.count, gallery.photoCount ?? -1,
                 "photoCount on Gallery \(gallery.id) diverges from listPhotos length"
             )
         }
