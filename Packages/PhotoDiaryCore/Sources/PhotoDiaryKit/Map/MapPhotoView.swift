@@ -56,6 +56,11 @@ public struct MapPhotoView: View {
         case failed(String)
     }
 
+    /// Initial zoom around the latest photo: roughly a country to a
+    /// small continent, so the neighbourhood is legible but the wider
+    /// spread is visible too.
+    static let initialSpanDegrees = 20.0
+
     public init() {}
 
     public var body: some View {
@@ -312,11 +317,22 @@ public struct MapPhotoView: View {
                 clusters = []
             } else {
                 state = .loaded(pins)
-                if let box = PhotoMapping.boundingBox(of: pins) {
-                    // Explicit fit rather than .automatic: the annotation
-                    // set is derived from the region, so the region has
-                    // to be known first.
-                    let region = MKCoordinateRegion(MapRegion.fitting(box))
+                if let latest = PhotoMapping.latestGeotagged(in: unique),
+                    let coord = latest.location.coordinates
+                {
+                    // Open where the diary most recently was, zoomed well
+                    // out. Fitting every pin instead gave a world view of
+                    // scattered dots. Explicit rather than .automatic: the
+                    // annotation set is derived from the region, so the
+                    // region has to be known first.
+                    let region = MKCoordinateRegion(
+                        MapRegion(
+                            centerLatitude: coord.latitude,
+                            centerLongitude: coord.longitude,
+                            latitudeDelta: Self.initialSpanDegrees,
+                            longitudeDelta: Self.initialSpanDegrees
+                        )
+                    )
                     cameraPosition = .region(region)
                     currentRegion = region
                     recluster(pins: pins, region: region)

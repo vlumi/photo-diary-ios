@@ -41,7 +41,17 @@ final class PhotoMappingTests: XCTestCase {
 
     // MARK: - Fixture
 
-    private func fixture(id: String, lat: Double?, lng: Double?) -> Photo {
+    func testLatestGeotaggedPicksNewestPhotoWithCoordinates() {
+        let photos = [
+            fixture(id: "old", lat: 35, lng: 139, day: 1),
+            fixture(id: "newest-but-untagged", lat: nil, lng: nil, day: 9),
+            fixture(id: "newest-tagged", lat: 60, lng: 24, day: 5),
+        ]
+        XCTAssertEqual(PhotoMapping.latestGeotagged(in: photos)?.id, "newest-tagged")
+        XCTAssertNil(PhotoMapping.latestGeotagged(in: [fixture(id: "x", lat: nil, lng: nil)]))
+    }
+
+    private func fixture(id: String, lat: Double?, lng: Double?, day: Int = 1) -> Photo {
         let coords: CLLocationCoordinate2D? = {
             guard let lat, let lng else { return nil }
             return CLLocationCoordinate2D(latitude: lat, longitude: lng)
@@ -50,7 +60,7 @@ final class PhotoMappingTests: XCTestCase {
             id: id,
             galleryId: "g",
             timestamp: PhotoTimestamp(
-                year: 2024, month: 1, day: 1, hour: 0, minute: 0, second: 0
+                year: 2024, month: 1, day: day, hour: 0, minute: 0, second: 0
             ),
             location: PhotoLocation(coordinates: coords),
             displayImageURL: URL(string: "photodiary-demo://display/\(id).jpg")!,
