@@ -15,18 +15,19 @@ public actor PhotoDiaryAPI {
     private let onCookiesChanged: (@Sendable (SessionCookies) -> Void)?
 
     /// - Parameters:
-    ///   - host: hostname (optionally with port) of the instance.
+    ///   - origin: scheme + host (+ port) of the instance, e.g.
+    ///     `https://photos.example.com` or `http://localhost:3000`.
     ///   - cookies: a previously persisted session, if any.
     ///   - onCookiesChanged: called whenever the server rotates or
     ///     clears a cookie — the persistence hook.
     ///   - configuration: overridable for tests (URLProtocol stubs).
     public init(
-        host: String,
+        origin: String,
         cookies: SessionCookies = SessionCookies(),
         onCookiesChanged: (@Sendable (SessionCookies) -> Void)? = nil,
         configuration: URLSessionConfiguration = .ephemeral
     ) {
-        self.baseURL = URL(string: "https://\(host)/")!
+        self.baseURL = URL(string: origin + "/")!
         self.cookies = cookies
         self.onCookiesChanged = onCookiesChanged
         configuration.httpShouldSetCookies = false

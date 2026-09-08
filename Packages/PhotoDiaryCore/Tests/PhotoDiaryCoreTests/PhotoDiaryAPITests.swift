@@ -48,7 +48,7 @@ func stubbedAPI(
     let config = URLSessionConfiguration.ephemeral
     config.protocolClasses = [StubProtocol.self]
     return PhotoDiaryAPI(
-        host: "photos.example.test",
+        origin: "https://photos.example.test",
         cookies: cookies,
         onCookiesChanged: onCookiesChanged,
         configuration: config

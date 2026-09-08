@@ -34,7 +34,8 @@ final class RemoteInstanceTests: XCTestCase {
                 return .init(status: 404)
             }
         }
-        let instance = RemoteInstance(host: "photos.example.test", api: stubbedAPI(), lang: "fi")
+        let instance = RemoteInstance(
+            origin: "https://photos.example.test", api: stubbedAPI(), lang: "fi")
         let photos = try await instance.listPhotos(inGallery: "g1")
 
         XCTAssertEqual(photos.map(\.id), ["a.jpg", "b.jpg"])
@@ -56,7 +57,7 @@ final class RemoteInstanceTests: XCTestCase {
             default: return .init(status: 404)
             }
         }
-        let instance = RemoteInstance(host: "photos.example.test", api: stubbedAPI())
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
         _ = try await instance.listPhotos(inGallery: "g1")
         _ = try await instance.listPhotos(inGallery: "g1")
         let metaCalls = StubProtocol.requests.filter { $0.url!.path == "/api/v1/meta" }
@@ -83,7 +84,7 @@ final class RemoteInstanceTests: XCTestCase {
 
     func testListPhotosIsServedFromCacheWithinTTL() async throws {
         stubEmptyGallery()
-        let instance = RemoteInstance(host: "photos.example.test", api: stubbedAPI())
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
         _ = try await instance.listPhotos(inGallery: "g1")
         _ = try await instance.listPhotos(inGallery: "g1")
         let queries = StubProtocol.requests.filter { $0.url!.path.hasSuffix("/query") }
@@ -94,7 +95,7 @@ final class RemoteInstanceTests: XCTestCase {
         stubEmptyGallery()
         let clock = FakeClock()
         let instance = RemoteInstance(
-            host: "photos.example.test", api: stubbedAPI(), now: { clock.now })
+            origin: "https://photos.example.test", api: stubbedAPI(), now: { clock.now })
         _ = try await instance.listPhotos(inGallery: "g1")
         clock.advance(by: RemoteInstance.photoCacheTTL + 1)
         _ = try await instance.listPhotos(inGallery: "g1")
@@ -104,7 +105,7 @@ final class RemoteInstanceTests: XCTestCase {
 
     func testGetPhotoIsAnsweredFromTheCachedListWhenPresent() async throws {
         stubEmptyGallery()  // the single-photo endpoint 404s here on purpose
-        let instance = RemoteInstance(host: "photos.example.test", api: stubbedAPI())
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
         _ = try await instance.listPhotos(inGallery: "g1")
         let photo = try await instance.getPhoto(id: "a.jpg", inGallery: "g1")
         XCTAssertEqual(photo.id, "a.jpg")
@@ -113,9 +114,11 @@ final class RemoteInstanceTests: XCTestCase {
     }
 
     func testIdentityIsTheHost() {
-        let instance = RemoteInstance(host: "photos.example.test", api: stubbedAPI())
-        XCTAssertEqual(instance.id, "photos.example.test")
-        XCTAssertEqual(instance.displayName, "photos.example.test")
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
+        XCTAssertEqual(instance.id, "https://photos.example.test")
+        XCTAssertEqual(instance.displayName, "photos.example.test", "https is implied")
+        let local = RemoteInstance(origin: "http://localhost:3000", api: stubbedAPI())
+        XCTAssertEqual(local.displayName, "http://localhost:3000", "plain http stays visible")
         XCTAssertFalse(instance.isDemo)
     }
 }
