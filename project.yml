@@ -70,8 +70,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.photodiary
         PRODUCT_NAME: Photo Diary
-        MARKETING_VERSION: "0.0.1"
-        CURRENT_PROJECT_VERSION: "1"
+        # Both bumped by `make release` (see RELEASING.md); never by hand.
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "0"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # TARGETED_DEVICE_FAMILY: 1 = iPhone. No iPad slice.
@@ -82,8 +83,7 @@ targets:
         # Team committed on purpose (not a secret): the release lane
         # archives headlessly with automatic signing, and the generated
         # project needs the team for that to work.
-        # TODO: fill in when Apple Developer account details are decided.
-        # DEVELOPMENT_TEAM: XXXXXXXXXX
+        DEVELOPMENT_TEAM: U84DT7P75P
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: PhotoDiaryCore

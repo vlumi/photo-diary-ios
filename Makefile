@@ -54,6 +54,42 @@ ci:  ## Run every check CI runs (lint + test + build), so a green run here is a 
 	@$(MAKE) --no-print-directory test
 	@$(MAKE) --no-print-directory build
 
+# Release lane — see RELEASING.md. UPLOAD=0 stops after export.
+UPLOAD ?= 1
+DIST_FLAGS := $(if $(filter 0,$(UPLOAD)),--no-upload,)
+
+.PHONY: release
+release: release-distribute  ## Cut a release: bump → PR → CI → tag → archive → upload (UPLOAD=0 to skip ASC)
+	@echo "✓ release complete."
+
+.PHONY: release-build
+release-build:  ## Like `release` but stop after export (no upload)
+	@$(MAKE) release UPLOAD=0
+
+.PHONY: release-preflight
+release-preflight:  ## Release step 1: verify a clean, up-to-date base (main or release/X.Y.x)
+	@Scripts/release-preflight.sh
+
+.PHONY: release-publish
+release-publish: release-preflight  ## Release step 2: bump, open the PR, wait for CI, merge
+	@Scripts/release-publish.sh
+
+.PHONY: release-tag
+release-tag: release-publish  ## Release step 3: tag the merge commit + publish the GitHub release
+	@Scripts/release-tag.sh
+
+.PHONY: release-distribute
+release-distribute: release-tag  ## Release step 4: archive/export (+ upload unless UPLOAD=0)
+	@Scripts/release-distribute.sh $(DIST_FLAGS)
+
+.PHONY: release-distribute-retry
+release-distribute-retry:  ## Re-distribute an already-tagged release (no PR/tag steps)
+	@Scripts/release-distribute.sh $(DIST_FLAGS) --require-tag
+
+.PHONY: release-upload
+release-upload:  ## Upload the already-built dist/ package (no rebuild)
+	@Scripts/release-distribute.sh --upload-only
+
 .PHONY: sync-schema
 sync-schema:  ## Fetch server/openapi.json for TAG and regenerate the Swift client (TAG=v1.0.5)
 	@Scripts/sync-schema.sh $(TAG)
