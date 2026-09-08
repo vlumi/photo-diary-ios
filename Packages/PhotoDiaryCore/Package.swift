@@ -26,7 +26,7 @@ let package = Package(
         // Image pipeline for RemoteImageLoader: memory + disk cache,
         // request coalescing, cancellation. DemoImageLoader stays
         // dependency-free — its tiles are procedural.
-        .package(url: "https://github.com/kean/Nuke.git", from: "12.8.0"),
+        .package(url: "https://github.com/kean/Nuke.git", from: "13.2.0"),
     ],
     targets: [
         .target(
