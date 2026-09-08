@@ -6,6 +6,11 @@ import SwiftUI
 /// Map of every geotagged photo across the active instance's
 /// galleries. Tapping a pin opens PhotoViewerSheet.
 ///
+/// Pins are culled to the viewport and grid-clustered on every camera
+/// settle (MapClustering), so thousands of photos render as a few
+/// dozen annotations. A cluster zooms into its bounding box on tap;
+/// a pile at one exact spot lists its photos instead.
+///
 /// Load fans out to every gallery on the active instance so a photo
 /// pinned in gallery A shows up next to a pin in gallery B — matches
 /// the site's per-instance map. Photos without coordinates are
@@ -25,6 +30,11 @@ public struct MapPhotoView: View {
     @State private var editorPresentation: EditorPresentation?
     @State private var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
+    @State private var clusters: [MapCluster] = []
+    @State private var pile: MapCluster?
+    // Chosen inside the pile sheet; presented once that sheet is gone
+    // so two presentations don't overlap.
+    @State private var pendingFromPile: Photo?
     @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
 
     private enum EditorPresentation: Identifiable {
@@ -82,6 +92,25 @@ public struct MapPhotoView: View {
                     }
                 )
             }
+            .sheet(
+                item: $pile,
+                onDismiss: {
+                    if let photo = pendingFromPile {
+                        pendingFromPile = nil
+                        presented = photo
+                    }
+                }
+            ) { cluster in
+                ClusterPhotosSheet(
+                    photos: cluster.photoIds.compactMap { photosById[$0] },
+                    loader: loaderBox.loader,
+                    onSelect: { photo in
+                        pendingFromPile = photo
+                        pile = nil
+                    },
+                    onDismiss: { pile = nil }
+                )
+            }
     }
 
     private func centerOnTodoPin(_ pin: TodoPin) {
@@ -117,8 +146,14 @@ public struct MapPhotoView: View {
 
     private func map(pins: [PhotoMapPin]) -> some View {
         Map(position: $cameraPosition) {
-            ForEach(pins) { pin in
-                photoAnnotation(pin)
+            ForEach(clusters) { cluster in
+                if cluster.isSingle {
+                    photoAnnotation(
+                        PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
+                    )
+                } else {
+                    clusterAnnotation(cluster)
+                }
             }
             ForEach(todoPins) { todoPin in
                 todoAnnotation(todoPin)
@@ -127,6 +162,7 @@ public struct MapPhotoView: View {
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
+            recluster(pins: pins, region: context.region)
         }
         .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .top) { locationErrorBanner }
@@ -155,6 +191,40 @@ public struct MapPhotoView: View {
         }
     }
 
+    private func clusterAnnotation(_ cluster: MapCluster) -> Annotation<Text, some View> {
+        Annotation("", coordinate: cluster.coordinate) {
+            Button {
+                if cluster.isPile {
+                    pile = cluster
+                } else {
+                    zoom(to: cluster)
+                }
+            } label: {
+                Text("\(cluster.count)")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(minWidth: 32, minHeight: 32)
+                    .padding(.horizontal, 4)
+                    .background(Color.accentColor)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(.white, lineWidth: 2))
+                    .shadow(radius: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(cluster.count) photos")
+        }
+    }
+
+    private func zoom(to cluster: MapCluster) {
+        cameraPosition = .region(
+            MKCoordinateRegion(MapRegion.fitting(cluster.boundingBox, padding: 0.3))
+        )
+    }
+
+    private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
+        clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
+    }
+
     private func todoAnnotation(_ todoPin: TodoPin) -> Annotation<Text, some View> {
         let coord = CLLocationCoordinate2D(
             latitude: todoPin.latitude, longitude: todoPin.longitude
@@ -177,58 +247,13 @@ public struct MapPhotoView: View {
     }
 
     private var controls: some View {
-        VStack(spacing: 12) {
-            listPinsButton
-            dropPinButton
-            locateButton
-        }
-        .padding(.trailing, 16)
-        .padding(.bottom, 24)
-    }
-
-    private var listPinsButton: some View {
-        Button {
-            showingList = true
-        } label: {
-            Image(systemName: "list.bullet")
-                .font(.title3)
-                .foregroundStyle(.white)
-                .padding(12)
-                .background(Color.secondary)
-                .clipShape(Circle())
-                .shadow(radius: 3)
-                .overlay(alignment: .topTrailing) {
-                    if !todoPins.isEmpty {
-                        Text("\(todoPins.count)")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(Color.orange)
-                            .clipShape(Capsule())
-                            .offset(x: 6, y: -6)
-                    }
-                }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("List todo pins")
-    }
-
-    private var dropPinButton: some View {
-        Button {
-            dropPinAtMapCenter()
-        } label: {
-            Image(systemName: "mappin.and.ellipse")
-                .font(.title3)
-                .foregroundStyle(.white)
-                .padding(12)
-                .background(Color.orange)
-                .clipShape(Circle())
-                .shadow(radius: 3)
-        }
-        .buttonStyle(.plain)
-        .disabled(currentRegion == nil)
-        .accessibilityLabel("Drop pin at map centre")
+        MapControlsOverlay(
+            todoCount: todoPins.count,
+            canDropPin: currentRegion != nil,
+            onListPins: { showingList = true },
+            onDropPin: dropPinAtMapCenter,
+            onLocate: { locator.locate() }
+        )
     }
 
     private func dropPinAtMapCenter() {
@@ -237,22 +262,6 @@ public struct MapPhotoView: View {
             latitude: region.center.latitude,
             longitude: region.center.longitude
         )
-    }
-
-    private var locateButton: some View {
-        Button {
-            locator.locate()
-        } label: {
-            Image(systemName: "location.fill")
-                .font(.title3)
-                .foregroundStyle(.white)
-                .padding(12)
-                .background(Color.accentColor)
-                .clipShape(Circle())
-                .shadow(radius: 3)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Center on my location")
     }
 
     @ViewBuilder
@@ -296,17 +305,50 @@ public struct MapPhotoView: View {
                 let photos = try await instance.listPhotos(inGallery: gallery.id)
                 allPhotos.append(contentsOf: photos)
             }
-            let pins = PhotoMapping.pins(from: allPhotos)
-            photosById = Dictionary(uniqueKeysWithValues: allPhotos.map { ($0.id, $0) })
+            // A photo linked into two galleries arrives twice; keep one.
+            var seen = Set<String>()
+            let unique = allPhotos.filter { seen.insert($0.id).inserted }
+            let pins = PhotoMapping.pins(from: unique)
+            photosById = Dictionary(uniqueKeysWithValues: unique.map { ($0.id, $0) })
             if pins.isEmpty {
                 state = .empty
+                clusters = []
             } else {
                 state = .loaded(pins)
-                cameraPosition = .automatic
+                if let box = PhotoMapping.boundingBox(of: pins) {
+                    // Explicit fit rather than .automatic: the annotation
+                    // set is derived from the region, so the region has
+                    // to be known first.
+                    let region = MKCoordinateRegion(MapRegion.fitting(box))
+                    cameraPosition = .region(region)
+                    currentRegion = region
+                    recluster(pins: pins, region: region)
+                }
             }
         } catch {
             state = .failed(error.localizedDescription)
         }
+    }
+}
+extension MKCoordinateRegion {
+    fileprivate init(_ region: MapRegion) {
+        self.init(
+            center: CLLocationCoordinate2D(
+                latitude: region.centerLatitude, longitude: region.centerLongitude),
+            span: MKCoordinateSpan(
+                latitudeDelta: region.latitudeDelta, longitudeDelta: region.longitudeDelta)
+        )
+    }
+}
+
+extension MapRegion {
+    fileprivate init(_ region: MKCoordinateRegion) {
+        self.init(
+            centerLatitude: region.center.latitude,
+            centerLongitude: region.center.longitude,
+            latitudeDelta: region.span.latitudeDelta,
+            longitudeDelta: region.span.longitudeDelta
+        )
     }
 }
 #else
