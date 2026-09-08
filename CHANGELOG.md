@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 1 — 2026-09-08
+
 - **Pair with a Photo Diary instance** from the site's "Pair a device" code — scan the QR, open the link on the same device, or paste it — with an "Add this instance?" confirmation before anything is consumed; sessions persist in the Keychain across relaunches.
 - **Calendar**: galleries → years → months → a day-sectioned photo grid, tapping into the full-screen viewer with pinch-zoom, pan, and double-tap zoom.
 - **Map** of every geotagged photo across the instance's galleries, clustered for thousands of pins, opening centred on the most recent photo; tap a cluster to zoom in, or to list its photos when they share one spot.
