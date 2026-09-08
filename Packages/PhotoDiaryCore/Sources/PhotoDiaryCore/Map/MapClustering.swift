@@ -23,11 +23,12 @@ public struct MapRegion: Hashable, Sendable {
 
     /// The smallest region showing every corner of `box`, grown by
     /// `padding` (fraction of each span) so pins don't sit on the edge.
-    /// A degenerate box (one point) gets a fixed ~1 km-ish window.
+    /// The floor keeps a near-degenerate box from producing a window
+    /// too small to be useful (~55 m).
     public static func fitting(_ box: PhotoMapping.BoundingBox, padding: Double = 0.15) -> MapRegion
     {
-        let latSpan = max(box.maxLat - box.minLat, 0.01) * (1 + 2 * padding)
-        let lngSpan = max(box.maxLng - box.minLng, 0.01) * (1 + 2 * padding)
+        let latSpan = max(box.maxLat - box.minLat, 0.0005) * (1 + 2 * padding)
+        let lngSpan = max(box.maxLng - box.minLng, 0.0005) * (1 + 2 * padding)
         return MapRegion(
             centerLatitude: (box.minLat + box.maxLat) / 2,
             centerLongitude: (box.minLng + box.maxLng) / 2,
@@ -58,6 +59,15 @@ public struct MapCluster: Identifiable, Hashable, Sendable {
             && boundingBox.maxLat - boundingBox.minLat < 1e-6
             && boundingBox.maxLng - boundingBox.minLng < 1e-6
     }
+}
+
+/// What tapping a cluster should do.
+public enum ClusterTapAction: Hashable, Sendable {
+    /// Zooming to this region separates at least two of its photos.
+    case zoom(MapRegion)
+    /// Zooming wouldn't split it (a pile, or photos closer than the
+    /// finest cell) — list the photos instead.
+    case list
 }
 
 /// Viewport culling + grid clustering. Thousands of pins become at
@@ -126,6 +136,23 @@ public enum MapClustering {
                 boundingBox: box
             )
         }
+    }
+
+    /// Decides a cluster tap so it always makes progress: simulate the
+    /// zoom the tap would perform and, if the cluster's own photos would
+    /// still fall into one cell there, list them instead of zooming
+    /// into the same picture again.
+    public static func tapAction(
+        for cluster: MapCluster,
+        pins: [PhotoMapPin],
+        columns: Int = 6
+    ) -> ClusterTapAction {
+        if cluster.isPile { return .list }
+        let target = MapRegion.fitting(cluster.boundingBox, padding: 0.3)
+        let ids = Set(cluster.photoIds)
+        let members = pins.filter { ids.contains($0.photoId) }
+        let after = clusters(pins: members, in: target, columns: columns)
+        return after.count > 1 ? .zoom(target) : .list
     }
 
     /// Largest power of two (in degrees) that fits `columns` times into
