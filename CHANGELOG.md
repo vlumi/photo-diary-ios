@@ -1,11 +1,20 @@
 # Changelog
 
-Notable changes per release. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) shape; versions follow [SemVer](https://semver.org/).
+All notable changes to the Photo Diary companion app are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+Grouped by **marketing version**, then by **build number** within it — the version stays steady while the build climbs with each TestFlight upload (see [RELEASING.md](RELEASING.md)). A build's section lists only what changed since the **previous build**, whether or not that build was the same version. The build heading is `### build N — <date>`; the version comes from the `## vX.Y.Z` above it.
 
-### Added
+Each version's top section, **Unreleased (next build)**, collects entries merged to `main` but not yet in a TestFlight build; cutting a release renames it to that build's heading and opens a fresh empty one. Keep that heading immediately followed by its list items (no prose between), so the release script can promote it. A user-facing PR writes its own bullet here.
 
-- Initial repo scaffold: XcodeGen `project.yml`, Package.swift split (`PhotoDiaryCore` + `PhotoDiaryKit`), Makefile, SwiftLint + swift-format configs, docs (README / AGENTS / ARCHITECTURE / ROADMAP / this file).
-- Bundle id `fi.misaki.photodiary` (dropped the hyphen from the initial placeholder to match the sibling projects' shape).
-- Locked design decisions in docs: authenticated-only onboarding (SSO pairing is the only way to add an instance), demo mode as v1 baseline (screenshots + App Store review + offline dev), `Instance` protocol with `DemoInstance` + `RemoteInstance` as parallel implementations.
+**One bullet, one line — no hard wrapping.** Order the list by what a user notices, not by merge order, and fold entries that tell one story into one bullet.
+
+## v0.1.0
+
+### Unreleased (next build)
+
+- **Pair with a Photo Diary instance** from the site's "Pair a device" code — scan the QR, open the link on the same device, or paste it — with an "Add this instance?" confirmation before anything is consumed; sessions persist in the Keychain across relaunches.
+- **Calendar**: galleries → years → months → a day-sectioned photo grid, tapping into the full-screen viewer with pinch-zoom, pan, and double-tap zoom.
+- **Map** of every geotagged photo across the instance's galleries, clustered for thousands of pins, opening centred on the most recent photo; tap a cluster to zoom in, or to list its photos when they share one spot.
+- **Todo pins**: drop a note at the map centre, edit or delete it, list them all — stored on the device only.
+- **Settings** lists paired instances, switches the active one, and forgets an instance (dropping its session).
+- **Demo instance** with sample galleries works without a server, so the app is explorable before pairing.
