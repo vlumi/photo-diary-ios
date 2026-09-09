@@ -97,6 +97,7 @@ public struct MapPhotoView: View {
             }
             .sheet(isPresented: $showingList) {
                 TodoPinListSheet(
+                    mapCenter: currentRegion?.center,
                     onDismiss: { showingList = false },
                     onSelect: { pin in
                         showingList = false
