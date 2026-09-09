@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Launching no longer flashes a blank white screen: the launch frame is the icon's navy.
 - A proper app icon: a lens framing a sunrise over a navy horizon, replacing the placeholder camera glyph.
 - If a refresh finds you can no longer see what you were viewing (the pairing expired, the gallery is gone, or access was withdrawn), the app returns to the front page and says why; a plain connection failure keeps what is on screen.
 - Galleries and photos you have seen are kept on the device: the front page, calendar and map show them at once on relaunch and refresh quietly behind them, so a slow or absent connection no longer means a blank screen.
