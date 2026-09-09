@@ -19,7 +19,9 @@ enum MapAnnotations {
                 .background(Color.accentColor)
                 .clipShape(Circle())
                 .shadow(radius: 2)
-                .accessibilityLabel("Open photo")
+                .accessibilityLabel("Photo")
+                .accessibilityHint("Shows a preview.")
+                .accessibilityAddTraits(.isButton)
         }
         .tag("photo:\(pin.photoId)")
     }
@@ -36,6 +38,8 @@ enum MapAnnotations {
                 .overlay(Capsule().stroke(.white, lineWidth: 2))
                 .shadow(radius: 2)
                 .accessibilityLabel("\(cluster.count) photos")
+                .accessibilityHint("Zooms in, or lists the photos when they share one spot.")
+                .accessibilityAddTraits(.isButton)
         }
         .tag("cluster:\(cluster.id)")
     }
@@ -53,6 +57,8 @@ enum MapAnnotations {
             .shadow(radius: lifted ? 6 : 2, y: lifted ? 4 : 0)
             .animation(.easeOut(duration: 0.15), value: lifted)
             .accessibilityLabel(note.isEmpty ? "Todo pin" : "Todo: \(note)")
+            .accessibilityHint("Shows the note. Press and hold to move it.")
+            .accessibilityAddTraits(.isButton)
     }
 
     static func userMarker(at coordinate: CLLocationCoordinate2D) -> some MapContent {
@@ -63,6 +69,7 @@ enum MapAnnotations {
                 .overlay(Circle().stroke(.white, lineWidth: 3))
                 .shadow(radius: 2)
                 .allowsHitTesting(false)
+                .accessibilityLabel("Your location")
         }
         .annotationTitles(.hidden)
     }

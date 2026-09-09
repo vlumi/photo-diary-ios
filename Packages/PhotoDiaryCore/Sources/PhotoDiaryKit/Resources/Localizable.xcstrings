@@ -1,15 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%1$@, %2$@" : {
+      "comment" : "Accessibility description of a photo with a title: the title, then the photo's date and time."
+    },
     "%lld" : {
       "comment" : "Badge on a map cluster pin: the number of photos gathered under it. Digits only.",
       "shouldTranslate" : false
     },
     "%lld photos" : {
       "comment" : "Two places: the caption under a gallery in the calendar's gallery list, and the accessibility label of a map cluster pin. The argument is the photo count."
-    },
-    "Active" : {
-      "comment" : "Accessibility label of the checkmark next to the instance the app is currently showing, in Settings."
     },
     "Add %@" : {
       "comment" : "Confirmation button in pairing that adds the instance; the argument is the server host name, e.g. photos.example.com."
@@ -104,14 +104,11 @@
     "Note" : {
       "comment" : "Section header above the note text field in the todo-pin editor."
     },
-    "Open %@" : {
-      "comment" : "Accessibility label of the thumbnail in a map callout when the photo has a title; the argument is the title."
-    },
-    "Open photo" : {
-      "comment" : "Accessibility label of the thumbnail in a map callout when the photo has no title."
-    },
     "Open the site to sign in" : {
       "comment" : "Link under \"Session expired\" that opens the instance's site in the browser, where the user signs in and picks \"Pair a device\"."
+    },
+    "Opens the photo." : {
+      "comment" : "Accessibility hint of a photo thumbnail in the calendar grid and the map callout."
     },
     "Or paste the pairing link" : {
       "comment" : "Section header above the text field for pasting a pairing link, as an alternative to scanning the QR code."
@@ -121,6 +118,15 @@
     },
     "Paste the pairing link instead." : {
       "comment" : "Hint under the camera-unavailable state on the scanner screen."
+    },
+    "Photo" : {
+      "comment" : "Accessibility label of a single photo pin on the map."
+    },
+    "Photo, %@" : {
+      "comment" : "Accessibility description of a photo without a title, read in the grid, callout and viewer. The argument is the photo's date and time."
+    },
+    "Pinch to zoom. Swipe for the next photo." : {
+      "comment" : "Accessibility hint of the full-screen photo in the viewer."
     },
     "Previous photo" : {
       "comment" : "Accessibility label of the left chevron in the photo viewer and the map callout mini pager."
@@ -145,6 +151,15 @@
     },
     "Show on map" : {
       "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates."
+    },
+    "Shows a preview." : {
+      "comment" : "Accessibility hint of a photo pin on the map: tapping shows its thumbnail callout."
+    },
+    "Shows it on the map." : {
+      "comment" : "Accessibility hint of a row in the todo pin list."
+    },
+    "Shows the note. Press and hold to move it." : {
+      "comment" : "Accessibility hint of a todo pin on the map."
     },
     "Sort" : {
       "comment" : "Label of the Recent / Nearest segmented control at the top of the todo-pin list; read by VoiceOver, not shown."
@@ -188,8 +203,14 @@
     "Years" : {
       "comment" : "Navigation title of the calendar's year list."
     },
+    "Your location" : {
+      "comment" : "Accessibility label of the blue dot marking the user's position on the map."
+    },
     "Your pairing with %@ has expired. Pair this device again." : {
       "comment" : "Explanation under the \"Session expired\" heading. The argument is the instance's display name."
+    },
+    "Zooms in, or lists the photos when they share one spot." : {
+      "comment" : "Accessibility hint of a cluster pin on the map."
     },
     "photodiary://sso?host=…&token=…" : {
       "comment" : "Placeholder of the paste field showing the shape of a pairing link. Not a sentence; keep as is.",

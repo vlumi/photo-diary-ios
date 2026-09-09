@@ -202,6 +202,10 @@ private struct PhotoPage: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded(let image):
                 PhotoViewer(image: image, onZoomChange: onZoomChange)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(photo.accessibilityDescription)
+                    .accessibilityHint("Pinch to zoom. Swipe for the next photo.")
+                    .accessibilityAddTraits(.isImage)
             case .failed(let message):
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")

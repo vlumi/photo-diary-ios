@@ -40,10 +40,12 @@ public struct SettingsView: View {
                                 if row.id == registry.activeInstanceId {
                                     Image(systemName: "checkmark")
                                         .foregroundStyle(.tint)
-                                        .accessibilityLabel("Active")
+                                        .accessibilityHidden(true)
                                 }
                             }
                         }
+                        .accessibilityAddTraits(
+                            row.id == registry.activeInstanceId ? .isSelected : [])
                     }
                     .onDelete { offsets in
                         for offset in offsets {

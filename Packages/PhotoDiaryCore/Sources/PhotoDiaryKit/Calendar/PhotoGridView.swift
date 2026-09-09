@@ -74,7 +74,8 @@ public struct PhotoGridView: View {
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .accessibilityLabel(accessibilityLabel(for: photo))
+                                .accessibilityLabel(photo.accessibilityDescription)
+                                .accessibilityHint("Opens the photo.")
                             }
                         }
                     } header: {
@@ -110,10 +111,6 @@ public struct PhotoGridView: View {
             return String(format: "%04d-%02d-%02d", year, month, day)
         }
         return "Day \(day)"
-    }
-
-    private func accessibilityLabel(for photo: Photo) -> String {
-        photo.title.isEmpty ? "Photo \(photo.id)" : photo.title
     }
 
     private func load() async {

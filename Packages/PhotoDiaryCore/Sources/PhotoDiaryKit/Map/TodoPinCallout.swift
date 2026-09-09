@@ -7,12 +7,14 @@ struct TodoPinCallout: View {
     let note: String
     let onEdit: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     var body: some View {
         HStack(spacing: 10) {
             Text(note.isEmpty ? "No note yet" : note)
                 .font(.subheadline)
                 .foregroundStyle(note.isEmpty ? .secondary : .primary)
-                .lineLimit(2)
+                .lineLimit(typeSize.isAccessibilitySize ? 5 : 2)
                 .frame(maxWidth: 200, alignment: .leading)
             Button(action: onEdit) {
                 Image(systemName: "pencil")
