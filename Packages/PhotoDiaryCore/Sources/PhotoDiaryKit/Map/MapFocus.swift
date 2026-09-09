@@ -2,7 +2,7 @@ import Observation
 import SwiftUI
 
 /// The app's tabs, so a surface can ask the shell to switch.
-public enum AppTab: Hashable, Sendable {
+public enum AppTab: String, Codable, Hashable, Sendable {
     case map
     case calendar
 }

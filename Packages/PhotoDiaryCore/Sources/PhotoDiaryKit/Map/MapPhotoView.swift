@@ -29,6 +29,7 @@ public struct MapPhotoView: View {
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.restoration) private var restoration
 
     @State private var state: MapLoadState = .loading
     @State private var attempt = 0
@@ -142,9 +143,7 @@ public struct MapPhotoView: View {
             )
         )
         .onMapCameraChange(frequency: .onEnd) { context in
-            currentRegion = context.region
-            recluster(pins: pins, region: context.region)
-            if cameraPosition.positionedByUser { recenterOnFix = false }
+            cameraSettled(context.region, pins: pins)
         }
         .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .topLeading) {
@@ -178,37 +177,16 @@ public struct MapPhotoView: View {
         }
     }
 
-    @MapContentBuilder
     private func layers(proxy: MapProxy) -> some MapContent {
-        ForEach(clusters) { cluster in
-            if cluster.isSingle {
-                MapAnnotations.photo(
-                    PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
-                )
-            } else {
-                MapAnnotations.cluster(cluster)
-            }
-        }
-        TodoPinsMapContent(
-            pins: todoPins, moving: moving, placing: placing, proxy: proxy,
+        MapLayers(
+            clusters: clusters, todoPins: todoPins, moving: moving, placing: placing,
+            userLocation: locator.lastLocation, callout: calloutContent, proxy: proxy,
             onMoveChanged: { pin, coordinate in
                 moving = MovingPin(id: pin.id, coordinate: coordinate)
             },
-            onMoveEnded: finishMove
+            onMoveEnded: finishMove,
+            calloutView: calloutView
         )
-        if let here = locator.lastLocation {
-            MapAnnotations.userMarker(at: here)
-        }
-        if let callout = calloutContent {
-            // Its own annotation, declared last, so it floats above
-            // the pin it belongs to. Tagged so a tap inside it reads
-            // as "keep this selection" rather than a deselect.
-            Annotation("", coordinate: callout.coordinate, anchor: .bottom) {
-                calloutView(callout).padding(.bottom, 24)
-            }
-            .annotationTitles(.hidden)
-            .tag("callout:\(callout.tag)")
-        }
     }
 
     // Tags are "kind:id" so one selection binding covers every layer.
@@ -275,6 +253,17 @@ public struct MapPhotoView: View {
         moving = nil
     }
 
+    /// The camera came to rest: remember where (for a relaunch), redo
+    /// the pins under it, and treat a user move as the end of a locate.
+    private func cameraSettled(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
+        currentRegion = region
+        if let scope = registry.scope {
+            restoration.save(MapCamera(region), forKey: "camera." + scope.key)
+        }
+        recluster(pins: pins, region: region)
+        if cameraPosition.positionedByUser { recenterOnFix = false }
+    }
+
     private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
     }
@@ -309,6 +298,15 @@ public struct MapPhotoView: View {
         if hadPins { isRefreshing = true } else { state = .loading }
         defer { isRefreshing = false }
         notice = nil
+        // A saved camera stands in for "where the user was", so the
+        // first load reclusters under it instead of framing the latest
+        // photo.
+        if currentRegion == nil, let scope = registry.scope,
+            let saved = restoration.load(MapCamera.self, forKey: "camera." + scope.key)
+        {
+            currentRegion = saved.region
+            cameraPosition = .region(saved.region)
+        }
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return

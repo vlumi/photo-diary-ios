@@ -5,6 +5,7 @@ import SwiftUI
 /// both target the same destinations.
 public struct CalendarView: View {
     @Environment(InstanceRegistry.self) private var registry
+    @Environment(\.restoration) private var restoration
     @State private var path: [CalendarRoute] = []
 
     public init() {}
@@ -32,10 +33,15 @@ public struct CalendarView: View {
                     }
                 }
         }
-        // A pushed year / month / grid belongs to the previous scope;
-        // drop back to the root when it changes.
-        .onChange(of: registry.scope) {
-            path = []
+        // The path belongs to its scope: restored when one opens
+        // (including at launch), saved as it changes.
+        .onChange(of: registry.scope, initial: true) {
+            guard let scope = registry.scope else { return }
+            path = restoration.load([CalendarRoute].self, forKey: "calendar." + scope.key) ?? []
+        }
+        .onChange(of: path) {
+            guard let scope = registry.scope else { return }
+            restoration.save(path, forKey: "calendar." + scope.key)
         }
     }
 
@@ -50,7 +56,7 @@ public struct CalendarView: View {
     }
 }
 
-public enum CalendarRoute: Hashable, Sendable {
+public enum CalendarRoute: Hashable, Codable, Sendable {
     case years(galleryId: String)
     case months(galleryId: String, year: Int)
     case grid(galleryId: String, year: Int, month: Int?)
