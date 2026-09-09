@@ -101,6 +101,9 @@
     "Or paste the pairing link" : {
       "comment" : "Section header above the text field for pasting a pairing link, as an alternative to scanning the QR code."
     },
+    "Pair again" : {
+      "comment" : "Button under \"Session expired\" that opens the pairing sheet."
+    },
     "Paste the pairing link instead." : {
       "comment" : "Hint under the camera-unavailable state on the scanner screen."
     },
@@ -118,6 +121,9 @@
     },
     "Scan pairing QR code" : {
       "comment" : "Button on the pairing screen that opens the QR scanner."
+    },
+    "Session expired" : {
+      "comment" : "Heading of the state shown when the server no longer accepts this device's pairing."
     },
     "Settings" : {
       "comment" : "Tab bar label for the settings tab."
@@ -158,9 +164,15 @@
     "Years" : {
       "comment" : "Navigation title of the calendar's year list."
     },
+    "Your pairing with %@ has expired. Pair this device again." : {
+      "comment" : "Explanation under the \"Session expired\" heading. The argument is the instance's display name."
+    },
     "photodiary://sso?host=…&token=…" : {
       "comment" : "Placeholder of the paste field showing the shape of a pairing link. Not a sentence; keep as is.",
       "shouldTranslate" : false
+    },
+    "this instance" : {
+      "comment" : "Fallback for the instance name in the session-expired message when no instance is active."
     }
   },
   "version" : "1.1"

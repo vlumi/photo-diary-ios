@@ -22,7 +22,7 @@ public struct PhotoGridView: View {
     private enum LoadState {
         case loading
         case loaded([PhotoCalendar.DaySection])
-        case failed(String)
+        case failed(LoadFailure)
         case empty
     }
 
@@ -54,8 +54,8 @@ public struct PhotoGridView: View {
                 systemImage: "photo.on.rectangle",
                 description: Text("This period has no photos.")
             )
-        case .failed(let message):
-            LoadFailureView(title: "Couldn't load photos", message: message) { attempt += 1 }
+        case .failed(let failure):
+            LoadFailureView(title: "Couldn't load photos", failure: failure) { attempt += 1 }
         case .loaded(let sections):
             grid(sections)
         }
@@ -126,7 +126,7 @@ public struct PhotoGridView: View {
     private func load() async {
         state = .loading
         guard let instance = registry.activeInstance else {
-            state = .failed("No active instance.")
+            state = .failed(LoadFailure(message: "No active instance."))
             return
         }
         do {
@@ -143,7 +143,7 @@ public struct PhotoGridView: View {
                 state = .loaded(PhotoCalendar.groupByDay(scope))
             }
         } catch {
-            state = .failed(error.localizedDescription)
+            state = .failed(LoadFailure(error))
         }
     }
 }

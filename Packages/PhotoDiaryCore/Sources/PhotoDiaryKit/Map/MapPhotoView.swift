@@ -7,7 +7,7 @@ private enum MapLoadState {
     case loading
     case loaded([PhotoMapPin])
     case empty
-    case failed(String)
+    case failed(LoadFailure)
 }
 
 /// A selected pin's callout: photos (one, or a pile) or a todo note.
@@ -117,8 +117,8 @@ public struct MapPhotoView: View {
         switch state {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .failed(let message):
-            LoadFailureView(title: "Couldn't load map", message: message) { attempt += 1 }
+        case .failed(let failure):
+            LoadFailureView(title: "Couldn't load map", failure: failure) { attempt += 1 }
         case .empty:
             // Instance had zero geotagged photos, but todo pins can
             // still be dropped anywhere so keep the map interactive
@@ -326,7 +326,7 @@ public struct MapPhotoView: View {
         if hadPins { isRefreshing = true } else { state = .loading }
         defer { isRefreshing = false }
         guard let instance = registry.activeInstance else {
-            state = .failed("No active instance.")
+            state = .failed(LoadFailure(message: "No active instance."))
             return
         }
         do {
@@ -374,7 +374,7 @@ public struct MapPhotoView: View {
             }
         } catch {
             // A failed refresh keeps the pins already on screen.
-            if !hadPins { state = .failed(error.localizedDescription) }
+            if !hadPins { state = .failed(LoadFailure(error)) }
         }
     }
 
