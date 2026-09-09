@@ -24,8 +24,8 @@ struct MapPhotoCallout: View {
                     chevron("chevron.right", enabled: index < photos.count - 1) { index += 1 }
                 }
             }
-            if photos.count > 1 {
-                Text("\(index + 1) / \(photos.count)")
+            if photos.indices.contains(index) {
+                Text(caption(for: photos[index]))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -47,10 +47,16 @@ struct MapPhotoCallout: View {
                 PhotoThumbnail(url: photo.thumbnailURL, loader: loader)
                     .frame(width: thumbSize, height: thumbSize)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .contentShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(photo.title.isEmpty ? "Open photo" : "Open \(photo.title)")
         }
+    }
+
+    private func caption(for photo: Photo) -> String {
+        let date = photo.timestamp.display
+        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
     private func chevron(_ systemName: String, enabled: Bool, action: @escaping () -> Void)

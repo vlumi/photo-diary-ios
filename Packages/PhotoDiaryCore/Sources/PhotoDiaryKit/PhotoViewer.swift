@@ -4,11 +4,13 @@ import SwiftUI
 /// Chrome (close button, metadata panel) is layered on top by
 /// callers — this view is just the image + gestures.
 ///
-/// Zoom is clamped to [1, maxZoom]. At 1×, pan is disabled (SwiftUI
-/// still lets you drag the sheet dismissal). Above 1×, pan is bounded
-/// so the image can't leave the viewport.
+/// Zoom is clamped to [1, maxZoom]. At 1× the pan gesture is masked
+/// off so a paging container underneath gets the swipe; above 1× pan
+/// is bounded so the image can't leave the viewport, and the container
+/// is told (`onZoomChange`) so it can stop paging meanwhile.
 public struct PhotoViewer: View {
     private let image: PlatformImage
+    private let onZoomChange: ((Bool) -> Void)?
     private let maxZoom: CGFloat = 4.0
 
     @State private var zoom: CGFloat = 1.0
@@ -16,8 +18,9 @@ public struct PhotoViewer: View {
     @State private var pan: CGSize = .zero
     @State private var committedPan: CGSize = .zero
 
-    public init(image: PlatformImage) {
+    public init(image: PlatformImage, onZoomChange: ((Bool) -> Void)? = nil) {
         self.image = image
+        self.onZoomChange = onZoomChange
     }
 
     public var body: some View {
@@ -30,10 +33,13 @@ public struct PhotoViewer: View {
                         .scaleEffect(zoom)
                         .offset(pan)
                         .gesture(zoomGesture)
-                        .simultaneousGesture(panGesture(in: geometry.size))
+                        .simultaneousGesture(
+                            panGesture(in: geometry.size), including: zoom > 1 ? .all : .subviews
+                        )
                         .onTapGesture(count: 2) { toggleDoubleTapZoom() }
                         .animation(.easeInOut(duration: 0.2), value: zoom)
                         .animation(.easeInOut(duration: 0.2), value: pan)
+                        .onChange(of: zoom > 1) { _, zoomed in onZoomChange?(zoomed) }
                 )
                 .ignoresSafeArea()
         }

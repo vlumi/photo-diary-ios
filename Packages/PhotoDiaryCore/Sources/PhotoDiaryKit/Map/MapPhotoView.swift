@@ -3,6 +3,24 @@ import MapKit
 import SwiftData
 import SwiftUI
 
+private enum MapLoadState {
+    case loading
+    case loaded([PhotoMapPin])
+    case empty
+    case failed(String)
+}
+
+/// A selected pin's callout: photos (one, or a pile) or a todo note.
+private struct MapCalloutContent {
+    enum Kind {
+        case photos([Photo])
+        case todo(TodoPin)
+    }
+    let tag: String
+    let coordinate: CLLocationCoordinate2D
+    let kind: Kind
+}
+
 /// Map of every geotagged photo across the active instance's
 /// galleries. Tapping a pin shows a callout; tapping that opens the
 /// paging viewer.
@@ -17,29 +35,11 @@ import SwiftUI
 /// the site's per-instance map. Photos without coordinates are
 /// silently omitted; if the whole result is empty, the surface shows
 /// an unavailable state.
-private enum MapEditorPresentation: Identifiable {
-    case create(latitude: Double, longitude: Double)
-    case edit(TodoPin)
-
-    var id: String {
-        switch self {
-        case .create(let lat, let lng): return "create:\(lat),\(lng)"
-        case .edit(let pin): return "edit:\(pin.id)"
-        }
-    }
-}
-
-private enum MapLoadState {
-    case loading
-    case loaded([PhotoMapPin])
-    case empty
-    case failed(String)
-}
-
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
+    @Environment(\.modelContext) private var modelContext
 
     @State private var state: MapLoadState = .loading
     // A reload while pins are already on screen keeps the map mounted
@@ -62,7 +62,12 @@ public struct MapPhotoView: View {
     @State private var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
     @State private var clusters: [MapCluster] = []
-    @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
+    // Todo-pin gestures: the pin being dragged (live position) and the
+    // provisional pin while long-pressing to place a new one.
+    @State private var moving: MovingPin?
+    @State private var placing: CLLocationCoordinate2D?
+    @State private var pressPoint: CGPoint?
+    @Query(sort: TodoPinStore.sortOrder) private var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
     /// small continent, so the neighbourhood is legible but the wider
@@ -85,39 +90,21 @@ public struct MapPhotoView: View {
                 )
             }
             .sheet(item: $editorPresentation) { presentation in
-                switch presentation {
-                case .create(let lat, let lng):
-                    TodoPinEditor(
-                        mode: .create(latitude: lat, longitude: lng),
-                        onDismiss: { editorPresentation = nil }
-                    )
-                case .edit(let pin):
-                    TodoPinEditor(
-                        mode: .edit(pin),
-                        onDismiss: { editorPresentation = nil }
-                    )
+                TodoPinEditor(mode: presentation.mode) {
+                    editorPresentation = nil
+                    placing = nil
                 }
             }
             .sheet(isPresented: $showingList) {
                 TodoPinListSheet(
+                    mapCenter: currentRegion?.center,
                     onDismiss: { showingList = false },
                     onSelect: { pin in
                         showingList = false
-                        centerOnTodoPin(pin)
-                        editorPresentation = .edit(pin)
+                        frame(pin.coordinate, meters: Self.closeUpMeters)
                     }
                 )
             }
-    }
-
-    private func centerOnTodoPin(_ pin: TodoPin) {
-        cameraPosition = .region(
-            MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude),
-                latitudinalMeters: 500,
-                longitudinalMeters: 500
-            )
-        )
     }
 
     @ViewBuilder
@@ -142,42 +129,29 @@ public struct MapPhotoView: View {
     }
 
     private func map(pins: [PhotoMapPin]) -> some View {
-        Map(position: $cameraPosition, selection: $selection) {
-            ForEach(clusters) { cluster in
-                if cluster.isSingle {
-                    MapAnnotations.photo(
-                        PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
-                    )
-                } else {
-                    MapAnnotations.cluster(cluster)
-                }
-            }
-            ForEach(todoPins) { todoPin in
-                MapAnnotations.todo(todoPin)
-            }
-            if let here = locator.lastLocation {
-                MapAnnotations.userMarker(at: here)
-            }
-            if let callout = calloutContent {
-                // Its own annotation, declared last, so it floats above
-                // the pin it belongs to. Tagged so a tap inside it reads
-                // as "keep this selection" rather than a deselect.
-                Annotation("", coordinate: callout.coordinate, anchor: .bottom) {
-                    MapPhotoCallout(photos: callout.photos, loader: loaderBox.loader) { index in
-                        presented = PhotoPagerSelection(photos: callout.photos, index: index)
-                    }
-                    .padding(.bottom, 24)
-                }
-                .annotationTitles(.hidden)
-                .tag("callout:\(callout.tag)")
-            }
+        MapReader { proxy in
+            mapBody(pins: pins, proxy: proxy)
         }
+    }
+
+    private func mapBody(pins: [PhotoMapPin], proxy: MapProxy) -> some View {
+        // A lifted pin owns the finger: no map pan/zoom underneath it.
+        Map(
+            position: $cameraPosition,
+            interactionModes: moving == nil && placing == nil ? .all : [],
+            selection: $selection
+        ) {
+            layers(proxy: proxy)
+        }
+        .simultaneousGesture(placementGesture(proxy))
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
             recluster(pins: pins, region: context.region)
         }
         .overlay(alignment: .bottomTrailing) { controls }
-        .overlay(alignment: .top) { topBanners }
+        .overlay(alignment: .top) {
+            MapTopBanners(isRefreshing: isRefreshing, locationError: locator.lastError)
+        }
         .onAppear { locator.startTracking() }
         .onDisappear { locator.stopTracking() }
         .onChange(of: locator.lastLocation?.latitude) {
@@ -194,6 +168,39 @@ public struct MapPhotoView: View {
         }
         .onChange(of: focus.pending?.id) {
             applyPendingFocus()
+        }
+    }
+
+    @MapContentBuilder
+    private func layers(proxy: MapProxy) -> some MapContent {
+        ForEach(clusters) { cluster in
+            if cluster.isSingle {
+                MapAnnotations.photo(
+                    PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
+                )
+            } else {
+                MapAnnotations.cluster(cluster)
+            }
+        }
+        TodoPinsMapContent(
+            pins: todoPins, moving: moving, placing: placing, proxy: proxy,
+            onMoveChanged: { pin, coordinate in
+                moving = MovingPin(id: pin.id, coordinate: coordinate)
+            },
+            onMoveEnded: finishMove
+        )
+        if let here = locator.lastLocation {
+            MapAnnotations.userMarker(at: here)
+        }
+        if let callout = calloutContent {
+            // Its own annotation, declared last, so it floats above
+            // the pin it belongs to. Tagged so a tap inside it reads
+            // as "keep this selection" rather than a deselect.
+            Annotation("", coordinate: callout.coordinate, anchor: .bottom) {
+                calloutView(callout).padding(.bottom, 24)
+            }
+            .annotationTitles(.hidden)
+            .tag("callout:\(callout.tag)")
         }
     }
 
@@ -224,25 +231,28 @@ public struct MapPhotoView: View {
             selection = parts[1]
             return true
         case "todo":
-            calloutFor = nil
-            if let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) {
-                editorPresentation = .edit(pin)
-            }
-            return false
+            calloutFor = tag
+            return true
         default:
             return false
         }
     }
 
-    private struct CalloutContent {
-        let tag: String
-        let coordinate: CLLocationCoordinate2D
-        let photos: [Photo]
+    @ViewBuilder
+    private func calloutView(_ callout: MapCalloutContent) -> some View {
+        switch callout.kind {
+        case .photos(let photos):
+            MapPhotoCallout(photos: photos, loader: loaderBox.loader) { index in
+                presented = PhotoPagerSelection(photos: photos, index: index)
+            }
+        case .todo(let pin):
+            TodoPinCallout(note: pin.note) { editorPresentation = .edit(pin) }
+        }
     }
 
     /// The selected photo or pile, resolved against the current
     /// clusters; nil once reclustering has moved it out of view.
-    private var calloutContent: CalloutContent? {
+    private var calloutContent: MapCalloutContent? {
         guard let tag = calloutFor else { return nil }
         let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return nil }
@@ -251,14 +261,62 @@ public struct MapPhotoView: View {
             guard let photo = photosById[parts[1]],
                 let cluster = clusters.first(where: { $0.isSingle && $0.photoIds[0] == parts[1] })
             else { return nil }
-            return CalloutContent(tag: tag, coordinate: cluster.coordinate, photos: [photo])
+            return MapCalloutContent(
+                tag: tag, coordinate: cluster.coordinate, kind: .photos([photo]))
         case "cluster":
             guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return nil }
             let photos = cluster.photoIds.compactMap { photosById[$0] }
-            return CalloutContent(tag: tag, coordinate: cluster.coordinate, photos: photos)
+            return MapCalloutContent(
+                tag: tag, coordinate: cluster.coordinate, kind: .photos(photos))
+        case "todo":
+            guard let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) else {
+                return nil
+            }
+            let coordinate = moving?.id == pin.id ? moving!.coordinate : pin.coordinate
+            return MapCalloutContent(tag: tag, coordinate: coordinate, kind: .todo(pin))
         default:
             return nil
         }
+    }
+
+    // MARK: - Todo pin gestures
+
+    /// Long-press on the map shows a provisional pin under the finger
+    /// that follows it until release, then opens the editor for its note;
+    /// the pin stays provisional until saved there. LongPressGesture has
+    /// no location and the sequenced drag only reports once the finger
+    /// moves, so a zero-distance drag alongside catches the touch-down
+    /// point for a press that stays put (a simulator click never moves).
+    /// Simultaneous with the map's own gestures: a moving finger fails
+    /// the long-press, so panning is untouched. A press on a pin sets
+    /// `moving` first (its gesture has priority and a shorter delay), so
+    /// it never drops a second pin underneath.
+    private func placementGesture(_ proxy: MapProxy) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { pressPoint = $0.startLocation }
+            .simultaneously(
+                with: LongPressGesture(minimumDuration: 0.5)
+                    .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
+                    .onChanged { value in
+                        guard moving == nil, case .second(true, let drag) = value,
+                            let point = drag?.location ?? pressPoint
+                        else { return }
+                        placing = proxy.convert(point, from: .local)
+                    }
+                    .onEnded { _ in
+                        if let coordinate = placing {
+                            editorPresentation = .create(coordinate)
+                        }
+                    }
+            )
+    }
+
+    private func finishMove(_ pin: TodoPin) {
+        if let moving, moving.id == pin.id {
+            try? TodoPinStore(context: modelContext).move(
+                pin, latitude: moving.coordinate.latitude, longitude: moving.coordinate.longitude)
+        }
+        moving = nil
     }
 
     private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
@@ -268,42 +326,9 @@ public struct MapPhotoView: View {
     private var controls: some View {
         MapControlsOverlay(
             todoCount: todoPins.count,
-            canDropPin: currentRegion != nil,
             onListPins: { showingList = true },
-            onDropPin: dropPinAtMapCenter,
             onLocate: { locator.locate() }
         )
-    }
-
-    private func dropPinAtMapCenter() {
-        guard let region = currentRegion else { return }
-        editorPresentation = .create(
-            latitude: region.center.latitude,
-            longitude: region.center.longitude
-        )
-    }
-
-    private var topBanners: some View {
-        VStack(spacing: 6) {
-            if isRefreshing {
-                ProgressView().progressViewStyle(.linear).padding(.horizontal)
-            }
-            locationErrorBanner
-        }
-    }
-
-    @ViewBuilder
-    private var locationErrorBanner: some View {
-        if let error = locator.lastError {
-            Text(error)
-                .font(.footnote)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(.regularMaterial)
-                .clipShape(Capsule())
-                .padding(.top, 8)
-                .transition(.move(edge: .top).combined(with: .opacity))
-        }
     }
 
     private func load() async {

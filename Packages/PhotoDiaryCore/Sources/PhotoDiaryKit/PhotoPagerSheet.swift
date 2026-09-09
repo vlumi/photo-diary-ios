@@ -23,6 +23,10 @@ public struct PhotoPagerSelection: Identifiable, Hashable, Sendable {
 /// chevrons) to move between them, pinch-zoom the current one. Chrome —
 /// close, counter, chevrons, Show on map — is owned here; PhotoViewer
 /// is just the image + gestures.
+///
+/// Pages live in a paging ScrollView rather than a page-style TabView:
+/// the viewer's own drag gesture on each page made the TabView overshoot
+/// by a page, and a ScrollView can be told to stop paging while zoomed.
 public struct PhotoPagerSheet: View {
     private let photos: [Photo]
     private let loader: any ImageLoader
@@ -31,7 +35,8 @@ public struct PhotoPagerSheet: View {
     /// itself passes nil since it is already there.
     private let onShowOnMap: ((Photo) -> Void)?
 
-    @State private var index: Int
+    @State private var currentId: String?
+    @State private var zoomed = false
 
     public init(
         selection: PhotoPagerSelection,
@@ -43,20 +48,30 @@ public struct PhotoPagerSheet: View {
         self.loader = loader
         self.onDismiss = onDismiss
         self.onShowOnMap = onShowOnMap
-        _index = State(initialValue: selection.index)
+        let photos = selection.photos
+        _currentId = State(
+            initialValue: photos.indices.contains(selection.index)
+                ? photos[selection.index].id : photos.first?.id)
     }
 
+    private var index: Int { photos.firstIndex { $0.id == currentId } ?? 0 }
     private var current: Photo? { photos.indices.contains(index) ? photos[index] : nil }
 
     public var body: some View {
         ZStack {
-            TabView(selection: $index) {
-                ForEach(Array(photos.enumerated()), id: \.element.id) { offset, photo in
-                    PhotoPage(photo: photo, loader: loader)
-                        .tag(offset)
+            ScrollView(.horizontal) {
+                LazyHStack(spacing: 0) {
+                    ForEach(photos) { photo in
+                        PhotoPage(photo: photo, loader: loader) { zoomed = $0 }
+                            .containerRelativeFrame([.horizontal, .vertical])
+                    }
                 }
+                .scrollTargetLayout()
             }
-            .pagerStyle()
+            .scrollTargetBehavior(.paging)
+            .scrollPosition(id: $currentId)
+            .scrollIndicators(.hidden)
+            .scrollDisabled(zoomed)
             .ignoresSafeArea()
 
             chrome
@@ -64,12 +79,18 @@ public struct PhotoPagerSheet: View {
         .background(Color.black.ignoresSafeArea())
     }
 
+    private func move(by delta: Int) {
+        let target = index + delta
+        guard photos.indices.contains(target) else { return }
+        withAnimation { currentId = photos[target].id }
+    }
+
     private var chrome: some View {
         VStack {
             HStack(alignment: .top) {
                 Spacer()
-                if photos.count > 1 {
-                    Text("\(index + 1) / \(photos.count)")
+                if let current {
+                    Text(caption(for: current))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -97,14 +118,14 @@ public struct PhotoPagerSheet: View {
             HStack {
                 if photos.count > 1 {
                     chevron("chevron.left", enabled: index > 0, label: "Previous photo") {
-                        index -= 1
+                        move(by: -1)
                     }
                 }
                 Spacer()
                 if photos.count > 1 {
                     chevron("chevron.right", enabled: index < photos.count - 1, label: "Next photo")
                     {
-                        index += 1
+                        move(by: 1)
                     }
                 }
             }
@@ -132,11 +153,16 @@ public struct PhotoPagerSheet: View {
         }
     }
 
+    private func caption(for photo: Photo) -> String {
+        let date = photo.timestamp.display
+        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
+    }
+
     private func chevron(
         _ systemName: String, enabled: Bool, label: String, action: @escaping () -> Void
     ) -> some View {
         Button {
-            withAnimation { action() }
+            action()
         } label: {
             Image(systemName: systemName)
                 .font(.title2.weight(.semibold))
@@ -156,6 +182,7 @@ public struct PhotoPagerSheet: View {
 private struct PhotoPage: View {
     let photo: Photo
     let loader: any ImageLoader
+    let onZoomChange: (Bool) -> Void
 
     @State private var state: LoadState = .loading
 
@@ -173,7 +200,7 @@ private struct PhotoPage: View {
                     .tint(.white)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded(let image):
-                PhotoViewer(image: image)
+                PhotoViewer(image: image, onZoomChange: onZoomChange)
             case .failed(let message):
                 VStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle")
@@ -194,17 +221,5 @@ private struct PhotoPage: View {
                 state = .failed("Couldn't load photo: \(error.localizedDescription)")
             }
         }
-    }
-}
-
-extension View {
-    /// Page-style tab view is iOS-only; macOS (swift test) gets the
-    /// default so the file compiles there.
-    fileprivate func pagerStyle() -> some View {
-        #if os(iOS)
-        return self.tabViewStyle(.page(indexDisplayMode: .never))
-        #else
-        return self
-        #endif
     }
 }

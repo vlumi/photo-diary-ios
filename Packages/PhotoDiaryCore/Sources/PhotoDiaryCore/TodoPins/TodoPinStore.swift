@@ -37,12 +37,32 @@ public struct TodoPinStore {
         try context.save()
     }
 
-    /// Fetch every pin, newest first. Views that want reactivity
-    /// should use @Query instead; this exists for one-off reads.
+    /// Relocate a pin (drag-to-move on the map). Bumps updatedAt.
+    public func move(_ pin: TodoPin, latitude: Double, longitude: Double) throws {
+        pin.latitude = latitude
+        pin.longitude = longitude
+        pin.updatedAt = .now
+        try context.save()
+    }
+
+    /// Starring does not count as an edit, so it leaves updatedAt alone.
+    public func setStarred(_ pin: TodoPin, _ starred: Bool) throws {
+        pin.starredAt = starred ? .now : nil
+        try context.save()
+    }
+
+    /// Starred pins first (latest star first — nulls sort last when
+    /// descending), then most recently edited. The @Query sites use the
+    /// same descriptors.
+    public static let sortOrder: [SortDescriptor<TodoPin>] = [
+        SortDescriptor(\.starredAt, order: .reverse),
+        SortDescriptor(\.updatedAt, order: .reverse),
+    ]
+
+    /// Views that want reactivity should use @Query instead; this
+    /// exists for one-off reads.
     public func all() throws -> [TodoPin] {
-        try context.fetch(
-            FetchDescriptor<TodoPin>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
-        )
+        try context.fetch(FetchDescriptor<TodoPin>(sortBy: Self.sortOrder))
     }
 }
 #endif

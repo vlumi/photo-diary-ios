@@ -27,6 +27,7 @@ public struct PhotoThumbnail: View {
             .aspectRatio(1, contentMode: .fit)
             .background(Color.secondary.opacity(0.1))
             .clipped()
+            .contentShape(Rectangle())
             .task(id: url) { await load() }
     }
 

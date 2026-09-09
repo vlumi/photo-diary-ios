@@ -40,21 +40,19 @@ enum MapAnnotations {
         .tag("cluster:\(cluster.id)")
     }
 
-    static func todo(_ todoPin: TodoPin) -> some MapContent {
-        let coord = CLLocationCoordinate2D(
-            latitude: todoPin.latitude, longitude: todoPin.longitude
-        )
-        return Annotation("", coordinate: coord) {
-            Image(systemName: "checklist")
-                .font(.caption)
-                .foregroundStyle(.white)
-                .padding(6)
-                .background(Color.orange)
-                .clipShape(Circle())
-                .shadow(radius: 2)
-                .accessibilityLabel(todoPin.note.isEmpty ? "Todo pin" : "Todo: \(todoPin.note)")
-        }
-        .tag("todo:\(todoPin.id.uuidString)")
+    /// The todo marker. `lifted` while being placed or dragged.
+    static func todoMarker(lifted: Bool, note: String) -> some View {
+        Image(systemName: "checklist")
+            .font(.caption)
+            .foregroundStyle(.white)
+            .padding(6)
+            .background(Color.orange)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(.white, lineWidth: lifted ? 2 : 0))
+            .scaleEffect(lifted ? 1.3 : 1)
+            .shadow(radius: lifted ? 6 : 2, y: lifted ? 4 : 0)
+            .animation(.easeOut(duration: 0.15), value: lifted)
+            .accessibilityLabel(note.isEmpty ? "Todo pin" : "Todo: \(note)")
     }
 
     static func userMarker(at coordinate: CLLocationCoordinate2D) -> some MapContent {
