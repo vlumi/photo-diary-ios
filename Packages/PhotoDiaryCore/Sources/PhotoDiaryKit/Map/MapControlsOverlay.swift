@@ -48,11 +48,15 @@ struct MapControlsOverlay: View {
     }
 }
 
-/// Top-of-map status: a thin bar while pins refresh, and the location
-/// error (permission denied, no fix) when there is one.
+/// Top-of-map status: a thin bar while pins refresh, the location
+/// error (permission denied, no fix) when there is one, and a notice
+/// the user can dismiss — an instance with nothing to pin, or a
+/// refresh that failed behind pins already on screen.
 struct MapTopBanners: View {
     let isRefreshing: Bool
     let locationError: String?
+    let notice: MapNotice?
+    let onDismissNotice: () -> Void
 
     var body: some View {
         VStack(spacing: 6) {
@@ -60,15 +64,51 @@ struct MapTopBanners: View {
                 ProgressView().progressViewStyle(.linear).padding(.horizontal)
             }
             if let locationError {
-                Text(locationError)
-                    .font(.footnote)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.regularMaterial)
-                    .clipShape(Capsule())
-                    .padding(.top, 8)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                capsule { Text(locationError) }
             }
+            if let notice {
+                capsule {
+                    HStack(spacing: 8) {
+                        Text(notice.text)
+                        Button(action: onDismissNotice) {
+                            Image(systemName: "xmark")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss")
+                    }
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: notice)
+    }
+
+    private func capsule<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .font(.footnote)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.regularMaterial)
+            .clipShape(Capsule())
+            .padding(.top, 8)
+            .padding(.horizontal, 16)
+            .transition(.move(edge: .top).combined(with: .opacity))
+    }
+}
+
+/// What the map's dismissible banner can say. Reset on every load;
+/// dismissed by the user until then.
+enum MapNotice: Equatable {
+    case noLocatedPhotos
+    case refreshFailed(String)
+
+    var text: String {
+        switch self {
+        case .noLocatedPhotos:
+            String(localized: "No photos with a location here yet. Long-press to drop a todo pin.")
+        case .refreshFailed(let detail):
+            String(localized: "Couldn't refresh. \(detail)")
         }
     }
 }
