@@ -53,7 +53,11 @@ targets:
           - CFBundleURLName: fi.misaki.photodiary.sso
             CFBundleURLSchemes:
               - photodiary
-        UILaunchScreen: {}
+        # The launch frame is the icon's navy, so the tap on the icon
+        # flows into the app without a white flash. No image: the front
+        # page or the map follows within a moment.
+        UILaunchScreen:
+          UIColorName: LaunchBackground
         # Plain http is allowed to local-network hosts only (a dev instance
         # on the Mac / LAN, reached via scheme=http in the pairing link).
         # Public hosts stay https-only under ATS.
