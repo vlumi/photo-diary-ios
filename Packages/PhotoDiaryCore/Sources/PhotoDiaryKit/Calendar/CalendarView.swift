@@ -41,14 +41,8 @@ public enum CalendarRoute: Hashable, Sendable {
 
 struct GalleryListView: View {
     @Environment(InstanceRegistry.self) private var registry
-    @State private var state: LoadState = .loading
+    @State private var state: LoadState<[Gallery]> = .loading
     @State private var attempt = 0
-
-    private enum LoadState {
-        case loading
-        case loaded([Gallery])
-        case failed(LoadFailure)
-    }
 
     var body: some View {
         content
@@ -61,6 +55,12 @@ struct GalleryListView: View {
         switch state {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .empty:
+            ContentUnavailableView(
+                "No galleries",
+                systemImage: "photo.on.rectangle.angled",
+                description: Text("This instance has no galleries you can see.")
+            )
         case .failed(let failure):
             LoadFailureView(title: "Couldn't load galleries", failure: failure) { attempt += 1 }
         case .loaded(let galleries):
@@ -92,7 +92,7 @@ struct GalleryListView: View {
         }
         do {
             let galleries = try await instance.listGalleries()
-            state = .loaded(galleries)
+            state = galleries.isEmpty ? .empty : .loaded(galleries)
         } catch {
             state = .failed(LoadFailure(error))
         }
@@ -105,34 +105,41 @@ struct YearListView: View {
     let galleryId: String
 
     @Environment(InstanceRegistry.self) private var registry
-    @State private var years: [Int] = []
-    @State private var loadFailed: String?
+    @State private var state: LoadState<[Int]> = .loading
+    @State private var attempt = 0
 
     var body: some View {
-        List {
-            if let loadFailed {
-                Text(loadFailed).foregroundStyle(.red)
+        content
+            .navigationTitle("Years")
+            .task(id: "\(galleryId):\(attempt)") {
+                state = .loading
+                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                    PhotoCalendar.years(in: $0)
+                }
             }
-            ForEach(years, id: \.self) { year in
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch state {
+        case .loading:
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .empty:
+            ContentUnavailableView(
+                "No photos",
+                systemImage: "photo.on.rectangle",
+                description: Text("This gallery has no photos yet.")
+            )
+        case .failed(let failure):
+            LoadFailureView(title: "Couldn't load photos", failure: failure) { attempt += 1 }
+        case .loaded(let years):
+            List(years, id: \.self) { year in
                 NavigationLink(
                     value: CalendarRoute.months(galleryId: galleryId, year: year)
                 ) {
                     Text(String(year)).font(.title3)
                 }
             }
-        }
-        .navigationTitle("Years")
-        .task(id: galleryId) { await load() }
-    }
-
-    private func load() async {
-        loadFailed = nil
-        guard let instance = registry.activeInstance else { return }
-        do {
-            let photos = try await instance.listPhotos(inGallery: galleryId)
-            years = PhotoCalendar.years(in: photos)
-        } catch {
-            loadFailed = error.localizedDescription
         }
     }
 }
@@ -144,31 +151,51 @@ struct MonthListView: View {
     let year: Int
 
     @Environment(InstanceRegistry.self) private var registry
-    @State private var months: [Int] = []
-    @State private var loadFailed: String?
+    @State private var state: LoadState<[Int]> = .loading
+    @State private var attempt = 0
 
     var body: some View {
-        List {
-            if let loadFailed {
-                Text(loadFailed).foregroundStyle(.red)
+        content
+            .navigationTitle(String(year))
+            .task(id: "\(galleryId):\(year):\(attempt)") {
+                state = .loading
+                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                    PhotoCalendar.months(in: year, of: $0)
+                }
             }
-            // Year-wide grid entry so the user can browse the whole
-            // year without picking a month.
-            NavigationLink(
-                value: CalendarRoute.grid(galleryId: galleryId, year: year, month: nil)
-            ) {
-                Text("All of \(String(year))").font(.headline)
-            }
-            ForEach(months, id: \.self) { month in
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch state {
+        case .loading:
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .empty:
+            ContentUnavailableView(
+                "No photos",
+                systemImage: "photo.on.rectangle",
+                description: Text("This year has no photos.")
+            )
+        case .failed(let failure):
+            LoadFailureView(title: "Couldn't load photos", failure: failure) { attempt += 1 }
+        case .loaded(let months):
+            List {
+                // Year-wide grid entry so the user can browse the whole
+                // year without picking a month.
                 NavigationLink(
-                    value: CalendarRoute.grid(galleryId: galleryId, year: year, month: month)
+                    value: CalendarRoute.grid(galleryId: galleryId, year: year, month: nil)
                 ) {
-                    Text(monthName(month))
+                    Text("All of \(String(year))").font(.headline)
+                }
+                ForEach(months, id: \.self) { month in
+                    NavigationLink(
+                        value: CalendarRoute.grid(galleryId: galleryId, year: year, month: month)
+                    ) {
+                        Text(monthName(month))
+                    }
                 }
             }
         }
-        .navigationTitle(String(year))
-        .task(id: "\(galleryId):\(year)") { await load() }
     }
 
     private func monthName(_ month: Int) -> String {
@@ -178,15 +205,21 @@ struct MonthListView: View {
         }
         return symbols[month - 1]
     }
+}
 
-    private func load() async {
-        loadFailed = nil
-        guard let instance = registry.activeInstance else { return }
-        do {
-            let photos = try await instance.listPhotos(inGallery: galleryId)
-            months = PhotoCalendar.months(in: year, of: photos)
-        } catch {
-            loadFailed = error.localizedDescription
-        }
+/// Years and months both derive from the gallery's full photo list
+/// (cached by the instance, so the second hop is free).
+@MainActor
+private func loadCalendarSlice(
+    of galleryId: String, from registry: InstanceRegistry, derive: ([Photo]) -> [Int]
+) async -> LoadState<[Int]> {
+    guard let instance = registry.activeInstance else {
+        return .failed(LoadFailure(message: "No active instance."))
+    }
+    do {
+        let values = derive(try await instance.listPhotos(inGallery: galleryId))
+        return values.isEmpty ? .empty : .loaded(values)
+    } catch {
+        return .failed(LoadFailure(error))
     }
 }

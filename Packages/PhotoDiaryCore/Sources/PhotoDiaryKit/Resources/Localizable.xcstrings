@@ -86,6 +86,9 @@
     "Next photo" : {
       "comment" : "Accessibility label of the right chevron in the photo viewer and the map callout mini pager."
     },
+    "No galleries" : {
+      "comment" : "Heading of the calendar's empty state when the instance lists no galleries."
+    },
     "No photos" : {
       "comment" : "Title of the empty state in a calendar photo grid."
     },
@@ -152,8 +155,17 @@
     "The app will sign in to this server with the pairing code." : {
       "comment" : "Explanation under the server name in the pairing confirmation."
     },
+    "This gallery has no photos yet." : {
+      "comment" : "Explanation under \"No photos\" on the year list of an empty gallery."
+    },
+    "This instance has no galleries you can see." : {
+      "comment" : "Explanation under the \"No galleries\" heading."
+    },
     "This period has no photos." : {
       "comment" : "Hint under the empty state of a calendar photo grid (a month or a year)."
+    },
+    "This year has no photos." : {
+      "comment" : "Explanation under \"No photos\" on a year's month list when it has none."
     },
     "Todo pin" : {
       "comment" : "Accessibility label of a todo pin on the map when it has no note."

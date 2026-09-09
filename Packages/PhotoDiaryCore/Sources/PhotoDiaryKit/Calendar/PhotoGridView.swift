@@ -15,16 +15,9 @@ public struct PhotoGridView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
-    @State private var state: LoadState = .loading
+    @State private var state: LoadState<[PhotoCalendar.DaySection]> = .loading
     @State private var attempt = 0
     @State private var presented: PhotoPagerSelection?
-
-    private enum LoadState {
-        case loading
-        case loaded([PhotoCalendar.DaySection])
-        case failed(LoadFailure)
-        case empty
-    }
 
     public init(galleryId: String, year: Int, month: Int? = nil) {
         self.galleryId = galleryId
