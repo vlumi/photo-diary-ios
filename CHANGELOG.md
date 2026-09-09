@@ -14,7 +14,6 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 - The map says when an instance has no located photos yet, and when a background refresh fails, instead of a bare map that looks broken.
 - The calendar's year and month lists show a spinner while loading, a proper error with Retry instead of a red row, and say so when a gallery or instance has nothing to show.
-- When a server no longer accepts the device's pairing, the screen says so and offers to pair again, reloading in place once it succeeds.
 - When a server no longer accepts the device's pairing, the screen says so and offers to pair again, with a link to the site to sign in first; the screen reloads in place once pairing succeeds.
 - Tapping another pin, or paging through a pile, no longer shows the previous photo's thumbnail while the new one loads.
 - Failed loads say what went wrong in plain words (offline, server error, expired session, image not found) instead of a generic error code, and offer a Retry button on the gallery list, photo grid, map and photo viewer.
