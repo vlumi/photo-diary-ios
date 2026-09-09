@@ -3,65 +3,81 @@ import CoreLocation
 import Observation
 import UIKit
 
-/// Thin wrapper around CLLocationManager for the map surface's
-/// locate-me button. Owns the authorization + one-shot location
-/// request; SwiftUI reads authorization + lastLocation as Observable
-/// state.
+/// CLLocationManager wrapper for the map: keeps `lastLocation` fresh
+/// while the map is on screen (so the marker follows the user) and
+/// serves the locate button, which centres the camera on the next fix.
 ///
-/// One-shot rather than continuous updates on purpose: the button
-/// centres the map once, no background power draw. Reset the
-/// last-known-location after use so a subsequent tap forces a fresh
-/// read.
+/// Tracking runs only between startTracking() / stopTracking() — the
+/// map calls them on appear / disappear — with a 10 m distance filter,
+/// so there is no background draw and no jitter from GPS noise.
 @MainActor
 @Observable
 public final class UserLocationController: NSObject {
     public private(set) var authorization: CLAuthorizationStatus
     public private(set) var lastLocation: CLLocationCoordinate2D?
     public private(set) var lastError: String?
+    /// Set by locate(); the map consumes it when a fix arrives so the
+    /// camera moves once, not on every subsequent update.
+    public private(set) var centerRequested = false
 
     private let manager: CLLocationManager
+    private var tracking = false
 
     public override init() {
         self.manager = CLLocationManager()
         self.authorization = manager.authorizationStatus
         super.init()
         manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 10
     }
 
-    /// Ask for permission if not yet decided, then request one
-    /// location. If permission is denied, sets lastError so the UI
-    /// can surface it.
+    public func startTracking() {
+        tracking = true
+        if isAuthorized { manager.startUpdatingLocation() }
+    }
+
+    public func stopTracking() {
+        tracking = false
+        manager.stopUpdatingLocation()
+    }
+
+    /// Ask for permission if not yet decided, then centre on the next
+    /// fix. If permission is denied, sets lastError for the banner.
     public func locate() {
         lastError = nil
         switch manager.authorizationStatus {
         case .notDetermined:
-            // requestLocation fires after permission lands (see
-            // locationManagerDidChangeAuthorization below).
+            centerRequested = true
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
             lastError = "Location permission denied. Enable it in Settings."
         case .authorizedWhenInUse, .authorizedAlways:
+            centerRequested = true
             manager.requestLocation()
         @unknown default:
             lastError = "Unknown location authorization state."
         }
     }
 
-    /// Clear the last-known location so a subsequent locate() forces
-    /// a fresh read (the map surface calls this after centring).
-    public func clearLast() {
-        lastLocation = nil
+    /// The coordinate to centre on if locate() asked for it, once.
+    public func consumeCenterRequest() -> CLLocationCoordinate2D? {
+        guard centerRequested, let lastLocation else { return nil }
+        centerRequested = false
+        return lastLocation
+    }
+
+    private var isAuthorized: Bool {
+        authorization == .authorizedWhenInUse || authorization == .authorizedAlways
     }
 }
 
 extension UserLocationController: @preconcurrency CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorization = manager.authorizationStatus
-        // If we just gained permission (locate() started the flow),
-        // fire the one-shot request now.
-        if authorization == .authorizedWhenInUse || authorization == .authorizedAlways {
-            manager.requestLocation()
-        }
+        guard isAuthorized else { return }
+        if tracking { manager.startUpdatingLocation() }
+        if centerRequested { manager.requestLocation() }
     }
 
     public func locationManager(
