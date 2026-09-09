@@ -16,8 +16,8 @@ The full companion, both surfaces. Rough order of implementation:
 8. **Tab bar + app shell.** Map | Calendar tabs. Settings from a top-level button.
 9. **Real API client (`RemoteInstance`).** Auth flow + refresh loop, gallery / photo / stats endpoints, Keychain-backed cookie storage. Same protocol as `DemoInstance` — a drop-in replacement for the demo path.
 10. **Onboarding — SSO pairing.** Three-transport pairing (QR / custom-scheme link / paste). Requires the corresponding `POST /api/v1/tokens/pairing` endpoint on the server side (see below).
-11. **Polish.** Error states, loading placeholders, empty states, accessibility pass, launch image, app icon.
-12. **App Store submission.** Icons, screenshots, description, privacy manifest, TestFlight → App Store review. **App Store review credentials = demo mode** — reviewers get the demo instance out of the box, no server access needed.
+11. ~~**Polish.**~~ Shipped in build 3: error states, loading placeholders, empty states, accessibility pass, launch screen, app icon.
+12. **App Store submission.** Screenshots, description, TestFlight → App Store review (the icon and privacy manifest are done). **App Store review credentials = demo mode** — reviewers get the demo instance out of the box, no server access needed.
 
 Estimated at ~12-14 dev days total. Individual items get their own PRs with a CHANGELOG bullet when landed.
 
@@ -29,8 +29,9 @@ The demo-first order matters: steps 2-8 develop the whole UI against `DemoInstan
 
 ## v1.1 — post-launch polish
 
+Brought forward and shipped in build 3: the front page that picks an instance or one gallery as the scope, full restoration of where the app was after a relaunch, and the on-disk response cache with lazy refresh.
+
 - **Universal Links** for the pairing "Open in app" button. Needs `.well-known/apple-app-site-association` served from every instance's host and the App ID registered with Apple.
-- **Offline cache.** In-memory carry-over of the last-loaded photo set so opening the app in a dead zone shows something rather than a blank state.
 - **Stats surface.** Reduced version — KPIs and category cards, skip charts initially. ~1-2 days.
 
 ## v2 — direction, not planned
