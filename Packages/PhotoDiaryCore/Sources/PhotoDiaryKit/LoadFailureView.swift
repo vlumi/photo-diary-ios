@@ -43,6 +43,11 @@ struct LoadFailureView: View {
             } actions: {
                 Button("Pair again") { showPairing = true }
                     .buttonStyle(.borderedProminent)
+                // The site's "Pair a device" page hands the ticket back
+                // through its "Open in app" link, so this round-trips.
+                if let site = siteURL {
+                    Link("Open the site to sign in", destination: site)
+                }
             }
             .sheet(isPresented: $showPairing, onDismiss: retry) {
                 PairingView().environment(registry)
@@ -57,6 +62,11 @@ struct LoadFailureView: View {
                     .buttonStyle(.borderedProminent)
             }
         }
+    }
+
+    private var siteURL: URL? {
+        guard let instance = registry.activeInstance, !instance.isDemo else { return nil }
+        return URL(string: instance.id)
     }
 
     private var expiredMessage: Text {
