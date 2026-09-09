@@ -134,7 +134,12 @@ public struct MapPhotoView: View {
     }
 
     private func mapBody(pins: [PhotoMapPin], proxy: MapProxy) -> some View {
-        Map(position: $cameraPosition, selection: $selection) {
+        // A lifted pin owns the finger: no map pan/zoom underneath it.
+        Map(
+            position: $cameraPosition,
+            interactionModes: moving == nil && placing == nil ? .all : [],
+            selection: $selection
+        ) {
             layers(proxy: proxy)
         }
         .simultaneousGesture(placementGesture(proxy))
