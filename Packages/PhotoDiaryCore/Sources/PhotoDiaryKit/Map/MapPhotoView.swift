@@ -76,6 +76,7 @@ public struct MapPhotoView: View {
     // provisional pin while long-pressing to place a new one.
     @State private var moving: MovingPin?
     @State private var placing: CLLocationCoordinate2D?
+    @State private var pressPoint: CGPoint?
     @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
@@ -112,11 +113,7 @@ public struct MapPhotoView: View {
                     onDismiss: { showingList = false },
                     onSelect: { pin in
                         showingList = false
-                        frame(
-                            CLLocationCoordinate2D(
-                                latitude: pin.latitude, longitude: pin.longitude),
-                            meters: Self.closeUpMeters
-                        )
+                        frame(pin.coordinate, meters: Self.closeUpMeters)
                         editorPresentation = .edit(pin)
                     }
                 )
@@ -292,27 +289,35 @@ public struct MapPhotoView: View {
 
     // MARK: - Todo pin gestures
 
-    /// Long-press on the map (not on a pin — those take the gesture with
-    /// priority) shows a provisional pin under the finger that follows
-    /// it until release, then saves. Simultaneous with the map's own
-    /// gestures: a moving finger fails the long-press, so panning is
-    /// untouched.
+    /// Long-press on the map shows a provisional pin under the finger
+    /// that follows it until release, then saves. LongPressGesture has
+    /// no location and the sequenced drag only reports once the finger
+    /// moves, so a zero-distance drag alongside catches the touch-down
+    /// point for a press that stays put (a simulator click never moves).
+    /// Simultaneous with the map's own gestures: a moving finger fails
+    /// the long-press, so panning is untouched. A press on a pin sets
+    /// `moving` first (its gesture has priority and a shorter delay), so
+    /// it never drops a second pin underneath.
     private func placementGesture(_ proxy: MapProxy) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.5)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
-            .onChanged { value in
-                guard moving == nil, case .second(true, let drag?) = value,
-                    let coordinate = proxy.convert(drag.location, from: .local)
-                else { return }
-                placing = coordinate
-            }
-            .onEnded { _ in
-                if let coordinate = placing {
-                    try? TodoPinStore(context: modelContext).create(
-                        latitude: coordinate.latitude, longitude: coordinate.longitude)
-                }
-                placing = nil
-            }
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { pressPoint = $0.startLocation }
+            .simultaneously(
+                with: LongPressGesture(minimumDuration: 0.5)
+                    .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
+                    .onChanged { value in
+                        guard moving == nil, case .second(true, let drag) = value,
+                            let point = drag?.location ?? pressPoint
+                        else { return }
+                        placing = proxy.convert(point, from: .local)
+                    }
+                    .onEnded { _ in
+                        if let coordinate = placing {
+                            try? TodoPinStore(context: modelContext).create(
+                                latitude: coordinate.latitude, longitude: coordinate.longitude)
+                        }
+                        placing = nil
+                    }
+            )
     }
 
     private func finishMove(_ pin: TodoPin) {

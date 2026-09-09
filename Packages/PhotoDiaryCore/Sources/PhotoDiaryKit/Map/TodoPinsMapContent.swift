@@ -23,7 +23,9 @@ struct MovingPin: Equatable {
 /// reports screen points.
 ///
 /// Long-press-then-drag on a pin is a high-priority gesture so a press
-/// that starts on a pin moves it instead of dropping a new one under it.
+/// that starts on a pin moves it instead of dropping a new one under it;
+/// the pin lifts (reports itself as moving) as soon as the press
+/// completes, before the map's own long-press could fire.
 struct TodoPinsMapContent: MapContent {
     let pins: [TodoPin]
     let moving: MovingPin?
@@ -54,10 +56,9 @@ struct TodoPinsMapContent: MapContent {
         LongPressGesture(minimumDuration: 0.4)
             .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .global))
             .onChanged { value in
-                guard case .second(true, let drag?) = value,
-                    let coordinate = proxy.convert(drag.location, from: .global)
-                else { return }
-                onMoveChanged(pin, coordinate)
+                guard case .second(true, let drag) = value else { return }
+                let coordinate = drag.flatMap { proxy.convert($0.location, from: .global) }
+                onMoveChanged(pin, coordinate ?? pin.coordinate)
             }
             .onEnded { _ in onMoveEnded(pin) }
     }
