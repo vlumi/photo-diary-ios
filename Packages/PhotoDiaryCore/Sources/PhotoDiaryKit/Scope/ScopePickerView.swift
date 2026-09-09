@@ -99,6 +99,7 @@ private struct InstanceSection: View {
                 } label: {
                     HStack {
                         Text(gallery.title)
+                            .padding(.leading, 16)
                         Spacer()
                         if let count = gallery.photoCount {
                             Text("\(count)")
