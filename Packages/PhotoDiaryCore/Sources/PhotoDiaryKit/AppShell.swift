@@ -1,10 +1,11 @@
 import SwiftData
 import SwiftUI
 
-/// Root view. Owns the `InstanceRegistry` for the process and hosts
-/// the tab bar. Also mounts the SwiftData ModelContainer for todo
-/// pins so any surface that wants @Query'd pins gets one, and catches
-/// `photodiary://` launches to route a pairing ticket into the
+/// Root view. Owns the `InstanceRegistry` for the process and shows
+/// either the front page (no scope open) or the Map / Calendar tabs
+/// for the open scope. Also mounts the SwiftData ModelContainer for
+/// todo pins so any surface that wants @Query'd pins gets one, and
+/// catches `photodiary://` launches to route a pairing ticket into the
 /// onboarding sheet.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
@@ -35,25 +36,18 @@ public struct AppShell: View {
     }
 
     public var body: some View {
-        TabView(selection: $selectedTab) {
-            MapPhotoView()
-                .tabItem { Label("Map", systemImage: "map") }
-                .tag(AppTab.map)
-
-            CalendarView()
-                .tabItem { Label("Calendar", systemImage: "calendar") }
-                .tag(AppTab.calendar)
-
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
-                .tag(AppTab.settings)
+        Group {
+            if registry.scope == nil {
+                ScopePickerView()
+                    .transition(.move(edge: .leading))
+            } else {
+                tabs
+                    .transition(.move(edge: .trailing))
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
         .environment(mapFocus)
-        .onChange(of: mapFocus.pending?.id) {
-            // "Show on map" from another tab: switch; the map frames it.
-            if mapFocus.pending != nil { selectedTab = .map }
-        }
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
         .modelContainer(todoPinContainer)
         .onOpenURL { url in
@@ -66,6 +60,22 @@ public struct AppShell: View {
         .sheet(item: $pendingTicket) { ticket in
             PairingView(initialTicket: ticket)
                 .environment(registry)
+        }
+    }
+
+    private var tabs: some View {
+        TabView(selection: $selectedTab) {
+            MapPhotoView()
+                .tabItem { Label("Map", systemImage: "map") }
+                .tag(AppTab.map)
+
+            CalendarView()
+                .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(AppTab.calendar)
+        }
+        .onChange(of: mapFocus.pending?.id) {
+            // "Show on map" from another tab: switch; the map frames it.
+            if mapFocus.pending != nil { selectedTab = .map }
         }
     }
 }

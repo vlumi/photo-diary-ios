@@ -20,6 +20,9 @@
     "Add this instance?" : {
       "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognized."
     },
+    "All galleries" : {
+      "comment" : "Subtitle of an instance row on the front page: tapping the row opens every gallery."
+    },
     "All of %@" : {
       "comment" : "Link at the top of a year in the calendar that opens the whole year as one grid; the argument is the year, e.g. 2024."
     },
@@ -71,8 +74,8 @@
     "Edit note" : {
       "comment" : "Accessibility label of the pencil button that opens the todo-pin editor, on the map banner and on each list row."
     },
-    "Instances" : {
-      "comment" : "Section header in Settings above the list of paired servers and the demo instance."
+    "Forget" : {
+      "comment" : "Swipe action on an instance row on the front page that removes the instance and its session."
     },
     "List todo pins" : {
       "comment" : "Accessibility label of the map's list button (bulleted-list icon with a count badge)."
@@ -88,6 +91,9 @@
     },
     "No galleries" : {
       "comment" : "Heading of the calendar's empty state when the instance lists no galleries."
+    },
+    "No instances yet" : {
+      "comment" : "Heading of the front page's empty state when no instance is paired."
     },
     "No photos" : {
       "comment" : "Title of the empty state in a calendar photo grid."
@@ -116,11 +122,17 @@
     "Pair again" : {
       "comment" : "Button under \"Session expired\" that opens the pairing sheet."
     },
+    "Pair this device with a Photo Diary site to get started." : {
+      "comment" : "Explanation under \"No instances yet\"."
+    },
     "Paste the pairing link instead." : {
       "comment" : "Hint under the camera-unavailable state on the scanner screen."
     },
     "Photo" : {
       "comment" : "Accessibility label of a single photo pin on the map."
+    },
+    "Photo Diary" : {
+      "comment" : "Title of the front page, and the label of the button on the map and calendar that returns to it."
     },
     "Photo, %@" : {
       "comment" : "Accessibility description of a photo without a title, read in the grid, callout and viewer. The argument is the photo's date and time."
@@ -145,9 +157,6 @@
     },
     "Session expired" : {
       "comment" : "Heading of the state shown when the server no longer accepts this device's pairing."
-    },
-    "Settings" : {
-      "comment" : "Tab bar label for the settings tab."
     },
     "Show on map" : {
       "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates."

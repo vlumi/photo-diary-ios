@@ -5,7 +5,6 @@ import SwiftUI
 public enum AppTab: Hashable, Sendable {
     case map
     case calendar
-    case settings
 }
 
 /// Cross-tab request: "show this photo on the map". Any surface that

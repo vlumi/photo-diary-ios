@@ -161,7 +161,7 @@ public struct PairingView: View {
         do {
             let instance = try await PairingService(factory: registry.remoteFactory).pair(ticket)
             registry.add(instance)
-            registry.setActive(instance.id)
+            registry.enter(Scope(instanceId: instance.id))
             dismiss()
         } catch let error as PairingError {
             failure = error.errorDescription

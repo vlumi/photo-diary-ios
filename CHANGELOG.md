@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- **Front page**: the app opens on a list of your instances with their galleries beneath; tap an instance for all of its galleries or a gallery for just that one, and the map and calendar show only that scope. Adding and forgetting instances live there, and the Settings tab is gone. The scope you were in is restored on the next launch.
 - VoiceOver: map pins, clusters and todo pins read as buttons with what a tap does, photos are described by title and date in the grid, callout and viewer, the active instance reads as selected, and a todo note grows with accessibility text sizes.
 - The map says when an instance has no located photos yet, and when a background refresh fails, instead of a bare map that looks broken.
 - The calendar's year and month lists show a spinner while loading, a proper error with Retry instead of a red row, and say so when a gallery or instance has nothing to show.

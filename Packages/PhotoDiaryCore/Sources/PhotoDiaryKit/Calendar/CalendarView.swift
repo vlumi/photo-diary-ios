@@ -11,7 +11,16 @@ public struct CalendarView: View {
 
     public var body: some View {
         NavigationStack(path: $path) {
-            GalleryListView()
+            root
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            registry.leaveScope()
+                        } label: {
+                            Label("Photo Diary", systemImage: "square.grid.2x2")
+                        }
+                    }
+                }
                 .navigationDestination(for: CalendarRoute.self) { route in
                     switch route {
                     case .years(let galleryId):
@@ -23,10 +32,20 @@ public struct CalendarView: View {
                     }
                 }
         }
-        // A pushed year / month / grid belongs to the previous instance;
-        // drop back to the gallery list when the active one changes.
-        .onChange(of: registry.activeInstanceId) {
+        // A pushed year / month / grid belongs to the previous scope;
+        // drop back to the root when it changes.
+        .onChange(of: registry.scope) {
             path = []
+        }
+    }
+
+    /// A gallery in scope skips the gallery list.
+    @ViewBuilder
+    private var root: some View {
+        if let galleryId = registry.scope?.galleryId {
+            YearListView(galleryId: galleryId)
+        } else {
+            GalleryListView()
         }
     }
 }
@@ -47,7 +66,7 @@ struct GalleryListView: View {
     var body: some View {
         content
             .navigationTitle(registry.activeInstance?.displayName ?? "Photo Diary")
-            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
+            .task(id: "\(registry.scope?.instanceId ?? ""):\(attempt)") { await load() }
     }
 
     @ViewBuilder

@@ -76,7 +76,7 @@ public struct MapPhotoView: View {
 
     public var body: some View {
         content
-            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
+            .task(id: "\(scopeKey):\(attempt)") { await load() }
             .fullScreenCover(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
@@ -147,6 +147,12 @@ public struct MapPhotoView: View {
             if cameraPosition.positionedByUser { recenterOnFix = false }
         }
         .overlay(alignment: .bottomTrailing) { controls }
+        .overlay(alignment: .topLeading) {
+            MapRoundButton("square.grid.2x2", tint: .secondary) { registry.leaveScope() }
+                .accessibilityLabel("Photo Diary")
+                .padding(.leading, 16)
+                .padding(.top, 8)
+        }
         .overlay(alignment: .top) {
             MapTopBanners(
                 isRefreshing: isRefreshing, locationError: locator.lastError,
@@ -273,6 +279,11 @@ public struct MapPhotoView: View {
         clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
     }
 
+    private var scopeKey: String {
+        guard let scope = registry.scope else { return "" }
+        return "\(scope.instanceId)/\(scope.galleryId ?? "*")"
+    }
+
     private var controls: some View {
         MapControlsOverlay(
             todoCount: todoPins.count,
@@ -303,10 +314,15 @@ public struct MapPhotoView: View {
             return
         }
         do {
-            let galleries = try await instance.listGalleries()
+            let galleryIds: [String]
+            if let galleryId = registry.scope?.galleryId {
+                galleryIds = [galleryId]
+            } else {
+                galleryIds = try await instance.listGalleries().map(\.id)
+            }
             var allPhotos: [Photo] = []
-            for gallery in galleries {
-                let photos = try await instance.listPhotos(inGallery: gallery.id)
+            for galleryId in galleryIds {
+                let photos = try await instance.listPhotos(inGallery: galleryId)
                 allPhotos.append(contentsOf: photos)
             }
             // A photo linked into two galleries arrives twice; keep one.
