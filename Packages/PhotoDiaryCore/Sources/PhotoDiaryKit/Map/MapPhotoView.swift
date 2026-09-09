@@ -74,7 +74,7 @@ public struct MapPhotoView: View {
     @Query(sort: TodoPinStore.sortOrder) private var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
-    /// small continent, so the neighbourhood is legible but the wider
+    /// small continent, so the neighborhood is legible but the wider
     /// spread is visible too.
     static let initialSpanDegrees = 20.0
     /// Locate / show-on-map framing: close enough to read the street,

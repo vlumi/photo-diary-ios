@@ -46,8 +46,8 @@ public struct DemoImageLoader: ImageLoader {
         }
     }
 
-    /// Two-colour gradient derived from the seed's hash. Same seed →
-    /// same colours across runs.
+    /// Two-color gradient derived from the seed's hash. Same seed →
+    /// same colors across runs.
     private static func gradientColors(for seed: String) -> (PlatformColor, PlatformColor) {
         var hasher = Hasher()
         hasher.combine(seed)

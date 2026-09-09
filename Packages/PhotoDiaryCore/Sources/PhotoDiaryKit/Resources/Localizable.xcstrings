@@ -18,7 +18,7 @@
       "comment" : "Two places: the button at the bottom of Settings that starts pairing, and the title of the pairing screen it opens."
     },
     "Add this instance?" : {
-      "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognised."
+      "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognized."
     },
     "All of %@" : {
       "comment" : "Link at the top of a year in the calendar that opens the whole year as one grid; the argument is the year, e.g. 2024."
@@ -117,7 +117,7 @@
       "comment" : "Tab bar label for the settings tab."
     },
     "Show on map" : {
-      "comment" : "Button in the full-screen photo viewer that switches to the map tab centred on the photo; shown only for photos with coordinates."
+      "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates."
     },
     "Sort" : {
       "comment" : "Label of the Recent / Nearest segmented control at the top of the todo-pin list; read by VoiceOver, not shown."
