@@ -5,7 +5,7 @@ import UIKit
 
 /// CLLocationManager wrapper for the map: keeps `lastLocation` fresh
 /// while the map is on screen (so the marker follows the user) and
-/// serves the locate button: the map centres on `lastLocation` at once
+/// serves the locate button: the map centers on `lastLocation` at once
 /// and `freshFix` ticks when the fix requested by the tap arrives.
 ///
 /// Tracking runs only between startTracking() / stopTracking() — the
@@ -18,7 +18,7 @@ public final class UserLocationController: NSObject {
     public private(set) var lastLocation: CLLocationCoordinate2D?
     public private(set) var lastError: String?
     /// Bumped once per locate() when its requested fix lands, so the
-    /// map can re-centre on that one update and not on later ones. A
+    /// map can re-center on that one update and not on later ones. A
     /// counter, not the coordinate: a stationary device gets the same
     /// fix back, and a same-value change would never fire onChange.
     public private(set) var freshFix = 0
@@ -48,7 +48,7 @@ public final class UserLocationController: NSObject {
 
     /// Ask for permission if not yet decided, then request one fresh
     /// fix, reported through `freshFix`. With Best accuracy that can
-    /// take several seconds, which is why the map centres on the known
+    /// take several seconds, which is why the map centers on the known
     /// `lastLocation` first rather than waiting for this. If permission
     /// is denied, sets lastError for the banner.
     public func locate() {

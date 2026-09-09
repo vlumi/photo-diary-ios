@@ -58,10 +58,10 @@ public struct MapPhotoView: View {
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State private var locator = UserLocationController()
-    // Locate: the fresh fix re-centres only while this is armed; a
+    // Locate: the fresh fix re-centers only while this is armed; a
     // user pan or zoom after the tap disarms it, so the marker moves
     // to the fix but the map stays where the user put it.
-    @State private var recentreOnFix = false
+    @State private var recenterOnFix = false
     @State private var editorPresentation: MapEditorPresentation?
     @State private var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
@@ -157,7 +157,7 @@ public struct MapPhotoView: View {
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
             recluster(pins: pins, region: context.region)
-            if cameraPosition.positionedByUser { recentreOnFix = false }
+            if cameraPosition.positionedByUser { recenterOnFix = false }
         }
         .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .top) {
@@ -166,8 +166,8 @@ public struct MapPhotoView: View {
         .onAppear { locator.startTracking() }
         .onDisappear { locator.stopTracking() }
         .onChange(of: locator.freshFix) {
-            guard recentreOnFix, let here = locator.lastLocation else { return }
-            recentreOnFix = false
+            guard recenterOnFix, let here = locator.lastLocation else { return }
+            recenterOnFix = false
             frame(here, meters: Self.closeUpMeters)
         }
         .onChange(of: selection) { _, selected in
@@ -312,11 +312,11 @@ public struct MapPhotoView: View {
         )
     }
 
-    /// Centre on the fix already in hand so the button responds at
-    /// once; the fresh fix that follows re-centres unless the user has
+    /// Center on the fix already in hand so the button responds at
+    /// once; the fresh fix that follows re-centers unless the user has
     /// moved the map meanwhile.
     private func locate() {
-        recentreOnFix = true
+        recenterOnFix = true
         if let here = locator.lastLocation {
             frame(here, meters: Self.closeUpMeters)
         }
