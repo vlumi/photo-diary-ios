@@ -8,6 +8,9 @@ public struct PhotoViewerSheet: View {
     private let photo: Photo
     private let loader: any ImageLoader
     private let onDismiss: () -> Void
+    /// Offered when set and the photo has coordinates; the map itself
+    /// passes nil since it is already there.
+    private let onShowOnMap: (() -> Void)?
 
     @State private var state: LoadState = .loading
 
@@ -20,11 +23,13 @@ public struct PhotoViewerSheet: View {
     public init(
         photo: Photo,
         loader: any ImageLoader,
-        onDismiss: @escaping () -> Void
+        onDismiss: @escaping () -> Void,
+        onShowOnMap: (() -> Void)? = nil
     ) {
         self.photo = photo
         self.loader = loader
         self.onDismiss = onDismiss
+        self.onShowOnMap = onShowOnMap
     }
 
     public var body: some View {
@@ -33,6 +38,20 @@ public struct PhotoViewerSheet: View {
             closeButton
                 .padding(.top, 8)
                 .padding(.trailing, 8)
+        }
+        .overlay(alignment: .bottomLeading) {
+            if let onShowOnMap, photo.location.coordinates != nil {
+                Button(action: onShowOnMap) {
+                    Label("Show on map", systemImage: "map")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Capsule())
+                }
+                .padding(16)
+            }
         }
         .background(Color.black.ignoresSafeArea())
         .task(id: photo.id) { await load() }

@@ -11,6 +11,8 @@ public struct AppShell: View {
     private let imageLoader: any ImageLoader
     private let todoPinContainer: ModelContainer
     @State private var pendingTicket: PairingTicket?
+    @State private var selectedTab: AppTab = .map
+    @State private var mapFocus = MapFocusStore()
 
     public init() {
         _registry = State(
@@ -33,17 +35,25 @@ public struct AppShell: View {
     }
 
     public var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             MapPhotoView()
                 .tabItem { Label("Map", systemImage: "map") }
+                .tag(AppTab.map)
 
             CalendarView()
                 .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(AppTab.calendar)
 
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag(AppTab.settings)
         }
         .environment(registry)
+        .environment(mapFocus)
+        .onChange(of: mapFocus.pending?.id) {
+            // "Show on map" from another tab: switch; the map frames it.
+            if mapFocus.pending != nil { selectedTab = .map }
+        }
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
         .modelContainer(todoPinContainer)
         .onOpenURL { url in

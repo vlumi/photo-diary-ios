@@ -14,6 +14,7 @@ public struct PhotoGridView: View {
 
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
+    @Environment(MapFocusStore.self) private var focus
     @State private var state: LoadState = .loading
     @State private var presented: Photo?
 
@@ -35,7 +36,10 @@ public struct PhotoGridView: View {
             .navigationTitle(navTitle)
             .navigationBarTitleDisplayModeInline()
             .task(id: reloadKey) { await load() }
-            .photoViewerCover(item: $presented, loader: loaderBox.loader)
+            .photoViewerCover(item: $presented, loader: loaderBox.loader) { photo in
+                presented = nil
+                focus.show(photo)
+            }
     }
 
     @ViewBuilder
@@ -160,15 +164,24 @@ extension View {
     /// calendar / map surface routes through.
     fileprivate func photoViewerCover(
         item: Binding<Photo?>,
-        loader: any ImageLoader
+        loader: any ImageLoader,
+        onShowOnMap: @escaping (Photo) -> Void
     ) -> some View {
         #if canImport(UIKit)
         return self.fullScreenCover(item: item) { photo in
-            PhotoViewerSheet(photo: photo, loader: loader) { item.wrappedValue = nil }
+            PhotoViewerSheet(
+                photo: photo, loader: loader,
+                onDismiss: { item.wrappedValue = nil },
+                onShowOnMap: { onShowOnMap(photo) }
+            )
         }
         #else
         return self.sheet(item: item) { photo in
-            PhotoViewerSheet(photo: photo, loader: loader) { item.wrappedValue = nil }
+            PhotoViewerSheet(
+                photo: photo, loader: loader,
+                onDismiss: { item.wrappedValue = nil },
+                onShowOnMap: { onShowOnMap(photo) }
+            )
         }
         #endif
     }

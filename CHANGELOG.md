@@ -12,6 +12,11 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- **Show on map** from the photo viewer: opening a photo from the calendar can jump to where it was taken, framed at street level.
+- **The map holds its place**: returning from a photo, or a background refresh, no longer re-fits the camera or blanks the map; a thin bar shows while pins refresh.
+- **Pinch-to-zoom starts immediately** — pins and clusters no longer capture the first touch of a two-finger gesture.
+- **Your location** is drawn on top of pins and clusters, follows you while the map is open, and the locate button zooms in close enough to see the street.
+
 ### build 1 — 2026-09-08
 
 - **Pair with a Photo Diary instance** from the site's "Pair a device" code — scan the QR, open the link on the same device, or paste it — with an "Add this instance?" confirmation before anything is consumed; sessions persist in the Keychain across relaunches.
