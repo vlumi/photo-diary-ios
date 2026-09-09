@@ -16,10 +16,11 @@
 #     with the Key ID + Issuer ID. Both stay outside git.
 #   • Signing is automatic against DEVELOPMENT_TEAM in project.yml, the same
 #     way Xcode's Organizer does it; -allowProvisioningUpdates fetches the
-#     distribution cert + profile on first run. xcodebuild authenticates
-#     with the same API key as the upload, so Xcode need not be signed in
-#     to an Apple ID — a stale Xcode account session used to fail the
-#     export with "No Accounts".
+#     distribution cert + profile through Xcode's signed-in Apple ID. An
+#     export failing with "No Accounts" means that session has lapsed:
+#     restart Xcode and sign in again (Settings → Accounts). Handing
+#     xcodebuild the API key instead does not work — the App Manager key
+#     is not allowed to use the cloud-managed distribution certificate.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -42,27 +43,6 @@ scheme="PhotoDiary-iOS"
 out="dist/ios"
 archive="${out}/PhotoDiary-iOS.xcarchive"
 
-config="Scripts/.asc-config"
-[ -f "$config" ] || {
-    echo "error: $config missing. Copy Scripts/.asc-config.example to it and fill in" >&2
-    echo "       your ASC API Key ID + Issuer ID (see this script's header)." >&2
-    exit 1
-}
-# shellcheck disable=SC1090
-. "$config"
-: "${ASC_KEY_ID:?set ASC_KEY_ID in $config}"
-: "${ASC_ISSUER_ID:?set ASC_ISSUER_ID in $config}"
-key_path="$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
-[ -f "$key_path" ] || {
-    echo "error: $key_path missing — the .p8 for ASC_KEY_ID must live there (see this script's header)." >&2
-    exit 1
-}
-auth=(
-    -authenticationKeyPath "$key_path"
-    -authenticationKeyID "$ASC_KEY_ID"
-    -authenticationKeyIssuerID "$ASC_ISSUER_ID"
-)
-
 if [ "$build" -eq 1 ]; then
     [ -d "$project" ] || { echo "error: $project missing — run Scripts/generate.sh first." >&2; exit 1; }
     marketing="$(awk -F'"' '/^ *MARKETING_VERSION:/ { print $2; exit }' project.yml)"
@@ -77,7 +57,6 @@ if [ "$build" -eq 1 ]; then
         -destination "generic/platform=iOS" \
         -archivePath "$archive" \
         -allowProvisioningUpdates \
-        "${auth[@]}" \
         -quiet
 
     echo "▶︎ Exporting .ipa…"
@@ -86,7 +65,6 @@ if [ "$build" -eq 1 ]; then
         -exportPath "$out" \
         -exportOptionsPlist Scripts/ExportOptions.plist \
         -allowProvisioningUpdates \
-        "${auth[@]}" \
         -quiet
 fi
 
@@ -94,7 +72,7 @@ fi
 pkg="$( [ -d "$out" ] && /usr/bin/find "$out" -maxdepth 1 -name "*.ipa" | head -1 || true )"
 [ -n "$pkg" ] || {
     if [ "$build" -eq 0 ]; then
-        echo "error: no .ipa in $out to upload — run 'make distribute-build' first." >&2
+        echo "error: no .ipa in $out to upload — run 'make release-build' first." >&2
     else
         echo "error: no .ipa produced in $out" >&2
     fi
@@ -106,6 +84,17 @@ if [ "$upload" -eq 0 ]; then
     echo "✓ Built $pkg (upload skipped)."
     exit 0
 fi
+
+config="Scripts/.asc-config"
+[ -f "$config" ] || {
+    echo "error: $config missing. Copy Scripts/.asc-config.example to it and fill in" >&2
+    echo "       your ASC API Key ID + Issuer ID (see this script's header)." >&2
+    exit 1
+}
+# shellcheck disable=SC1090
+. "$config"
+: "${ASC_KEY_ID:?set ASC_KEY_ID in $config}"
+: "${ASC_ISSUER_ID:?set ASC_ISSUER_ID in $config}"
 
 echo "▶︎ Uploading to App Store Connect…"
 xcrun altool --upload-app \
