@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 2 — 2026-09-09
+
 - **Todo pins by touch**: long-press the map to drop a pin where your finger is and write its note, long-press a pin and drag to move it, tap it for a banner with its note and a pencil to edit — the map-centre drop button is gone.
 - **Pin list**: tapping a row only flies the map there; the pencil opens the editor.
 - Dragging a todo pin no longer zooms the map underneath it.
