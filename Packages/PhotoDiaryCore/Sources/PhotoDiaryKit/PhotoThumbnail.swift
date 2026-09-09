@@ -56,6 +56,10 @@ public struct PhotoThumbnail: View {
     }
 
     private func load() async {
+        // The view is reused with a new URL (a callout moving to another
+        // pin, a paged pile, a recycled grid cell); the old image must
+        // not stand in for the new one while it loads.
+        state = .loading
         do {
             let image = try await loader.loadImage(from: url)
             state = .loaded(image)
