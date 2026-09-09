@@ -106,9 +106,15 @@ while true; do
     sleep 5
 done
 say "Waiting for CI to finish…"
-if ! gh pr checks "$rel_branch" --watch --fail-fast; then
+# A dropped `--watch` stream (GitHub blip) exits non-zero exactly like a failed
+# check. Re-derive the truth from a plain poll: pending → re-watch; only a
+# check that really reports failure dies.
+while ! gh pr checks "$rel_branch" --watch --fail-fast; do
+    gh_retry gh pr checks "$rel_branch" >/dev/null 2>&1 && break
+    rc=$?
+    [ "$rc" -eq 8 ] && { say "watch dropped mid-run — re-watching…"; continue; }
     die "CI failed — PR left open at $rel_branch. No merge, tag, build, or upload was done."
-fi
+done
 
 say "Confirming merge…"
 [ "$automerge" -eq 1 ] || gh pr merge "$rel_branch" --merge >/dev/null
@@ -116,7 +122,7 @@ say "Confirming merge…"
 # Auto-merge is async: GitHub merges a few seconds after checks go green.
 state=""
 for _ in $(seq 1 20); do
-    state="$(gh pr view "$rel_branch" --json state --jq .state)"
+    state="$(gh_retry gh pr view "$rel_branch" --json state --jq .state)"
     [ "$state" = "MERGED" ] && break
     sleep 3
 done

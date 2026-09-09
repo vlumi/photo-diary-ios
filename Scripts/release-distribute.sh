@@ -26,6 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$require_tag" -eq 1 ]; then
+    sync_tags
     version="$(read_setting MARKETING_VERSION)"
     build="$(read_setting CURRENT_PROJECT_VERSION)"
     tag_exists "$version" "$build" \
