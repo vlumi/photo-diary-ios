@@ -68,8 +68,8 @@ public struct PhotoPagerSheet: View {
         VStack {
             HStack(alignment: .top) {
                 Spacer()
-                if photos.count > 1 {
-                    Text("\(index + 1) / \(photos.count)")
+                if let current {
+                    Text(caption(for: current))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -130,6 +130,11 @@ public struct PhotoPagerSheet: View {
             }
             .padding(16)
         }
+    }
+
+    private func caption(for photo: Photo) -> String {
+        let date = photo.timestamp.display
+        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
     private func chevron(

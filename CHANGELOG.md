@@ -16,6 +16,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 - **Pin list**: tapping a row only flies the map there; the pencil opens the editor.
 - Dragging a todo pin no longer zooms the map underneath it.
 - The previous-photo arrow on a pile's callout works; it used to open the photo instead.
+- Callouts and the viewer show the photo's date and time.
 - **Tap a pin to see the photo first**: a thumbnail pops up above it, and tapping that opens the full viewer; a pile of photos at one spot gets the same popup with arrows to browse what's there.
 - **Swipe between photos** in the viewer — through the month from the calendar, or through a pile from the map — with chevrons and a position counter.
 - **Show on map** from the photo viewer: opening a photo from the calendar can jump to where it was taken, framed at street level.
