@@ -47,7 +47,7 @@ struct GalleryListView: View {
     private enum LoadState {
         case loading
         case loaded([Gallery])
-        case failed(String)
+        case failed(LoadFailure)
     }
 
     var body: some View {
@@ -61,8 +61,8 @@ struct GalleryListView: View {
         switch state {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .failed(let message):
-            LoadFailureView(title: "Couldn't load galleries", message: message) { attempt += 1 }
+        case .failed(let failure):
+            LoadFailureView(title: "Couldn't load galleries", failure: failure) { attempt += 1 }
         case .loaded(let galleries):
             List(galleries) { gallery in
                 NavigationLink(value: CalendarRoute.years(galleryId: gallery.id)) {
@@ -87,14 +87,14 @@ struct GalleryListView: View {
     private func load() async {
         state = .loading
         guard let instance = registry.activeInstance else {
-            state = .failed("No active instance.")
+            state = .failed(LoadFailure(message: "No active instance."))
             return
         }
         do {
             let galleries = try await instance.listGalleries()
             state = .loaded(galleries)
         } catch {
-            state = .failed(error.localizedDescription)
+            state = .failed(LoadFailure(error))
         }
     }
 }
