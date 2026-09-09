@@ -38,11 +38,12 @@ public final class InstanceRegistry {
     public init(
         persistence: any InstancePersistence,
         sessionStore: any SessionStore,
+        cache: ResponseCache? = nil,
         seedingDemo: Bool = true
     ) {
         self.persistence = persistence
         self.sessionStore = sessionStore
-        self.remoteFactory = RemoteInstanceFactory(sessionStore: sessionStore)
+        self.remoteFactory = RemoteInstanceFactory(sessionStore: sessionStore, cache: cache)
 
         let ids = persistence.loadInstanceIds() ?? (seedingDemo ? [DemoInstance.instanceId] : [])
         instances = ids.map { id -> any Instance in
@@ -98,6 +99,7 @@ public final class InstanceRegistry {
         instances.removeAll(where: { $0.id == id })
         if !removed.isDemo {
             try? sessionStore.delete(host: id)
+            remoteFactory.cache?.clear(origin: id)
         }
         if scope?.instanceId == id {
             scope = nil

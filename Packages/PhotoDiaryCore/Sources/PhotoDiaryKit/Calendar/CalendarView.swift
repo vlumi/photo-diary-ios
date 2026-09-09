@@ -110,17 +110,15 @@ struct GalleryListView: View {
     }
 
     private func load() async {
-        state = .loading
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return
         }
-        do {
-            let galleries = try await instance.listGalleries()
-            state = galleries.isEmpty ? .empty : .loaded(galleries)
-        } catch {
-            state = .failed(LoadFailure(error))
-        }
+        await LoadState.load(
+            cached: { await instance.cachedGalleries() },
+            fresh: { try await instance.listGalleries() },
+            isEmpty: \.isEmpty
+        ) { state = $0 }
     }
 }
 
@@ -137,8 +135,7 @@ struct YearListView: View {
         content
             .navigationTitle("Years")
             .task(id: "\(galleryId):\(attempt)") {
-                state = .loading
-                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                await loadCalendarSlice(of: galleryId, from: registry, into: { state = $0 }) {
                     PhotoCalendar.years(in: $0)
                 }
             }
@@ -183,8 +180,7 @@ struct MonthListView: View {
         content
             .navigationTitle(String(year))
             .task(id: "\(galleryId):\(year):\(attempt)") {
-                state = .loading
-                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                await loadCalendarSlice(of: galleryId, from: registry, into: { state = $0 }) {
                     PhotoCalendar.months(in: year, of: $0)
                 }
             }
@@ -236,15 +232,17 @@ struct MonthListView: View {
 /// (cached by the instance, so the second hop is free).
 @MainActor
 private func loadCalendarSlice(
-    of galleryId: String, from registry: InstanceRegistry, derive: ([Photo]) -> [Int]
-) async -> LoadState<[Int]> {
+    of galleryId: String, from registry: InstanceRegistry,
+    into update: (LoadState<[Int]>) -> Void, derive: ([Photo]) -> [Int]
+) async {
     guard let instance = registry.activeInstance else {
-        return .failed(LoadFailure(message: "No active instance."))
+        update(.failed(LoadFailure(message: "No active instance.")))
+        return
     }
-    do {
-        let values = derive(try await instance.listPhotos(inGallery: galleryId))
-        return values.isEmpty ? .empty : .loaded(values)
-    } catch {
-        return .failed(LoadFailure(error))
-    }
+    await LoadState.load(
+        cached: { await instance.cachedPhotos(inGallery: galleryId).map(derive) },
+        fresh: { derive(try await instance.listPhotos(inGallery: galleryId)) },
+        isEmpty: \.isEmpty,
+        into: update
+    )
 }

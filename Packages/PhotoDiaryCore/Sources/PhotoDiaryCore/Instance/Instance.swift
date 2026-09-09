@@ -34,6 +34,17 @@ public protocol Instance: Sendable {
     /// A single photo by id. Used when navigating directly (e.g. a
     /// map-pin popup) without loading the whole gallery.
     func getPhoto(id: String, inGallery galleryId: String) async throws -> Photo
+
+    /// The last answers this instance gave, without touching the
+    /// network — what a screen shows while the fresh one loads. nil
+    /// when nothing is cached.
+    func cachedGalleries() async -> [Gallery]?
+    func cachedPhotos(inGallery galleryId: String) async -> [Photo]?
+}
+
+extension Instance {
+    public func cachedGalleries() async -> [Gallery]? { nil }
+    public func cachedPhotos(inGallery galleryId: String) async -> [Photo]? { nil }
 }
 
 public enum InstanceError: Error, Sendable {

@@ -114,27 +114,25 @@ public struct PhotoGridView: View {
     }
 
     private func load() async {
-        state = .loading
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return
         }
-        do {
-            let all = try await instance.listPhotos(inGallery: galleryId)
-            let scope: [Photo]
-            if let month {
-                scope = PhotoCalendar.photos(in: year, month: month, of: all)
-            } else {
-                scope = PhotoCalendar.photos(in: year, of: all)
-            }
-            if scope.isEmpty {
-                state = .empty
-            } else {
-                state = .loaded(PhotoCalendar.groupByDay(scope))
-            }
-        } catch {
-            state = .failed(LoadFailure(error))
+        await LoadState.load(
+            cached: { await instance.cachedPhotos(inGallery: galleryId).map(sections) },
+            fresh: { sections(try await instance.listPhotos(inGallery: galleryId)) },
+            isEmpty: \.isEmpty
+        ) { state = $0 }
+    }
+
+    private func sections(_ all: [Photo]) -> [PhotoCalendar.DaySection] {
+        let scope: [Photo]
+        if let month {
+            scope = PhotoCalendar.photos(in: year, month: month, of: all)
+        } else {
+            scope = PhotoCalendar.photos(in: year, of: all)
         }
+        return PhotoCalendar.groupByDay(scope)
     }
 }
 

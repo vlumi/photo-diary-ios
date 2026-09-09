@@ -116,12 +116,10 @@ private struct InstanceSection: View {
     }
 
     private func load() async {
-        state = .loading
-        do {
-            let galleries = try await instance.listGalleries()
-            state = galleries.isEmpty ? .empty : .loaded(galleries)
-        } catch {
-            state = .failed(LoadFailure(error))
-        }
+        await LoadState.load(
+            cached: { await instance.cachedGalleries() },
+            fresh: { try await instance.listGalleries() },
+            isEmpty: \.isEmpty
+        ) { state = $0 }
     }
 }
