@@ -42,10 +42,42 @@ public struct ScopePickerView: View {
             }
         } else {
             List {
+                if let eviction = registry.eviction {
+                    Section {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
+                            message(for: eviction)
+                            Spacer()
+                            Button {
+                                registry.dismissEviction()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Dismiss")
+                        }
+                        .font(.footnote)
+                    }
+                }
                 ForEach(registry.instances, id: \.id) { instance in
                     InstanceSection(instance: instance)
                 }
             }
+        }
+    }
+
+    private func message(for eviction: Eviction) -> Text {
+        let name = eviction.instanceName
+        switch eviction.reason {
+        case .sessionExpired:
+            return Text("Your pairing with \(name) has expired. Pair this device again.")
+        case .galleryGone:
+            return Text("The gallery you were viewing on \(name) is no longer there.")
+        case .forbidden:
+            return Text("\(name) no longer lets you see what you were viewing.")
         }
     }
 }
@@ -92,6 +124,9 @@ private struct InstanceSection: View {
             Label(failure.message, systemImage: "exclamationmark.triangle")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            if failure.sessionExpired {
+                SessionExpiredActions(instance: instance) { Task { await load() } }
+            }
         case .loaded(let galleries):
             ForEach(galleries) { gallery in
                 Button {

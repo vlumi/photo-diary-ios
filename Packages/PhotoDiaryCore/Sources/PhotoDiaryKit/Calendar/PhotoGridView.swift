@@ -121,7 +121,8 @@ public struct PhotoGridView: View {
         await LoadState.load(
             cached: { await instance.cachedPhotos(inGallery: galleryId).map(sections) },
             fresh: { sections(try await instance.listPhotos(inGallery: galleryId)) },
-            isEmpty: \.isEmpty
+            isEmpty: \.isEmpty,
+            onFailure: { registry.evictIfAccessLost($0) }
         ) { state = $0 }
     }
 

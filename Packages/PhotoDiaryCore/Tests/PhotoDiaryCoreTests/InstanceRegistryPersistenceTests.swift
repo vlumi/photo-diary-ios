@@ -58,6 +58,28 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
         XCTAssertEqual(persistence.loadInstanceIds(), [])
     }
 
+    func testEvictionClearsWhatWasCachedForTheScope() throws {
+        let cache = ResponseCache(
+            root: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString))
+        let origin = "https://photos.example.test"
+        cache.save(Data("[]".utf8), origin: origin, key: "galleries")
+        cache.save(Data("[]".utf8), origin: origin, key: "photos/g1")
+        cache.save(Data("[]".utf8), origin: origin, key: "photos/g2")
+        let registry = InstanceRegistry(
+            persistence: InMemoryInstancePersistence(ids: [origin]),
+            sessionStore: InMemorySessionStore(), cache: cache)
+
+        registry.enter(Scope(instanceId: origin, galleryId: "g1"))
+        registry.evictIfAccessLost(InstanceError.galleryNotFound("g1"))
+        XCTAssertNil(cache.load(origin: origin, key: "photos/g1"), "the gone gallery is dropped")
+        XCTAssertNotNil(cache.load(origin: origin, key: "photos/g2"), "the rest stays")
+
+        registry.enter(Scope(instanceId: origin))
+        registry.evictIfAccessLost(InstanceError.sessionExpired)
+        XCTAssertNil(cache.load(origin: origin, key: "galleries"), "a dead session drops it all")
+        XCTAssertNil(cache.load(origin: origin, key: "photos/g2"))
+    }
+
     func testEnterAndLeavePersist() {
         let persistence = InMemoryInstancePersistence(
             ids: ["demo", "h.example"], scope: Scope(instanceId: "h.example"))

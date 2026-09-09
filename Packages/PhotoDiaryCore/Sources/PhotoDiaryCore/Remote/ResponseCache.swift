@@ -35,6 +35,11 @@ public struct ResponseCache: Sendable {
         try? FileManager.default.removeItem(at: directory(origin: origin))
     }
 
+    /// One answer — a gallery that is gone.
+    public func clear(origin: String, key: String) {
+        try? FileManager.default.removeItem(at: url(origin: origin, key: key))
+    }
+
     private func directory(origin: String) -> URL {
         root.appending(path: Self.fileSafe(origin))
     }

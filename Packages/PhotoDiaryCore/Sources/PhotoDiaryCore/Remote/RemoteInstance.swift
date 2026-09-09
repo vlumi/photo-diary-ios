@@ -59,8 +59,13 @@ public actor RemoteInstance: Instance {
     public func listPhotos(inGallery galleryId: String) async throws -> [Photo] {
         if let cached = freshCache(for: galleryId) { return cached }
         let root = try await resolvePhotoRoot()
-        let data = try await api.fetch(
-            "/api/v1/gallery-photos/\(galleryId)/query", body: PhotoQuery(lang: lang))
+        let data: Data
+        do {
+            data = try await api.fetch(
+                "/api/v1/gallery-photos/\(galleryId)/query", body: PhotoQuery(lang: lang))
+        } catch InstanceError.server(let status) where status == 404 {
+            throw InstanceError.galleryNotFound(galleryId)
+        }
         let photos = try Self.photos(from: data, galleryId: galleryId, photoRoot: root)
         cache?.save(data, origin: id, key: "photos/" + galleryId)
         photoCache[galleryId] = CachedPhotos(photos: photos, fetchedAt: now())
