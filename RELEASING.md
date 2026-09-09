@@ -58,4 +58,4 @@ The steps are idempotent against the real artifacts (tags, merge state). Re-ente
 
 - **App Store Connect app record** for `fi.misaki.photodiary`, with an internal TestFlight group (automatic distribution on) containing the testers.
 - **ASC API key**: App Store Connect → Users and Access → Integrations → App Store Connect API → generate (App Manager role). Put the `.p8` at `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`, then copy `Scripts/.asc-config.example` → `Scripts/.asc-config` (gitignored) and fill in the Key ID + Issuer ID.
-- **Signing** is automatic (`-allowProvisioningUpdates`) against `DEVELOPMENT_TEAM` in `project.yml`; no manual certs.
+- **Signing** is automatic (`-allowProvisioningUpdates`) against `DEVELOPMENT_TEAM` in `project.yml`; no manual certs. It goes through Xcode's signed-in Apple ID, so if an export fails with "No Accounts", restart Xcode and sign in again under Settings → Accounts. The API key is for the upload only; xcodebuild cannot use it for signing, because an App Manager key has no access to the cloud-managed distribution certificate.
