@@ -49,6 +49,7 @@ The steps are idempotent against the real artifacts (tags, merge state). Re-ente
 | --- | --- |
 | preflight / publish, before the PR merged | `make release` again — a clean restart (close the stale PR if one was opened) |
 | after the PR merged, before tagging | `make release` — publish self-skips (its build is already ahead of every tag) and the chain tags + distributes |
+| tagged, but the release/distribute step failed and you want the same build number back | delete the tag on origin (`git push --delete origin vX.Y.Z-N`; there is no GitHub release yet to keep), then `make release` — the lane mirrors origin's tags into the clone, so the deleted tag stops counting and publish self-skips straight to tagging |
 | partway through tagging | `make release-tag` — skips a done tag, creates a missing release for an existing tag |
 | upload only (export ok, ASC upload flaked) | `make release-upload` — uploads the existing `dist/` package, no rebuild |
 | archive / export | `make release-distribute-retry` — verifies the tag exists, then re-archives / exports / uploads without touching git, PR or tags |

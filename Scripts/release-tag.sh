@@ -11,6 +11,7 @@ cd "$(dirname "$0")/.."
 base="$(release_base)"
 say "Refreshing ${base}…"
 git pull --quiet --ff-only origin "$base"
+sync_tags
 version="$(read_setting MARKETING_VERSION)"
 build="$(read_setting CURRENT_PROJECT_VERSION)"
 merge_sha="$(git rev-parse HEAD)"

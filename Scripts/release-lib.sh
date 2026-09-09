@@ -18,6 +18,31 @@ APP_ICON="Sources/iOS/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 say() { printf '\033[36m▶︎ %s\033[0m\n' "$*"; }
 die() { echo "error: $*" >&2; exit 1; }
 
+# Retry a GitHub call a few times with backoff: a transient 502/timeout while
+# polling a PR must not abort a release mid-flight. Returns the LAST attempt's
+# exit code, so `gh pr checks` exit 8 (= pending) still reads as pending.
+gh_retry() {
+    local tries=0 max=5 rc=0
+    while :; do
+        "$@" && return 0
+        rc=$?
+        tries=$(( tries + 1 ))
+        [ "$tries" -ge "$max" ] && return "$rc"
+        echo "  (GitHub call failed, rc=$rc — retry $tries/$((max - 1)) in $(( tries * 2 ))s)" >&2
+        sleep $(( tries * 2 ))
+    done
+}
+
+# Make the local tags an exact mirror of origin's. The lane reads its state
+# from the tags (resume guard, tag_exists, previous_tag), and origin is the
+# copy that counts: a tag deleted there to redo a failed cut must stop
+# counting here too, or publish re-bumps and tag refuses to re-tag. Tags are
+# only ever created by the lane and pushed at once, so a local-only tag is
+# always stale, never unpublished work.
+sync_tags() {
+    git fetch --quiet --prune origin '+refs/tags/*:refs/tags/*'
+}
+
 # Stamp the changelog's "Unreleased (next build)" section with a build number
 # at release time: the human-written entries accumulated there get promoted to
 # a `### build N — <date>` heading and a fresh empty Unreleased takes their
