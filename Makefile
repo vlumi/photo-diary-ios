@@ -15,7 +15,8 @@ help:  ## List the available commands
 # alone captures every plist-affecting change.
 PROJECT_INPUTS := project.yml \
 	$(wildcard Sources/*/*.entitlements) \
-	$(wildcard Sources/*/*.xcstrings)
+	$(wildcard Sources/*/*.xcstrings) \
+	$(wildcard Sources/*/*.xcprivacy)
 
 PhotoDiary.xcodeproj: $(PROJECT_INPUTS)
 	@Scripts/generate.sh
