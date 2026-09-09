@@ -15,6 +15,7 @@ public actor RemoteInstance: Instance {
     public nonisolated let isDemo = false
 
     private let api: PhotoDiaryAPI
+    private let cache: ResponseCache?
     private var photoRoot: URL?
     /// Sent with photo queries so the server picks localized titles.
     private let lang: String
@@ -35,6 +36,7 @@ public actor RemoteInstance: Instance {
     public init(
         origin: String,
         api: PhotoDiaryAPI,
+        cache: ResponseCache? = nil,
         lang: String? = nil,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
@@ -42,28 +44,60 @@ public actor RemoteInstance: Instance {
         self.displayName =
             origin.hasPrefix("https://") ? String(origin.dropFirst("https://".count)) : origin
         self.api = api
+        self.cache = cache
         self.lang = lang ?? Locale.current.language.languageCode?.identifier ?? "en"
         self.now = now
     }
 
     public func listGalleries() async throws -> [Gallery] {
-        let dtos: [GalleryDTO] = try await api.get("/api/v1/galleries")
-        return dtos.map { $0.toDomain() }
+        let data = try await api.fetch("/api/v1/galleries")
+        let galleries = try Self.galleries(from: data)
+        cache?.save(data, origin: id, key: "galleries")
+        return galleries
     }
 
     public func listPhotos(inGallery galleryId: String) async throws -> [Photo] {
         if let cached = freshCache(for: galleryId) { return cached }
         let root = try await resolvePhotoRoot()
-        let dtos: [PhotoDTO] = try await api.post(
-            "/api/v1/gallery-photos/\(galleryId)/query",
-            body: PhotoQuery(lang: lang)
-        )
-        let photos =
-            dtos
-            .map { $0.toDomain(galleryId: galleryId, photoRoot: root) }
-            .sorted { $0.timestamp < $1.timestamp }
+        let data: Data
+        do {
+            data = try await api.fetch(
+                "/api/v1/gallery-photos/\(galleryId)/query", body: PhotoQuery(lang: lang))
+        } catch InstanceError.server(let status) where status == 404 {
+            throw InstanceError.galleryNotFound(galleryId)
+        }
+        let photos = try Self.photos(from: data, galleryId: galleryId, photoRoot: root)
+        cache?.save(data, origin: id, key: "photos/" + galleryId)
         photoCache[galleryId] = CachedPhotos(photos: photos, fetchedAt: now())
         return photos
+    }
+
+    public func cachedGalleries() async -> [Gallery]? {
+        guard let data = cache?.load(origin: id, key: "galleries") else { return nil }
+        return try? Self.galleries(from: data)
+    }
+
+    /// Needs the photo root too: resolved already, or the cached meta.
+    public func cachedPhotos(inGallery galleryId: String) async -> [Photo]? {
+        guard let data = cache?.load(origin: id, key: "photos/" + galleryId),
+            let root = photoRoot ?? cachedPhotoRoot()
+        else { return nil }
+        return try? Self.photos(from: data, galleryId: galleryId, photoRoot: root)
+    }
+
+    private static func galleries(from data: Data) throws -> [Gallery] {
+        let dtos: [GalleryDTO] = try PhotoDiaryAPI.decode(data)
+        return dtos.map { $0.toDomain() }
+    }
+
+    private static func photos(from data: Data, galleryId: String, photoRoot: URL) throws
+        -> [Photo]
+    {
+        let dtos: [PhotoDTO] = try PhotoDiaryAPI.decode(data)
+        return
+            dtos
+            .map { $0.toDomain(galleryId: galleryId, photoRoot: photoRoot) }
+            .sorted { $0.timestamp < $1.timestamp }
     }
 
     public func getPhoto(id photoId: String, inGallery galleryId: String) async throws -> Photo {
@@ -87,15 +121,24 @@ public actor RemoteInstance: Instance {
 
     private func resolvePhotoRoot() async throws -> URL {
         if let photoRoot { return photoRoot }
-        let meta: MetaDTO = try await api.get("/api/v1/meta")
-        let root: URL
-        if let cdn = meta.cdn, let url = URL(string: cdn.hasSuffix("/") ? cdn : cdn + "/") {
-            root = url
-        } else {
-            root = api.baseURL
-        }
+        let data = try await api.fetch("/api/v1/meta")
+        let root = try Self.photoRoot(from: data, apiBase: api.baseURL)
+        cache?.save(data, origin: id, key: "meta")
         photoRoot = root
         return root
+    }
+
+    private func cachedPhotoRoot() -> URL? {
+        guard let data = cache?.load(origin: id, key: "meta") else { return nil }
+        return try? Self.photoRoot(from: data, apiBase: api.baseURL)
+    }
+
+    private static func photoRoot(from data: Data, apiBase: URL) throws -> URL {
+        let meta: MetaDTO = try PhotoDiaryAPI.decode(data)
+        if let cdn = meta.cdn, let url = URL(string: cdn.hasSuffix("/") ? cdn : cdn + "/") {
+            return url
+        }
+        return apiBase
     }
 }
 

@@ -5,7 +5,7 @@ The app is a read-only iPhone companion for a self-hosted Photo Diary instance. 
 - **Map** — where the walking-around case lives. Every photo as a pin, tap-to-view, plus local-only todo pins for places to revisit.
 - **Calendar** — where date-shaped browsing lives (family / snapshot galleries). Gallery list → Year → Month → Day → Photo.
 
-A tab bar switches between them. Both surfaces share one photo viewer, one instance registry, one auth layer.
+The front page lists every paired instance with its galleries; tapping one opens the two surfaces on that **scope** (instance, or instance + gallery), and a tab bar switches between them. Both surfaces share one photo viewer, one instance registry, one auth layer.
 
 ## Packages
 
@@ -19,21 +19,19 @@ Packages/PhotoDiaryCore/
 │   ├── TodoPins/                   Local SwiftData store for map notes
 │   └── Models/                     Domain types (Gallery, Photo, ...)
 └── Sources/PhotoDiaryKit/          SwiftUI views + MapKit — depends on Core.
-    ├── App/                        Root shell, tab bar, routing
+    ├── AppShell.swift              Root: front page or the tab bar for the open scope
+    ├── Scope/                      Front page: instances and their galleries
     ├── Map/                        MapKit view, clustering, pin sheets
     ├── Calendar/                   Y/M/D/photo-grid views
     ├── Photo/                      Shared photo viewer (pinch-zoom sheet)
-    ├── Onboarding/                 Instance pairing (QR + link + paste)
-    └── Settings/                   Instance registry, sign-out
+    └── Onboarding/                 Instance pairing (QR + link + paste)
 ```
 
 Core is what tests target. Kit depends on Core and pulls SwiftUI + MapKit.
 
 ## Instance registry
 
-Multiple photo-diary instances per install. Each is a hostname + credentials pair; credentials live in the Keychain, keyed by host. The registry exposes an active-instance selector — most screens are scoped to whichever instance is active.
-
-The active instance is per-app, not per-tab. Switching instances is a top-level action in Settings.
+Multiple photo-diary instances per install. Each is a hostname + credentials pair; credentials live in the Keychain, keyed by host. The registry holds the open **scope** — an instance, optionally narrowed to one gallery — and persists it, so a relaunch lands where the app was. Every screen reads it; the front page sets it, and a button on the map and calendar clears it to return there. Each remote instance keeps the last JSON answer per endpoint on disk (`ResponseCache`, under Caches); screens render that first and refresh behind it, so a relaunch or a dead zone shows what was there last.
 
 ### The `Instance` protocol
 

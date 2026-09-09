@@ -1,14 +1,16 @@
 import SwiftData
 import SwiftUI
 
-/// Root view. Owns the `InstanceRegistry` for the process and hosts
-/// the tab bar. Also mounts the SwiftData ModelContainer for todo
-/// pins so any surface that wants @Query'd pins gets one, and catches
-/// `photodiary://` launches to route a pairing ticket into the
+/// Root view. Owns the `InstanceRegistry` for the process and shows
+/// either the front page (no scope open) or the Map / Calendar tabs
+/// for the open scope. Also mounts the SwiftData ModelContainer for
+/// todo pins so any surface that wants @Query'd pins gets one, and
+/// catches `photodiary://` launches to route a pairing ticket into the
 /// onboarding sheet.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
+    private let restoration: any RestorationStore = UserDefaultsRestorationStore()
     private let todoPinContainer: ModelContainer
     @State private var pendingTicket: PairingTicket?
     @State private var selectedTab: AppTab = .map
@@ -18,7 +20,8 @@ public struct AppShell: View {
         _registry = State(
             initialValue: InstanceRegistry(
                 persistence: UserDefaultsInstancePersistence(),
-                sessionStore: KeychainSessionStore()
+                sessionStore: KeychainSessionStore(),
+                cache: ResponseCache.inCaches()
             )
         )
         self.imageLoader = SchemeRoutingImageLoader()
@@ -35,26 +38,20 @@ public struct AppShell: View {
     }
 
     public var body: some View {
-        TabView(selection: $selectedTab) {
-            MapPhotoView()
-                .tabItem { Label("Map", systemImage: "map") }
-                .tag(AppTab.map)
-
-            CalendarView()
-                .tabItem { Label("Calendar", systemImage: "calendar") }
-                .tag(AppTab.calendar)
-
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
-                .tag(AppTab.settings)
+        Group {
+            if registry.scope == nil {
+                ScopePickerView()
+                    .transition(.move(edge: .leading))
+            } else {
+                tabs
+                    .transition(.move(edge: .trailing))
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
         .environment(mapFocus)
-        .onChange(of: mapFocus.pending?.id) {
-            // "Show on map" from another tab: switch; the map frames it.
-            if mapFocus.pending != nil { selectedTab = .map }
-        }
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
+        .environment(\.restoration, restoration)
         .modelContainer(todoPinContainer)
         .onOpenURL { url in
             // Same-device pairing: the site's "Open in app" link.
@@ -66,6 +63,30 @@ public struct AppShell: View {
         .sheet(item: $pendingTicket) { ticket in
             PairingView(initialTicket: ticket)
                 .environment(registry)
+        }
+    }
+
+    private var tabs: some View {
+        TabView(selection: $selectedTab) {
+            MapPhotoView()
+                .tabItem { Label("Map", systemImage: "map") }
+                .tag(AppTab.map)
+
+            CalendarView()
+                .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(AppTab.calendar)
+        }
+        .onChange(of: mapFocus.pending?.id) {
+            // "Show on map" from another tab: switch; the map frames it.
+            if mapFocus.pending != nil { selectedTab = .map }
+        }
+        .onChange(of: registry.scope, initial: true) {
+            guard let scope = registry.scope else { return }
+            selectedTab = restoration.load(AppTab.self, forKey: "tab." + scope.key) ?? .map
+        }
+        .onChange(of: selectedTab) {
+            guard let scope = registry.scope else { return }
+            restoration.save(selectedTab, forKey: "tab." + scope.key)
         }
     }
 }
@@ -85,9 +106,18 @@ private struct ImageLoaderKey: EnvironmentKey {
     static let defaultValue = ImageLoaderBox(SchemeRoutingImageLoader())
 }
 
+private struct RestorationKey: EnvironmentKey {
+    static let defaultValue: any RestorationStore = InMemoryRestorationStore()
+}
+
 extension EnvironmentValues {
     var imageLoader: ImageLoaderBox {
         get { self[ImageLoaderKey.self] }
         set { self[ImageLoaderKey.self] = newValue }
+    }
+
+    var restoration: any RestorationStore {
+        get { self[RestorationKey.self] }
+        set { self[RestorationKey.self] = newValue }
     }
 }

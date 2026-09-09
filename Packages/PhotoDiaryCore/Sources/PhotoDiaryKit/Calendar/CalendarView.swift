@@ -5,13 +5,23 @@ import SwiftUI
 /// both target the same destinations.
 public struct CalendarView: View {
     @Environment(InstanceRegistry.self) private var registry
+    @Environment(\.restoration) private var restoration
     @State private var path: [CalendarRoute] = []
 
     public init() {}
 
     public var body: some View {
         NavigationStack(path: $path) {
-            GalleryListView()
+            root
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            registry.leaveScope()
+                        } label: {
+                            Label("Photo Diary", systemImage: "square.grid.2x2")
+                        }
+                    }
+                }
                 .navigationDestination(for: CalendarRoute.self) { route in
                     switch route {
                     case .years(let galleryId):
@@ -23,15 +33,30 @@ public struct CalendarView: View {
                     }
                 }
         }
-        // A pushed year / month / grid belongs to the previous instance;
-        // drop back to the gallery list when the active one changes.
-        .onChange(of: registry.activeInstanceId) {
-            path = []
+        // The path belongs to its scope: restored when one opens
+        // (including at launch), saved as it changes.
+        .onChange(of: registry.scope, initial: true) {
+            guard let scope = registry.scope else { return }
+            path = restoration.load([CalendarRoute].self, forKey: "calendar." + scope.key) ?? []
+        }
+        .onChange(of: path) {
+            guard let scope = registry.scope else { return }
+            restoration.save(path, forKey: "calendar." + scope.key)
+        }
+    }
+
+    /// A gallery in scope skips the gallery list.
+    @ViewBuilder
+    private var root: some View {
+        if let galleryId = registry.scope?.galleryId {
+            YearListView(galleryId: galleryId)
+        } else {
+            GalleryListView()
         }
     }
 }
 
-public enum CalendarRoute: Hashable, Sendable {
+public enum CalendarRoute: Hashable, Codable, Sendable {
     case years(galleryId: String)
     case months(galleryId: String, year: Int)
     case grid(galleryId: String, year: Int, month: Int?)
@@ -47,7 +72,7 @@ struct GalleryListView: View {
     var body: some View {
         content
             .navigationTitle(registry.activeInstance?.displayName ?? "Photo Diary")
-            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
+            .task(id: "\(registry.scope?.instanceId ?? ""):\(attempt)") { await load() }
     }
 
     @ViewBuilder
@@ -85,17 +110,16 @@ struct GalleryListView: View {
     }
 
     private func load() async {
-        state = .loading
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return
         }
-        do {
-            let galleries = try await instance.listGalleries()
-            state = galleries.isEmpty ? .empty : .loaded(galleries)
-        } catch {
-            state = .failed(LoadFailure(error))
-        }
+        await LoadState.load(
+            cached: { await instance.cachedGalleries() },
+            fresh: { try await instance.listGalleries() },
+            isEmpty: \.isEmpty,
+            onFailure: { registry.evictIfAccessLost($0) }
+        ) { state = $0 }
     }
 }
 
@@ -112,8 +136,7 @@ struct YearListView: View {
         content
             .navigationTitle("Years")
             .task(id: "\(galleryId):\(attempt)") {
-                state = .loading
-                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                await loadCalendarSlice(of: galleryId, from: registry, into: { state = $0 }) {
                     PhotoCalendar.years(in: $0)
                 }
             }
@@ -158,8 +181,7 @@ struct MonthListView: View {
         content
             .navigationTitle(String(year))
             .task(id: "\(galleryId):\(year):\(attempt)") {
-                state = .loading
-                state = await loadCalendarSlice(of: galleryId, from: registry) {
+                await loadCalendarSlice(of: galleryId, from: registry, into: { state = $0 }) {
                     PhotoCalendar.months(in: year, of: $0)
                 }
             }
@@ -211,15 +233,18 @@ struct MonthListView: View {
 /// (cached by the instance, so the second hop is free).
 @MainActor
 private func loadCalendarSlice(
-    of galleryId: String, from registry: InstanceRegistry, derive: ([Photo]) -> [Int]
-) async -> LoadState<[Int]> {
+    of galleryId: String, from registry: InstanceRegistry,
+    into update: (LoadState<[Int]>) -> Void, derive: ([Photo]) -> [Int]
+) async {
     guard let instance = registry.activeInstance else {
-        return .failed(LoadFailure(message: "No active instance."))
+        update(.failed(LoadFailure(message: "No active instance.")))
+        return
     }
-    do {
-        let values = derive(try await instance.listPhotos(inGallery: galleryId))
-        return values.isEmpty ? .empty : .loaded(values)
-    } catch {
-        return .failed(LoadFailure(error))
-    }
+    await LoadState.load(
+        cached: { await instance.cachedPhotos(inGallery: galleryId).map(derive) },
+        fresh: { derive(try await instance.listPhotos(inGallery: galleryId)) },
+        isEmpty: \.isEmpty,
+        onFailure: { registry.evictIfAccessLost($0) },
+        into: update
+    )
 }

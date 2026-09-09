@@ -12,28 +12,31 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
         )
         XCTAssertEqual(registry.instances.map(\.id), ["demo"])
         XCTAssertEqual(persistence.loadInstanceIds(), ["demo"])
-        XCTAssertEqual(persistence.loadActiveId(), "demo")
+        XCTAssertNil(persistence.loadScope())
     }
 
-    func testRestoresRemoteHostsAndActiveFromPersistence() {
+    func testRestoresRemoteHostsAndScopeFromPersistence() {
         let persistence = InMemoryInstancePersistence(
-            ids: ["demo", "https://photos.example.test"], active: "https://photos.example.test")
+            ids: ["demo", "https://photos.example.test"],
+            scope: Scope(instanceId: "https://photos.example.test", galleryId: "family"))
         let store = InMemorySessionStore()
         try? store.save(
             SessionCookies(access: "a", refresh: "r"), host: "https://photos.example.test")
         let registry = InstanceRegistry(persistence: persistence, sessionStore: store)
         XCTAssertEqual(registry.instances.map(\.id), ["demo", "https://photos.example.test"])
         XCTAssertEqual(registry.activeInstanceId, "https://photos.example.test")
+        XCTAssertEqual(registry.scope?.galleryId, "family")
         XCTAssertFalse(registry.activeInstance?.isDemo ?? true)
     }
 
-    func testStaleActiveIdFallsBackToFirstInstance() {
-        let persistence = InMemoryInstancePersistence(ids: ["demo"], active: "gone.example")
+    func testStaleScopeFallsBackToTheFrontPage() {
+        let persistence = InMemoryInstancePersistence(
+            ids: ["demo"], scope: Scope(instanceId: "gone.example"))
         let registry = InstanceRegistry(
             persistence: persistence, sessionStore: InMemorySessionStore()
         )
-        XCTAssertEqual(registry.activeInstanceId, "demo")
-        XCTAssertEqual(persistence.loadActiveId(), "demo")
+        XCTAssertNil(registry.scope)
+        XCTAssertNil(persistence.loadScope())
     }
 
     func testRemovingDemoIsRememberedAcrossLaunches() {
@@ -45,8 +48,7 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
     }
 
     func testRemovingARemoteInstanceDeletesItsSession() throws {
-        let persistence = InMemoryInstancePersistence(
-            ids: ["https://photos.example.test"], active: nil)
+        let persistence = InMemoryInstancePersistence(ids: ["https://photos.example.test"])
         let store = InMemorySessionStore()
         try store.save(
             SessionCookies(access: "a", refresh: "r"), host: "https://photos.example.test")
@@ -56,14 +58,40 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
         XCTAssertEqual(persistence.loadInstanceIds(), [])
     }
 
-    func testSetActivePersists() {
-        let persistence = InMemoryInstancePersistence(ids: ["demo", "h.example"], active: "demo")
+    func testEvictionClearsWhatWasCachedForTheScope() throws {
+        let cache = ResponseCache(
+            root: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString))
+        let origin = "https://photos.example.test"
+        cache.save(Data("[]".utf8), origin: origin, key: "galleries")
+        cache.save(Data("[]".utf8), origin: origin, key: "photos/g1")
+        cache.save(Data("[]".utf8), origin: origin, key: "photos/g2")
+        let registry = InstanceRegistry(
+            persistence: InMemoryInstancePersistence(ids: [origin]),
+            sessionStore: InMemorySessionStore(), cache: cache)
+
+        registry.enter(Scope(instanceId: origin, galleryId: "g1"))
+        registry.evictIfAccessLost(InstanceError.galleryNotFound("g1"))
+        XCTAssertNil(cache.load(origin: origin, key: "photos/g1"), "the gone gallery is dropped")
+        XCTAssertNotNil(cache.load(origin: origin, key: "photos/g2"), "the rest stays")
+
+        registry.enter(Scope(instanceId: origin))
+        registry.evictIfAccessLost(InstanceError.sessionExpired)
+        XCTAssertNil(cache.load(origin: origin, key: "galleries"), "a dead session drops it all")
+        XCTAssertNil(cache.load(origin: origin, key: "photos/g2"))
+    }
+
+    func testEnterAndLeavePersist() {
+        let persistence = InMemoryInstancePersistence(
+            ids: ["demo", "h.example"], scope: Scope(instanceId: "h.example"))
         let registry = InstanceRegistry(
             persistence: persistence, sessionStore: InMemorySessionStore()
         )
         // A pre-origin id is read as https and persisted canonically.
         XCTAssertEqual(registry.instances.map(\.id), ["demo", "https://h.example"])
-        registry.setActive("https://h.example")
-        XCTAssertEqual(persistence.loadActiveId(), "https://h.example")
+        XCTAssertEqual(persistence.loadScope()?.instanceId, "https://h.example")
+        registry.enter(Scope(instanceId: "demo", galleryId: "g"))
+        XCTAssertEqual(persistence.loadScope(), Scope(instanceId: "demo", galleryId: "g"))
+        registry.leaveScope()
+        XCTAssertNil(persistence.loadScope())
     }
 }

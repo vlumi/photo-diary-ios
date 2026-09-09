@@ -34,6 +34,17 @@ public protocol Instance: Sendable {
     /// A single photo by id. Used when navigating directly (e.g. a
     /// map-pin popup) without loading the whole gallery.
     func getPhoto(id: String, inGallery galleryId: String) async throws -> Photo
+
+    /// The last answers this instance gave, without touching the
+    /// network — what a screen shows while the fresh one loads. nil
+    /// when nothing is cached.
+    func cachedGalleries() async -> [Gallery]?
+    func cachedPhotos(inGallery galleryId: String) async -> [Photo]?
+}
+
+extension Instance {
+    public func cachedGalleries() async -> [Gallery]? { nil }
+    public func cachedPhotos(inGallery galleryId: String) async -> [Photo]? { nil }
 }
 
 public enum InstanceError: Error, Sendable {
@@ -48,6 +59,19 @@ public enum InstanceError: Error, Sendable {
     case transport(String)
     /// The response didn't match the wire shape we expect.
     case decoding(String)
+}
+
+extension InstanceError {
+    /// True when the scope this came from can no longer be shown at
+    /// all — as opposed to a network blip or a server hiccup, after
+    /// which what's cached still stands.
+    public var deniesAccess: Bool {
+        switch self {
+        case .sessionExpired, .galleryNotFound: true
+        case .server(let status): status == 403 || status == 404
+        default: false
+        }
+    }
 }
 
 // Without this, SwiftUI shows "The operation couldn't be completed

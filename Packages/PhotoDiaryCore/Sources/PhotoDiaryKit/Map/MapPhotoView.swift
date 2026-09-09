@@ -29,6 +29,7 @@ public struct MapPhotoView: View {
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.restoration) private var restoration
 
     @State private var state: MapLoadState = .loading
     @State private var attempt = 0
@@ -76,7 +77,7 @@ public struct MapPhotoView: View {
 
     public var body: some View {
         content
-            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
+            .task(id: "\(scopeKey):\(attempt)") { await load() }
             .fullScreenCover(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
@@ -142,11 +143,15 @@ public struct MapPhotoView: View {
             )
         )
         .onMapCameraChange(frequency: .onEnd) { context in
-            currentRegion = context.region
-            recluster(pins: pins, region: context.region)
-            if cameraPosition.positionedByUser { recenterOnFix = false }
+            cameraSettled(context.region, pins: pins)
         }
         .overlay(alignment: .bottomTrailing) { controls }
+        .overlay(alignment: .topLeading) {
+            MapRoundButton("square.grid.2x2", tint: .secondary) { registry.leaveScope() }
+                .accessibilityLabel("Photo Diary")
+                .padding(.leading, 16)
+                .padding(.top, 8)
+        }
         .overlay(alignment: .top) {
             MapTopBanners(
                 isRefreshing: isRefreshing, locationError: locator.lastError,
@@ -172,37 +177,16 @@ public struct MapPhotoView: View {
         }
     }
 
-    @MapContentBuilder
     private func layers(proxy: MapProxy) -> some MapContent {
-        ForEach(clusters) { cluster in
-            if cluster.isSingle {
-                MapAnnotations.photo(
-                    PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
-                )
-            } else {
-                MapAnnotations.cluster(cluster)
-            }
-        }
-        TodoPinsMapContent(
-            pins: todoPins, moving: moving, placing: placing, proxy: proxy,
+        MapLayers(
+            clusters: clusters, todoPins: todoPins, moving: moving, placing: placing,
+            userLocation: locator.lastLocation, callout: calloutContent, proxy: proxy,
             onMoveChanged: { pin, coordinate in
                 moving = MovingPin(id: pin.id, coordinate: coordinate)
             },
-            onMoveEnded: finishMove
+            onMoveEnded: finishMove,
+            calloutView: calloutView
         )
-        if let here = locator.lastLocation {
-            MapAnnotations.userMarker(at: here)
-        }
-        if let callout = calloutContent {
-            // Its own annotation, declared last, so it floats above
-            // the pin it belongs to. Tagged so a tap inside it reads
-            // as "keep this selection" rather than a deselect.
-            Annotation("", coordinate: callout.coordinate, anchor: .bottom) {
-                calloutView(callout).padding(.bottom, 24)
-            }
-            .annotationTitles(.hidden)
-            .tag("callout:\(callout.tag)")
-        }
     }
 
     // Tags are "kind:id" so one selection binding covers every layer.
@@ -269,8 +253,24 @@ public struct MapPhotoView: View {
         moving = nil
     }
 
+    /// The camera came to rest: remember where (for a relaunch), redo
+    /// the pins under it, and treat a user move as the end of a locate.
+    private func cameraSettled(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
+        currentRegion = region
+        if let scope = registry.scope {
+            restoration.save(MapCamera(region), forKey: "camera." + scope.key)
+        }
+        recluster(pins: pins, region: region)
+        if cameraPosition.positionedByUser { recenterOnFix = false }
+    }
+
     private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
+    }
+
+    private var scopeKey: String {
+        guard let scope = registry.scope else { return "" }
+        return "\(scope.instanceId)/\(scope.galleryId ?? "*")"
     }
 
     private var controls: some View {
@@ -298,31 +298,48 @@ public struct MapPhotoView: View {
         if hadPins { isRefreshing = true } else { state = .loading }
         defer { isRefreshing = false }
         notice = nil
+        // A saved camera stands in for "where the user was", so the
+        // first load reclusters under it instead of framing the latest
+        // photo.
+        if currentRegion == nil, let scope = registry.scope,
+            let saved = restoration.load(MapCamera.self, forKey: "camera." + scope.key)
+        {
+            currentRegion = saved.region
+            cameraPosition = .region(saved.region)
+        }
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return
         }
+        // What the cache holds goes up first; the network then refreshes
+        // it behind the bar, exactly like a scope revisit.
+        var havePins = hadPins
+        if !havePins, let cached = try? await gather(from: instance, cached: true) {
+            place(cached)
+            havePins = true
+            isRefreshing = true
+        }
         do {
-            let galleries = try await instance.listGalleries()
-            var allPhotos: [Photo] = []
-            for gallery in galleries {
-                let photos = try await instance.listPhotos(inGallery: gallery.id)
-                allPhotos.append(contentsOf: photos)
-            }
-            // A photo linked into two galleries arrives twice; keep one.
-            var seen = Set<String>()
-            let unique = allPhotos.filter { seen.insert($0.id).inserted }
-            let pins = PhotoMapping.pins(from: unique)
-            photosById = Dictionary(uniqueKeysWithValues: unique.map { ($0.id, $0) })
-            show(pins: pins, of: unique)
+            place(try await gather(from: instance, cached: false) ?? [])
         } catch {
+            if registry.evictIfAccessLost(error) { return }
             // A failed refresh keeps the pins already on screen and says so.
-            if hadPins {
+            if havePins {
                 notice = .refreshFailed(error.localizedDescription)
             } else {
                 state = .failed(LoadFailure(error))
             }
         }
+    }
+
+    private func gather(from instance: any Instance, cached: Bool) async throws -> [Photo]? {
+        guard let scope = registry.scope else { return nil }
+        return try await MapPhotoGathering.photos(of: scope, from: instance, cached: cached)
+    }
+
+    private func place(_ photos: [Photo]) {
+        photosById = Dictionary(uniqueKeysWithValues: photos.map { ($0.id, $0) })
+        show(pins: PhotoMapping.pins(from: photos), of: photos)
     }
 
     /// Pins on screen: recluster under the standing camera on a

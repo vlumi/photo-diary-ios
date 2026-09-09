@@ -48,20 +48,30 @@ public actor PhotoDiaryAPI {
         _ path: String,
         query: [URLQueryItem] = []
     ) async throws -> T {
-        var request = URLRequest(url: url(path, query: query))
-        request.httpMethod = "GET"
-        return try await decode(send(request))
+        try Self.decode(try await fetch(path, query: query))
     }
 
     public func post<T: Decodable & Sendable, Body: Encodable & Sendable>(
         _ path: String,
         body: Body
     ) async throws -> T {
+        try Self.decode(try await fetch(path, body: body))
+    }
+
+    /// The body of a successful GET, undecoded — for callers that keep
+    /// the bytes as well as read them.
+    public func fetch(_ path: String, query: [URLQueryItem] = []) async throws -> Data {
+        var request = URLRequest(url: url(path, query: query))
+        request.httpMethod = "GET"
+        return try successful(await send(request))
+    }
+
+    public func fetch<Body: Encodable & Sendable>(_ path: String, body: Body) async throws -> Data {
         var request = URLRequest(url: url(path))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
-        return try await decode(send(request))
+        return try successful(await send(request))
     }
 
     /// Raw request for callers that need the response itself (the SSO
@@ -118,12 +128,16 @@ public actor PhotoDiaryAPI {
         }
     }
 
-    private func decode<T: Decodable>(_ result: (Data, HTTPURLResponse)) throws -> T {
+    private func successful(_ result: (Data, HTTPURLResponse)) throws -> Data {
         let (data, response) = result
         guard (200..<300).contains(response.statusCode) else {
             if response.statusCode == 401 { throw InstanceError.sessionExpired }
             throw InstanceError.server(status: response.statusCode)
         }
+        return data
+    }
+
+    static func decode<T: Decodable>(_ data: Data) throws -> T {
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
