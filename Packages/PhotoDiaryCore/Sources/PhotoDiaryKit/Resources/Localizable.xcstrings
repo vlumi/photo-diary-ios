@@ -56,8 +56,14 @@
     "Couldn't load photos" : {
       "comment" : "Title of the error state in a calendar photo grid when photos could not be fetched."
     },
+    "Couldn't refresh. %@" : {
+      "comment" : "Banner at the top of the map when a background refresh fails while pins are already showing. The argument is the error's own sentence."
+    },
     "Delete pin" : {
       "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only."
+    },
+    "Dismiss" : {
+      "comment" : "Accessibility label of the close button on a map banner."
     },
     "Done" : {
       "comment" : "Toolbar button that closes the todo-pin list sheet."
@@ -82,6 +88,9 @@
     },
     "No photos" : {
       "comment" : "Title of the empty state in a calendar photo grid."
+    },
+    "No photos with a location here yet. Long-press to drop a todo pin." : {
+      "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins."
     },
     "No todo pins yet" : {
       "comment" : "Title of the empty state in the todo-pin list."

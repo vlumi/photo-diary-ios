@@ -10,17 +10,6 @@ private enum MapLoadState {
     case failed(LoadFailure)
 }
 
-/// A selected pin's callout: photos (one, or a pile) or a todo note.
-private struct MapCalloutContent {
-    enum Kind {
-        case photos([Photo])
-        case todo(TodoPin)
-    }
-    let tag: String
-    let coordinate: CLLocationCoordinate2D
-    let kind: Kind
-}
-
 /// Map of every geotagged photo across the active instance's
 /// galleries. Tapping a pin shows a callout; tapping that opens the
 /// paging viewer.
@@ -47,6 +36,7 @@ public struct MapPhotoView: View {
     // (tearing it down re-applies the camera and visibly re-fits) and
     // shows a thin bar instead.
     @State private var isRefreshing = false
+    @State private var notice: MapNotice?
     // MapKit's selection drives every tap: no Button per annotation, so
     // a pinch that lands on a pin isn't claimed as a tap first.
     @State private var selection: String?
@@ -158,7 +148,10 @@ public struct MapPhotoView: View {
         }
         .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .top) {
-            MapTopBanners(isRefreshing: isRefreshing, locationError: locator.lastError)
+            MapTopBanners(
+                isRefreshing: isRefreshing, locationError: locator.lastError,
+                notice: notice, onDismissNotice: { notice = nil }
+            )
         }
         .onAppear { locator.startTracking() }
         .onDisappear { locator.stopTracking() }
@@ -261,30 +254,9 @@ public struct MapPhotoView: View {
     /// The selected photo or pile, resolved against the current
     /// clusters; nil once reclustering has moved it out of view.
     private var calloutContent: MapCalloutContent? {
-        guard let tag = calloutFor else { return nil }
-        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return nil }
-        switch parts[0] {
-        case "photo":
-            guard let photo = photosById[parts[1]],
-                let cluster = clusters.first(where: { $0.isSingle && $0.photoIds[0] == parts[1] })
-            else { return nil }
-            return MapCalloutContent(
-                tag: tag, coordinate: cluster.coordinate, kind: .photos([photo]))
-        case "cluster":
-            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return nil }
-            let photos = cluster.photoIds.compactMap { photosById[$0] }
-            return MapCalloutContent(
-                tag: tag, coordinate: cluster.coordinate, kind: .photos(photos))
-        case "todo":
-            guard let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) else {
-                return nil
-            }
-            let coordinate = moving?.id == pin.id ? moving!.coordinate : pin.coordinate
-            return MapCalloutContent(tag: tag, coordinate: coordinate, kind: .todo(pin))
-        default:
-            return nil
-        }
+        MapCalloutContent.resolve(
+            tag: calloutFor, clusters: clusters, photosById: photosById,
+            todoPins: todoPins, moving: moving)
     }
 
     // MARK: - Todo pin gestures
@@ -325,6 +297,7 @@ public struct MapPhotoView: View {
         if case .loaded = state { hadPins = true } else { hadPins = false }
         if hadPins { isRefreshing = true } else { state = .loading }
         defer { isRefreshing = false }
+        notice = nil
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: "No active instance."))
             return
@@ -341,40 +314,52 @@ public struct MapPhotoView: View {
             let unique = allPhotos.filter { seen.insert($0.id).inserted }
             let pins = PhotoMapping.pins(from: unique)
             photosById = Dictionary(uniqueKeysWithValues: unique.map { ($0.id, $0) })
-            if pins.isEmpty {
-                state = .empty
-                clusters = []
-            } else {
-                state = .loaded(pins)
-                if let region = currentRegion {
-                    // A refresh: the user's camera stands; only the pins
-                    // under it are recomputed.
-                    recluster(pins: pins, region: region)
-                } else if let latest = PhotoMapping.latestGeotagged(in: unique),
-                    let coord = latest.location.coordinates
-                {
-                    // Open where the diary most recently was, zoomed well
-                    // out. Fitting every pin instead gave a world view of
-                    // scattered dots. Explicit rather than .automatic: the
-                    // annotation set is derived from the region, so the
-                    // region has to be known first.
-                    let region = MKCoordinateRegion(
-                        MapRegion(
-                            centerLatitude: coord.latitude,
-                            centerLongitude: coord.longitude,
-                            latitudeDelta: Self.initialSpanDegrees,
-                            longitudeDelta: Self.initialSpanDegrees
-                        )
-                    )
-                    cameraPosition = .region(region)
-                    currentRegion = region
-                    recluster(pins: pins, region: region)
-                }
-                applyPendingFocus()
-            }
+            show(pins: pins, of: unique)
         } catch {
-            // A failed refresh keeps the pins already on screen.
-            if !hadPins { state = .failed(LoadFailure(error)) }
+            // A failed refresh keeps the pins already on screen and says so.
+            if hadPins {
+                notice = .refreshFailed(error.localizedDescription)
+            } else {
+                state = .failed(LoadFailure(error))
+            }
+        }
+    }
+
+    /// Pins on screen: recluster under the standing camera on a
+    /// refresh, or open around the latest photo on a first load.
+    private func show(pins: [PhotoMapPin], of photos: [Photo]) {
+        if pins.isEmpty {
+            state = .empty
+            clusters = []
+            notice = .noLocatedPhotos
+        } else {
+            notice = nil
+            state = .loaded(pins)
+            if let region = currentRegion {
+                // A refresh: the user's camera stands; only the pins
+                // under it are recomputed.
+                recluster(pins: pins, region: region)
+            } else if let latest = PhotoMapping.latestGeotagged(in: photos),
+                let coord = latest.location.coordinates
+            {
+                // Open where the diary most recently was, zoomed well
+                // out. Fitting every pin instead gave a world view of
+                // scattered dots. Explicit rather than .automatic: the
+                // annotation set is derived from the region, so the
+                // region has to be known first.
+                let region = MKCoordinateRegion(
+                    MapRegion(
+                        centerLatitude: coord.latitude,
+                        centerLongitude: coord.longitude,
+                        latitudeDelta: Self.initialSpanDegrees,
+                        longitudeDelta: Self.initialSpanDegrees
+                    )
+                )
+                cameraPosition = .region(region)
+                currentRegion = region
+                recluster(pins: pins, region: region)
+            }
+            applyPendingFocus()
         }
     }
 
