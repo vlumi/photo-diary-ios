@@ -65,6 +65,7 @@ struct TodoPinListSheet: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityHint("Shows it on the map.")
                         Button {
                             try? TodoPinStore(context: context).setStarred(pin, !pin.isStarred)
                         } label: {

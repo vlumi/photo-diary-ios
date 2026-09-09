@@ -50,7 +50,8 @@ struct MapPhotoCallout: View {
                     .contentShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(photo.title.isEmpty ? "Open photo" : "Open \(photo.title)")
+            .accessibilityLabel(photo.accessibilityDescription)
+            .accessibilityHint("Opens the photo.")
         }
     }
 

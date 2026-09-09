@@ -26,6 +26,7 @@ struct MapControlsOverlay: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("List todo pins")
+            .accessibilityValue(todoCount > 0 ? "\(todoCount)" : "")
 
             Button(action: onLocate) {
                 roundIcon("location.fill", tint: .accentColor)
