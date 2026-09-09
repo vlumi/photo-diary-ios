@@ -20,7 +20,8 @@ public struct AppShell: View {
         _registry = State(
             initialValue: InstanceRegistry(
                 persistence: UserDefaultsInstancePersistence(),
-                sessionStore: KeychainSessionStore()
+                sessionStore: KeychainSessionStore(),
+                cache: ResponseCache.inCaches()
             )
         )
         self.imageLoader = SchemeRoutingImageLoader()

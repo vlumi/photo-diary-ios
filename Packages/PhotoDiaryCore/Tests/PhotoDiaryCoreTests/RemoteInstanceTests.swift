@@ -64,6 +64,51 @@ final class RemoteInstanceTests: XCTestCase {
         XCTAssertEqual(metaCalls.count, 1)
     }
 
+    func testCachedAnswersOutliveTheInstance() async throws {
+        StubProtocol.handler = { request in
+            switch request.url!.path {
+            case "/api/v1/meta":
+                return .init(status: 200, body: #"{"cdn":"https://cdn.example.test/"}"#)
+            case "/api/v1/galleries":
+                return .init(status: 200, body: #"[{"id":"g1","title":"One","description":""}]"#)
+            case "/api/v1/gallery-photos/g1/query":
+                return .init(
+                    status: 200,
+                    body: """
+                        [{"id":"a.jpg","index":0,
+                          "taken":{"instant":{"year":2024,"month":6,"day":1}},
+                          "dimensions":{"original":{"width":1,"height":1},
+                                        "thumbnail":{"width":1,"height":1}}}]
+                        """)
+            default:
+                return .init(status: 404)
+            }
+        }
+        let cache = ResponseCache(
+            root: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString))
+        let first = RemoteInstance(
+            origin: "https://photos.example.test", api: stubbedAPI(), cache: cache)
+        let nothingYet = await first.cachedGalleries()
+        XCTAssertNil(nothingYet)
+        _ = try await first.listGalleries()
+        _ = try await first.listPhotos(inGallery: "g1")
+
+        // A fresh instance, and a stub that refuses everything: only
+        // the cache can answer.
+        StubProtocol.handler = { _ in .init(status: 500) }
+        let relaunched = RemoteInstance(
+            origin: "https://photos.example.test", api: stubbedAPI(), cache: cache)
+        let galleries = await relaunched.cachedGalleries()
+        XCTAssertEqual(galleries?.map(\.id), ["g1"])
+        let photos = await relaunched.cachedPhotos(inGallery: "g1")
+        XCTAssertEqual(photos?.map(\.id), ["a.jpg"])
+        XCTAssertEqual(
+            photos?.first?.thumbnailURL.absoluteString, "https://cdn.example.test/thumbnail/a.jpg",
+            "the cached meta supplies the photo root")
+        let missing = await relaunched.cachedPhotos(inGallery: "g2")
+        XCTAssertNil(missing)
+    }
+
     private func stubEmptyGallery() {
         StubProtocol.handler = { request in
             switch request.url!.path {

@@ -4,6 +4,9 @@
     "%1$@, %2$@" : {
       "comment" : "Accessibility description of a photo with a title: the title, then the photo's date and time."
     },
+    "%@ no longer lets you see what you were viewing." : {
+      "comment" : "Notice on the front page after the server refused access to the scope the app was in. The argument is the instance name."
+    },
     "%lld" : {
       "comment" : "Badge on a map cluster pin: the number of photos gathered under it. Digits only.",
       "shouldTranslate" : false
@@ -66,7 +69,7 @@
       "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only."
     },
     "Dismiss" : {
-      "comment" : "Accessibility label of the close button on a map banner."
+      "comment" : "Accessibility label of the close button on a map banner and on the front page's notice."
     },
     "Done" : {
       "comment" : "Toolbar button that closes the todo-pin list sheet."
@@ -179,6 +182,9 @@
     "The app will sign in to this server with the pairing code." : {
       "comment" : "Explanation under the server name in the pairing confirmation."
     },
+    "The gallery you were viewing on %@ is no longer there." : {
+      "comment" : "Notice on the front page after the app left a gallery that the server no longer lists. The argument is the instance name."
+    },
     "This gallery has no photos yet." : {
       "comment" : "Explanation under \"No photos\" on the year list of an empty gallery."
     },
@@ -216,7 +222,7 @@
       "comment" : "Accessibility label of the blue dot marking the user's position on the map."
     },
     "Your pairing with %@ has expired. Pair this device again." : {
-      "comment" : "Explanation under the \"Session expired\" heading. The argument is the instance's display name."
+      "comment" : "Explanation under the \"Session expired\" heading, and the front page's notice after the app was signed out of a scope. The argument is the instance's display name."
     },
     "Zooms in, or lists the photos when they share one spot." : {
       "comment" : "Accessibility hint of a cluster pin on the map."

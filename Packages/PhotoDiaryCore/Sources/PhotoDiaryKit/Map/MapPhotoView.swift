@@ -311,32 +311,35 @@ public struct MapPhotoView: View {
             state = .failed(LoadFailure(message: "No active instance."))
             return
         }
+        // What the cache holds goes up first; the network then refreshes
+        // it behind the bar, exactly like a scope revisit.
+        var havePins = hadPins
+        if !havePins, let cached = try? await gather(from: instance, cached: true) {
+            place(cached)
+            havePins = true
+            isRefreshing = true
+        }
         do {
-            let galleryIds: [String]
-            if let galleryId = registry.scope?.galleryId {
-                galleryIds = [galleryId]
-            } else {
-                galleryIds = try await instance.listGalleries().map(\.id)
-            }
-            var allPhotos: [Photo] = []
-            for galleryId in galleryIds {
-                let photos = try await instance.listPhotos(inGallery: galleryId)
-                allPhotos.append(contentsOf: photos)
-            }
-            // A photo linked into two galleries arrives twice; keep one.
-            var seen = Set<String>()
-            let unique = allPhotos.filter { seen.insert($0.id).inserted }
-            let pins = PhotoMapping.pins(from: unique)
-            photosById = Dictionary(uniqueKeysWithValues: unique.map { ($0.id, $0) })
-            show(pins: pins, of: unique)
+            place(try await gather(from: instance, cached: false) ?? [])
         } catch {
+            if registry.evictIfAccessLost(error) { return }
             // A failed refresh keeps the pins already on screen and says so.
-            if hadPins {
+            if havePins {
                 notice = .refreshFailed(error.localizedDescription)
             } else {
                 state = .failed(LoadFailure(error))
             }
         }
+    }
+
+    private func gather(from instance: any Instance, cached: Bool) async throws -> [Photo]? {
+        guard let scope = registry.scope else { return nil }
+        return try await MapPhotoGathering.photos(of: scope, from: instance, cached: cached)
+    }
+
+    private func place(_ photos: [Photo]) {
+        photosById = Dictionary(uniqueKeysWithValues: photos.map { ($0.id, $0) })
+        show(pins: PhotoMapping.pins(from: photos), of: photos)
     }
 
     /// Pins on screen: recluster under the standing camera on a
