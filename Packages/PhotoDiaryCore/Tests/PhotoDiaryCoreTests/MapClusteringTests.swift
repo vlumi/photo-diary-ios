@@ -19,7 +19,7 @@ final class MapClusteringTests: XCTestCase {
     }
 
     func testPinsJustOutsideTheViewportButInsideTheMarginAreKept() {
-        // 0.2° span with 25% margin → kept up to 0.15° from centre.
+        // 0.2° span with 25% margin → kept up to 0.15° from center.
         let pins = [pin("edge", 35.68, 139.76 + 0.14)]
         XCTAssertEqual(MapClustering.clusters(pins: pins, in: tokyo).count, 1)
         let beyond = [pin("beyond", 35.68, 139.76 + 0.16)]
@@ -66,7 +66,7 @@ final class MapClusteringTests: XCTestCase {
         // Same pair the merge test uses: one cluster at city zoom …
         let pins = [pin("a", 35.6800, 139.7600), pin("b", 35.6820, 139.7640)]
         XCTAssertEqual(MapClustering.clusters(pins: pins, in: tokyo).count, 1)
-        // … two singles once the viewport is a few hundred metres across.
+        // … two singles once the viewport is a few hundred meters across.
         let zoomed = MapRegion(
             centerLatitude: 35.681, centerLongitude: 139.762,
             latitudeDelta: 0.006, longitudeDelta: 0.006)
@@ -113,7 +113,7 @@ final class MapClusteringTests: XCTestCase {
     }
 
     func testTapOnPhotosTooCloseToSeparateListsThem() {
-        // Half a metre apart: no zoom level separates them.
+        // Half a meter apart: no zoom level separates them.
         let pins = [pin("a", 35.680000, 139.760000), pin("b", 35.680005, 139.760005)]
         let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
         XCTAssertFalse(cluster.isPile, "not identical, so isPile alone would not catch this")

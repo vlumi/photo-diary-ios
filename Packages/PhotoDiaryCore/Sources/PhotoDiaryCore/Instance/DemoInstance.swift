@@ -167,7 +167,7 @@ extension DemoInstance {
 
     // A daily project across ~three weeks. Same camera + lens
     // (mirroring an operator who shoots on one body), rotating between
-    // neighbourhoods in Tokyo.
+    // neighborhoods in Tokyo.
     private static let dailyAnchors: [DailyAnchor] = [
         .init(day: 1, lat: 35.6595, lng: 139.7005, place: "Shibuya"),
         .init(day: 2, lat: 35.6580, lng: 139.7016, place: "Shibuya"),

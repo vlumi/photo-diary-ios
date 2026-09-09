@@ -157,7 +157,7 @@ public enum MapClustering {
 
     /// Largest power of two (in degrees) that fits `columns` times into
     /// the viewport's longitude span. Floored to a sane minimum so a
-    /// fully zoomed-in map doesn't produce sub-metre cells.
+    /// fully zoomed-in map doesn't produce sub-meter cells.
     static func cellSize(for longitudeDelta: Double, columns: Int) -> Double {
         let target = max(longitudeDelta, 1e-6) / Double(max(columns, 1))
         let exponent = (log2(target)).rounded(.down)

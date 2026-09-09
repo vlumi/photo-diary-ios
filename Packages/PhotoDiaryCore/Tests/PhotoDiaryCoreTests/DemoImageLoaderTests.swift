@@ -33,7 +33,7 @@ final class DemoImageLoaderTests: XCTestCase {
         // Deterministic hashing is a runtime concern (Swift's Hasher
         // reseeds across processes), so we only assert same-run
         // determinism: two renders in the same process produce the
-        // same size / same colours implicitly through the same code
+        // same size / same colors implicitly through the same code
         // path. Size assertion is a smoke test that the render
         // pipeline works twice.
         let a = try DemoImageLoader.renderTile(seed: "daily-2024-06-01")

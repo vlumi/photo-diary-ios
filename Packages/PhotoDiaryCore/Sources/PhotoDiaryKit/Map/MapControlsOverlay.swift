@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The map's bottom-right button stack: todo list (with count badge),
-/// drop a todo pin at the map centre, centre on the user.
+/// drop a todo pin at the map center, center on the user.
 struct MapControlsOverlay: View {
     let todoCount: Int
     let onListPins: () -> Void

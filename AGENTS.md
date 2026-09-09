@@ -23,6 +23,7 @@ When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and int
 - **Bundle id:** `fi.misaki.photodiary`.
 - **Deployment target:** current-latest iOS only. No `#available` guards, no `@available` markers on public API, no legacy layout branches. Swift 6 strict concurrency clean from day one.
 - **Device family:** iPhone. Portrait-only.
+- **Spelling:** US English (en-US) everywhere — identifiers, comments, UI strings, docs, changelog, commit messages. `center`, `color`, `meter`, `recognized`.
 - **Localization:** English-only for v1, but String Catalog + `Text(_, bundle:)` / `String(localized:)` from day one — never hardcoded literals.
 - **Comments minimal.** Comments earn their keep by capturing non-obvious constraints, not by narrating what the next line does.
 - **Lint/format/CI:** SwiftLint + swift-format both `--strict`; CI runs lint + core tests (with coverage) + builds. Coverage-ignore the view layer; keep testable logic in `PhotoDiaryCore`.
