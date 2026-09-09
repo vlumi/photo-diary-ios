@@ -17,6 +17,10 @@ public final class TodoPin {
     public var latitude: Double
     public var longitude: Double
     public var note: String
+    /// Set while starred; starred pins sort ahead of the rest wherever
+    /// pins are listed. A date rather than a Bool because SwiftData can
+    /// only sort on Comparable attributes.
+    public var starredAt: Date?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -25,6 +29,7 @@ public final class TodoPin {
         latitude: Double,
         longitude: Double,
         note: String = "",
+        starredAt: Date? = nil,
         createdAt: Date = .now,
         updatedAt: Date = .now
     ) {
@@ -32,8 +37,11 @@ public final class TodoPin {
         self.latitude = latitude
         self.longitude = longitude
         self.note = note
+        self.starredAt = starredAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+
+    public var isStarred: Bool { starredAt != nil }
 }
 #endif

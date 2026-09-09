@@ -67,7 +67,7 @@ public struct MapPhotoView: View {
     @State private var moving: MovingPin?
     @State private var placing: CLLocationCoordinate2D?
     @State private var pressPoint: CGPoint?
-    @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
+    @Query(sort: TodoPinStore.sortOrder) private var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
     /// small continent, so the neighbourhood is legible but the wider

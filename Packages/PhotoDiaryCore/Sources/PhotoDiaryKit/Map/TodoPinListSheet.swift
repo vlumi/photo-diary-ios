@@ -3,14 +3,15 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// Sheet listing every saved todo pin. Tap a row to centre the map on
-/// that pin; the pencil opens its editor; swipe-to-delete for cleanup.
+/// Sheet listing every saved todo pin, starred first then last edited.
+/// Tap a row to centre the map on that pin; the star pins it to the
+/// top; the pencil opens its editor; swipe-to-delete for cleanup.
 struct TodoPinListSheet: View {
     let onDismiss: () -> Void
     let onSelect: (TodoPin) -> Void
 
     @Environment(\.modelContext) private var context
-    @Query(sort: \TodoPin.createdAt, order: .reverse) private var pins: [TodoPin]
+    @Query(sort: TodoPinStore.sortOrder) private var pins: [TodoPin]
     @State private var editing: TodoPin?
 
     var body: some View {
@@ -50,6 +51,17 @@ struct TodoPinListSheet: View {
                         }
                         .buttonStyle(.plain)
                         Button {
+                            try? TodoPinStore(context: context).setStarred(pin, !pin.isStarred)
+                        } label: {
+                            Image(systemName: pin.isStarred ? "star.fill" : "star")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.yellow)
+                                .padding(8)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(pin.isStarred ? "Unstar" : "Star")
+                        Button {
                             editing = pin
                         } label: {
                             Image(systemName: "pencil")
@@ -82,7 +94,7 @@ struct TodoPinListSheet: View {
 
     private func subtitle(for pin: TodoPin) -> String {
         let coord = String(format: "%.5f, %.5f", pin.latitude, pin.longitude)
-        let date = pin.createdAt.formatted(date: .abbreviated, time: .shortened)
+        let date = pin.updatedAt.formatted(date: .abbreviated, time: .shortened)
         return "\(coord)  ·  \(date)"
     }
 

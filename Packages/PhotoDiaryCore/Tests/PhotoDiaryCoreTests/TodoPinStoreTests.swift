@@ -45,14 +45,19 @@ final class TodoPinStoreTests: XCTestCase {
         XCTAssertEqual(remaining.first?.latitude, 2)
     }
 
-    func testAllReturnsNewestFirst() throws {
+    func testAllOrdersStarredFirstThenLastEdited() throws {
         let a = try store.create(latitude: 1, longitude: 1)
         Thread.sleep(forTimeInterval: 0.01)
         let b = try store.create(latitude: 2, longitude: 2)
         Thread.sleep(forTimeInterval: 0.01)
         let c = try store.create(latitude: 3, longitude: 3)
-        let all = try store.all()
-        XCTAssertEqual(all.map(\.id), [c.id, b.id, a.id])
+        XCTAssertEqual(try store.all().map(\.id), [c.id, b.id, a.id])
+
+        try store.setStarred(a, true)
+        Thread.sleep(forTimeInterval: 0.01)
+        try store.updateNote(b, note: "edited")
+        XCTAssertEqual(try store.all().map(\.id), [a.id, b.id, c.id])
+        XCTAssertLessThan(a.updatedAt, b.updatedAt, "starring is not an edit")
     }
 
     func testMoveUpdatesCoordinatesAndBumpsUpdatedAt() throws {
