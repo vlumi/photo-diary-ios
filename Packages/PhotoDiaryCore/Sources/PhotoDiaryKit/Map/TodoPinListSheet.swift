@@ -31,7 +31,7 @@ struct TodoPinListSheet: View {
             ContentUnavailableView(
                 "No todo pins yet",
                 systemImage: "mappin.slash",
-                description: Text("Drop one from the map's orange button.")
+                description: Text("Long-press the map to drop one.")
             )
         } else {
             List {

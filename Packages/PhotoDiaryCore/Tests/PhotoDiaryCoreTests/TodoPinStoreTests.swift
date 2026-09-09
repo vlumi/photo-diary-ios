@@ -54,5 +54,16 @@ final class TodoPinStoreTests: XCTestCase {
         let all = try store.all()
         XCTAssertEqual(all.map(\.id), [c.id, b.id, a.id])
     }
+
+    func testMoveUpdatesCoordinatesAndBumpsUpdatedAt() throws {
+        let pin = try store.create(latitude: 1, longitude: 1, note: "keep me")
+        let before = pin.updatedAt
+        Thread.sleep(forTimeInterval: 0.01)
+        try store.move(pin, latitude: 35.68, longitude: 139.76)
+        XCTAssertEqual(pin.latitude, 35.68)
+        XCTAssertEqual(pin.longitude, 139.76)
+        XCTAssertEqual(pin.note, "keep me")
+        XCTAssertGreaterThan(pin.updatedAt, before)
+    }
 }
 #endif

@@ -37,6 +37,14 @@ public struct TodoPinStore {
         try context.save()
     }
 
+    /// Relocate a pin (drag-to-move on the map). Bumps updatedAt.
+    public func move(_ pin: TodoPin, latitude: Double, longitude: Double) throws {
+        pin.latitude = latitude
+        pin.longitude = longitude
+        pin.updatedAt = .now
+        try context.save()
+    }
+
     /// Fetch every pin, newest first. Views that want reactivity
     /// should use @Query instead; this exists for one-off reads.
     public func all() throws -> [TodoPin] {

@@ -4,9 +4,7 @@ import SwiftUI
 /// drop a todo pin at the map centre, centre on the user.
 struct MapControlsOverlay: View {
     let todoCount: Int
-    let canDropPin: Bool
     let onListPins: () -> Void
-    let onDropPin: () -> Void
     let onLocate: () -> Void
 
     var body: some View {
@@ -29,13 +27,6 @@ struct MapControlsOverlay: View {
             .buttonStyle(.plain)
             .accessibilityLabel("List todo pins")
 
-            Button(action: onDropPin) {
-                roundIcon("mappin.and.ellipse", tint: .orange)
-            }
-            .buttonStyle(.plain)
-            .disabled(!canDropPin)
-            .accessibilityLabel("Drop pin at map centre")
-
             Button(action: onLocate) {
                 roundIcon("location.fill", tint: .accentColor)
             }
@@ -54,5 +45,30 @@ struct MapControlsOverlay: View {
             .background(tint)
             .clipShape(Circle())
             .shadow(radius: 3)
+    }
+}
+
+/// Top-of-map status: a thin bar while pins refresh, and the location
+/// error (permission denied, no fix) when there is one.
+struct MapTopBanners: View {
+    let isRefreshing: Bool
+    let locationError: String?
+
+    var body: some View {
+        VStack(spacing: 6) {
+            if isRefreshing {
+                ProgressView().progressViewStyle(.linear).padding(.horizontal)
+            }
+            if let locationError {
+                Text(locationError)
+                    .font(.footnote)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.regularMaterial)
+                    .clipShape(Capsule())
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
     }
 }

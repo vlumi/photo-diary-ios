@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- **Todo pins by touch**: long-press the map to drop a pin where your finger is, long-press a pin and drag to move it, tap it for a banner with its note and a pencil to edit — the map-centre drop button is gone.
 - **Tap a pin to see the photo first**: a thumbnail pops up above it, and tapping that opens the full viewer; a pile of photos at one spot gets the same popup with arrows to browse what's there.
 - **Swipe between photos** in the viewer — through the month from the calendar, or through a pile from the map — with chevrons and a position counter.
 - **Show on map** from the photo viewer: opening a photo from the calendar can jump to where it was taken, framed at street level.
