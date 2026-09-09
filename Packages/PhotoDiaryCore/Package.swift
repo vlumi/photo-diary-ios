@@ -21,6 +21,8 @@ let package = Package(
         .library(name: "PhotoDiaryCore", targets: ["PhotoDiaryCore"]),
         // SwiftUI views + MapKit surface. Depends on Core.
         .library(name: "PhotoDiaryKit", targets: ["PhotoDiaryKit"]),
+        // Dev tool: renders the app icon from AppIconScene (make icon).
+        .executable(name: "photodiary-icon", targets: ["PhotoDiaryIcon"]),
     ],
     dependencies: [
         // Image pipeline for RemoteImageLoader: memory + disk cache,
@@ -38,6 +40,10 @@ let package = Package(
             name: "PhotoDiaryKit",
             dependencies: ["PhotoDiaryCore"],
             resources: [.process("Resources/Localizable.xcstrings")]
+        ),
+        .executableTarget(
+            name: "PhotoDiaryIcon",
+            dependencies: ["PhotoDiaryKit"]
         ),
         .testTarget(
             name: "PhotoDiaryCoreTests",

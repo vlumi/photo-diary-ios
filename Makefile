@@ -49,6 +49,11 @@ format:  ## Rewrite sources with swift-format
 	@swift format --in-place --recursive --configuration .swift-format \
 		Packages/PhotoDiaryCore/Sources Packages/PhotoDiaryCore/Tests Sources
 
+.PHONY: icon
+icon:  ## Regenerate the app icon PNG from AppIconScene (opaque, as App Store Connect requires)
+	@swift run --package-path Packages/PhotoDiaryCore photodiary-icon \
+		"$(CURDIR)/Sources/iOS/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+
 .PHONY: ci
 ci:  ## Run every check CI runs (lint + test + build), so a green run here is a green run there
 	@$(MAKE) --no-print-directory lint
