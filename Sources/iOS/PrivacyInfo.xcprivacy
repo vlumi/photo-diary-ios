@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App Store review requires every use of a "required reason" API to be
+  declared here, third-party code included: an upload without it gets
+  an ITMS-91053 warning and, past Apple's deadline, a rejection.
+
+  UserDefaults: the instance list, the open scope and the per-scope
+  restoration state (InstancePersistence, RestorationStore), plus
+  @AppStorage for the todo list's sort. CA92.1 = the app's own data,
+  read only by the app.
+
+  File timestamps: Nuke's DataCache (the photo cache) stamps each
+  file's access date and reads them back to evict the oldest. C617.1 =
+  metadata of files inside the app's own container.
+
+  Nothing is collected by the developer and there is no tracking: the
+  app talks only to the user's own instance.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
