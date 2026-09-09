@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The locate button moves the map at once, to the last known position, instead of waiting seconds for a fresh fix; if you pan or zoom before that fix lands, the map stays put and only the marker updates.
+
 ### build 2 — 2026-09-09
 
 - **Todo pins by touch**: long-press the map to drop a pin where your finger is and write its note, long-press a pin and drag to move it, tap it for a banner with its note and a pencil to edit — the map-centre drop button is gone.

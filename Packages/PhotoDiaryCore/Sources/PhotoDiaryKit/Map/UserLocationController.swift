@@ -5,7 +5,8 @@ import UIKit
 
 /// CLLocationManager wrapper for the map: keeps `lastLocation` fresh
 /// while the map is on screen (so the marker follows the user) and
-/// serves the locate button, which centres the camera on the next fix.
+/// serves the locate button: the map centres on `lastLocation` at once
+/// and `freshFix` ticks when the fix requested by the tap arrives.
 ///
 /// Tracking runs only between startTracking() / stopTracking() — the
 /// map calls them on appear / disappear — with a 10 m distance filter,
@@ -16,9 +17,12 @@ public final class UserLocationController: NSObject {
     public private(set) var authorization: CLAuthorizationStatus
     public private(set) var lastLocation: CLLocationCoordinate2D?
     public private(set) var lastError: String?
-    /// Set by locate(); the map consumes it when a fix arrives so the
-    /// camera moves once, not on every subsequent update.
-    public private(set) var centerRequested = false
+    /// Bumped once per locate() when its requested fix lands, so the
+    /// map can re-centre on that one update and not on later ones. A
+    /// counter, not the coordinate: a stationary device gets the same
+    /// fix back, and a same-value change would never fire onChange.
+    public private(set) var freshFix = 0
+    private var fixRequested = false
 
     private let manager: CLLocationManager
     private var tracking = false
@@ -42,29 +46,25 @@ public final class UserLocationController: NSObject {
         manager.stopUpdatingLocation()
     }
 
-    /// Ask for permission if not yet decided, then centre on the next
-    /// fix. If permission is denied, sets lastError for the banner.
+    /// Ask for permission if not yet decided, then request one fresh
+    /// fix, reported through `freshFix`. With Best accuracy that can
+    /// take several seconds, which is why the map centres on the known
+    /// `lastLocation` first rather than waiting for this. If permission
+    /// is denied, sets lastError for the banner.
     public func locate() {
         lastError = nil
         switch manager.authorizationStatus {
         case .notDetermined:
-            centerRequested = true
+            fixRequested = true
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
             lastError = "Location permission denied. Enable it in Settings."
         case .authorizedWhenInUse, .authorizedAlways:
-            centerRequested = true
+            fixRequested = true
             manager.requestLocation()
         @unknown default:
             lastError = "Unknown location authorization state."
         }
-    }
-
-    /// The coordinate to centre on if locate() asked for it, once.
-    public func consumeCenterRequest() -> CLLocationCoordinate2D? {
-        guard centerRequested, let lastLocation else { return nil }
-        centerRequested = false
-        return lastLocation
     }
 
     private var isAuthorized: Bool {
@@ -77,7 +77,7 @@ extension UserLocationController: @preconcurrency CLLocationManagerDelegate {
         authorization = manager.authorizationStatus
         guard isAuthorized else { return }
         if tracking { manager.startUpdatingLocation() }
-        if centerRequested { manager.requestLocation() }
+        if fixRequested { manager.requestLocation() }
     }
 
     public func locationManager(
@@ -85,9 +85,14 @@ extension UserLocationController: @preconcurrency CLLocationManagerDelegate {
     ) {
         guard let last = locations.last else { return }
         lastLocation = last.coordinate
+        if fixRequested {
+            fixRequested = false
+            freshFix += 1
+        }
     }
 
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        fixRequested = false
         lastError = error.localizedDescription
     }
 }

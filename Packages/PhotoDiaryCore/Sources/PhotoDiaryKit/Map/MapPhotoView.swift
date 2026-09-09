@@ -58,6 +58,10 @@ public struct MapPhotoView: View {
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State private var locator = UserLocationController()
+    // Locate: the fresh fix re-centres only while this is armed; a
+    // user pan or zoom after the tap disarms it, so the marker moves
+    // to the fix but the map stays where the user put it.
+    @State private var recentreOnFix = false
     @State private var editorPresentation: MapEditorPresentation?
     @State private var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
@@ -143,10 +147,17 @@ public struct MapPhotoView: View {
         ) {
             layers(proxy: proxy)
         }
-        .simultaneousGesture(placementGesture(proxy))
+        .simultaneousGesture(
+            todoPinPlacementGesture(
+                proxy: proxy, isMovingPin: { moving != nil },
+                pressPoint: $pressPoint, placing: $placing,
+                onPlaced: { editorPresentation = .create($0) }
+            )
+        )
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
             recluster(pins: pins, region: context.region)
+            if cameraPosition.positionedByUser { recentreOnFix = false }
         }
         .overlay(alignment: .bottomTrailing) { controls }
         .overlay(alignment: .top) {
@@ -154,10 +165,10 @@ public struct MapPhotoView: View {
         }
         .onAppear { locator.startTracking() }
         .onDisappear { locator.stopTracking() }
-        .onChange(of: locator.lastLocation?.latitude) {
-            if let coord = locator.consumeCenterRequest() {
-                frame(coord, meters: Self.closeUpMeters)
-            }
+        .onChange(of: locator.freshFix) {
+            guard recentreOnFix, let here = locator.lastLocation else { return }
+            recentreOnFix = false
+            frame(here, meters: Self.closeUpMeters)
         }
         .onChange(of: selection) { _, selected in
             guard let selected else {
@@ -281,36 +292,6 @@ public struct MapPhotoView: View {
 
     // MARK: - Todo pin gestures
 
-    /// Long-press on the map shows a provisional pin under the finger
-    /// that follows it until release, then opens the editor for its note;
-    /// the pin stays provisional until saved there. LongPressGesture has
-    /// no location and the sequenced drag only reports once the finger
-    /// moves, so a zero-distance drag alongside catches the touch-down
-    /// point for a press that stays put (a simulator click never moves).
-    /// Simultaneous with the map's own gestures: a moving finger fails
-    /// the long-press, so panning is untouched. A press on a pin sets
-    /// `moving` first (its gesture has priority and a shorter delay), so
-    /// it never drops a second pin underneath.
-    private func placementGesture(_ proxy: MapProxy) -> some Gesture {
-        DragGesture(minimumDistance: 0, coordinateSpace: .local)
-            .onChanged { pressPoint = $0.startLocation }
-            .simultaneously(
-                with: LongPressGesture(minimumDuration: 0.5)
-                    .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
-                    .onChanged { value in
-                        guard moving == nil, case .second(true, let drag) = value,
-                            let point = drag?.location ?? pressPoint
-                        else { return }
-                        placing = proxy.convert(point, from: .local)
-                    }
-                    .onEnded { _ in
-                        if let coordinate = placing {
-                            editorPresentation = .create(coordinate)
-                        }
-                    }
-            )
-    }
-
     private func finishMove(_ pin: TodoPin) {
         if let moving, moving.id == pin.id {
             try? TodoPinStore(context: modelContext).move(
@@ -327,8 +308,19 @@ public struct MapPhotoView: View {
         MapControlsOverlay(
             todoCount: todoPins.count,
             onListPins: { showingList = true },
-            onLocate: { locator.locate() }
+            onLocate: locate
         )
+    }
+
+    /// Centre on the fix already in hand so the button responds at
+    /// once; the fresh fix that follows re-centres unless the user has
+    /// moved the map meanwhile.
+    private func locate() {
+        recentreOnFix = true
+        if let here = locator.lastLocation {
+            frame(here, meters: Self.closeUpMeters)
+        }
+        locator.locate()
     }
 
     private func load() async {
@@ -405,27 +397,6 @@ public struct MapPhotoView: View {
             center: coord, latitudinalMeters: meters, longitudinalMeters: meters)
         cameraPosition = .region(region)
         currentRegion = region
-    }
-}
-extension MKCoordinateRegion {
-    fileprivate init(_ region: MapRegion) {
-        self.init(
-            center: CLLocationCoordinate2D(
-                latitude: region.centerLatitude, longitude: region.centerLongitude),
-            span: MKCoordinateSpan(
-                latitudeDelta: region.latitudeDelta, longitudeDelta: region.longitudeDelta)
-        )
-    }
-}
-
-extension MapRegion {
-    fileprivate init(_ region: MKCoordinateRegion) {
-        self.init(
-            centerLatitude: region.center.latitude,
-            centerLongitude: region.center.longitude,
-            latitudeDelta: region.span.latitudeDelta,
-            longitudeDelta: region.span.longitudeDelta
-        )
     }
 }
 #else
