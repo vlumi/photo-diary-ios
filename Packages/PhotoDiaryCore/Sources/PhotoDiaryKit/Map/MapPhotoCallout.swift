@@ -47,6 +47,7 @@ struct MapPhotoCallout: View {
                 PhotoThumbnail(url: photo.thumbnailURL, loader: loader)
                     .frame(width: thumbSize, height: thumbSize)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .contentShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(photo.title.isEmpty ? "Open photo" : "Open \(photo.title)")
