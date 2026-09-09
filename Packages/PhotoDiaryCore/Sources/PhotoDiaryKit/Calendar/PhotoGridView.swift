@@ -16,6 +16,7 @@ public struct PhotoGridView: View {
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
     @State private var state: LoadState = .loading
+    @State private var attempt = 0
     @State private var presented: PhotoPagerSelection?
 
     private enum LoadState {
@@ -54,11 +55,7 @@ public struct PhotoGridView: View {
                 description: Text("This period has no photos.")
             )
         case .failed(let message):
-            ContentUnavailableView(
-                "Couldn't load photos",
-                systemImage: "exclamationmark.triangle",
-                description: Text(message)
-            )
+            LoadFailureView(title: "Couldn't load photos", message: message) { attempt += 1 }
         case .loaded(let sections):
             grid(sections)
         }
@@ -112,7 +109,7 @@ public struct PhotoGridView: View {
     }
 
     private var reloadKey: String {
-        "\(galleryId):\(year):\(month ?? -1)"
+        "\(galleryId):\(year):\(month ?? -1):\(attempt)"
     }
 
     private func dayLabel(_ day: Int) -> String {

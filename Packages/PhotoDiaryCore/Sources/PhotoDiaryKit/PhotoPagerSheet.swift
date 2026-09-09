@@ -185,6 +185,7 @@ private struct PhotoPage: View {
     let onZoomChange: (Bool) -> Void
 
     @State private var state: LoadState = .loading
+    @State private var attempt = 0
 
     private enum LoadState {
         case loading
@@ -202,23 +203,28 @@ private struct PhotoPage: View {
             case .loaded(let image):
                 PhotoViewer(image: image, onZoomChange: onZoomChange)
             case .failed(let message):
-                VStack(spacing: 8) {
+                VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.largeTitle)
+                    Text("Couldn't load photo")
+                        .font(.headline)
                     Text(message)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
+                    Button("Retry") { attempt += 1 }
+                        .buttonStyle(.bordered)
+                        .tint(.white)
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .task(id: photo.id) {
+        .task(id: "\(photo.id):\(attempt)") {
             state = .loading
             do {
                 state = .loaded(try await loader.loadImage(from: photo.displayImageURL))
             } catch {
-                state = .failed("Couldn't load photo: \(error.localizedDescription)")
+                state = .failed(error.localizedDescription)
             }
         }
     }

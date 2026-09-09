@@ -50,6 +50,9 @@
     "Couldn't load map" : {
       "comment" : "Title of the error state on the map tab when photo locations could not be fetched."
     },
+    "Couldn't load photo" : {
+      "comment" : "Heading over the error shown in the full-screen viewer when a photo's image fails to load."
+    },
     "Couldn't load photos" : {
       "comment" : "Title of the error state in a calendar photo grid when photos could not be fetched."
     },
@@ -103,6 +106,9 @@
     },
     "Previous photo" : {
       "comment" : "Accessibility label of the left chevron in the photo viewer and the map callout mini pager."
+    },
+    "Retry" : {
+      "comment" : "Button under a failed load (gallery list, photo grid, map, single photo) that runs the load again."
     },
     "Save" : {
       "comment" : "Toolbar button that saves the todo-pin editor."

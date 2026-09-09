@@ -42,6 +42,7 @@ public enum CalendarRoute: Hashable, Sendable {
 struct GalleryListView: View {
     @Environment(InstanceRegistry.self) private var registry
     @State private var state: LoadState = .loading
+    @State private var attempt = 0
 
     private enum LoadState {
         case loading
@@ -52,7 +53,7 @@ struct GalleryListView: View {
     var body: some View {
         content
             .navigationTitle(registry.activeInstance?.displayName ?? "Photo Diary")
-            .task(id: registry.activeInstanceId) { await load() }
+            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
     }
 
     @ViewBuilder
@@ -61,11 +62,7 @@ struct GalleryListView: View {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         case .failed(let message):
-            ContentUnavailableView(
-                "Couldn't load galleries",
-                systemImage: "exclamationmark.triangle",
-                description: Text(message)
-            )
+            LoadFailureView(title: "Couldn't load galleries", message: message) { attempt += 1 }
         case .loaded(let galleries):
             List(galleries) { gallery in
                 NavigationLink(value: CalendarRoute.years(galleryId: gallery.id)) {

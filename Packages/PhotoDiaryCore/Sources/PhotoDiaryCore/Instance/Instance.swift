@@ -49,3 +49,26 @@ public enum InstanceError: Error, Sendable {
     /// The response didn't match the wire shape we expect.
     case decoding(String)
 }
+
+// Without this, SwiftUI shows "The operation couldn't be completed
+// (InstanceError error 5)" wherever a load fails.
+extension InstanceError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .galleryNotFound:
+            String(localized: "This gallery no longer exists on the server.", bundle: .module)
+        case .photoNotFound:
+            String(localized: "This photo no longer exists on the server.", bundle: .module)
+        case .notImplemented:
+            String(localized: "This isn't supported by the app yet.", bundle: .module)
+        case .sessionExpired:
+            String(localized: "Your session has expired. Pair this device again.", bundle: .module)
+        case .server(let status):
+            String(localized: "The server returned an error (HTTP \(status)).", bundle: .module)
+        case .transport(let detail):
+            String(localized: "Couldn't reach the server. \(detail)", bundle: .module)
+        case .decoding:
+            String(localized: "The server sent a response the app couldn't read.", bundle: .module)
+        }
+    }
+}

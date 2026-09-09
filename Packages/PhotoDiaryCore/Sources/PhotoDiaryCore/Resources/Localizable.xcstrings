@@ -1,5 +1,36 @@
 {
   "sourceLanguage" : "en",
-  "strings" : {},
+  "strings" : {
+    "Couldn't reach the server. %@" : {
+      "comment" : "Error for a network failure (offline, DNS, TLS). The argument is the system's own description, e.g. \"The Internet connection appears to be offline.\""
+    },
+    "The image couldn't be decoded." : {
+      "comment" : "Error when a downloaded photo is not a readable image."
+    },
+    "The image couldn't be downloaded." : {
+      "comment" : "Error when a photo's image request fails."
+    },
+    "The server returned an error (HTTP %lld)." : {
+      "comment" : "Error for a failed request that is not a session problem. The argument is the HTTP status code."
+    },
+    "The server sent a response the app couldn't read." : {
+      "comment" : "Error when a server response does not match the shape the app expects."
+    },
+    "This gallery no longer exists on the server." : {
+      "comment" : "Error shown in place of a gallery's contents when the server reports the gallery is gone."
+    },
+    "This image isn't at an address the app can open." : {
+      "comment" : "Error when a photo's URL uses a scheme no image loader handles."
+    },
+    "This isn't supported by the app yet." : {
+      "comment" : "Error for a server feature the app does not implement."
+    },
+    "This photo no longer exists on the server." : {
+      "comment" : "Error shown in place of a photo when the server reports the photo is gone."
+    },
+    "Your session has expired. Pair this device again." : {
+      "comment" : "Error when the server rejects the stored session and the user must pair the device again from the site."
+    }
+  },
   "version" : "1.0"
 }

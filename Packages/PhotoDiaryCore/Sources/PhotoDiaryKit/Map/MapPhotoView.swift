@@ -42,6 +42,7 @@ public struct MapPhotoView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var state: MapLoadState = .loading
+    @State private var attempt = 0
     // A reload while pins are already on screen keeps the map mounted
     // (tearing it down re-applies the camera and visibly re-fits) and
     // shows a thin bar instead.
@@ -85,7 +86,7 @@ public struct MapPhotoView: View {
 
     public var body: some View {
         content
-            .task(id: registry.activeInstanceId) { await load() }
+            .task(id: "\(registry.activeInstanceId ?? ""):\(attempt)") { await load() }
             .fullScreenCover(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
@@ -117,11 +118,7 @@ public struct MapPhotoView: View {
         case .loading:
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         case .failed(let message):
-            ContentUnavailableView(
-                "Couldn't load map",
-                systemImage: "exclamationmark.triangle",
-                description: Text(message)
-            )
+            LoadFailureView(title: "Couldn't load map", message: message) { attempt += 1 }
         case .empty:
             // Instance had zero geotagged photos, but todo pins can
             // still be dropped anywhere so keep the map interactive
