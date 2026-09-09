@@ -12,7 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
-- When a server no longer accepts the device's pairing, the screen says so and offers to pair again, reloading in place once it succeeds.
+- When a server no longer accepts the device's pairing, the screen says so and offers to pair again, with a link to the site to sign in first; the screen reloads in place once pairing succeeds.
 - Failed loads say what went wrong in plain words (offline, server error, expired session, image not found) instead of a generic error code, and offer a Retry button on the gallery list, photo grid, map and photo viewer.
 - The locate button moves the map at once, to the last known position, instead of waiting seconds for a fresh fix; if you pan or zoom before that fix lands, the map stays put and only the marker updates.
 
