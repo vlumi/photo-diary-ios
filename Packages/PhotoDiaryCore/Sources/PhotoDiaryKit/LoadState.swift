@@ -15,6 +15,7 @@ enum LoadState<Value> {
         cached: () async -> Value?,
         fresh: () async throws -> Value,
         isEmpty: (Value) -> Bool = { _ in false },
+        onFailure: (any Error) -> Void = { _ in },
         into update: (LoadState) -> Void
     ) async {
         let stale = await cached()
@@ -28,6 +29,7 @@ enum LoadState<Value> {
             update(isEmpty(value) ? .empty : .loaded(value))
         } catch {
             if stale == nil { update(.failed(LoadFailure(error))) }
+            onFailure(error)
         }
     }
 }

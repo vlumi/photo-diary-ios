@@ -61,6 +61,19 @@ public enum InstanceError: Error, Sendable {
     case decoding(String)
 }
 
+extension InstanceError {
+    /// True when the scope this came from can no longer be shown at
+    /// all — as opposed to a network blip or a server hiccup, after
+    /// which what's cached still stands.
+    public var deniesAccess: Bool {
+        switch self {
+        case .sessionExpired, .galleryNotFound: true
+        case .server(let status): status == 403 || status == 404
+        default: false
+        }
+    }
+}
+
 // Without this, SwiftUI shows "The operation couldn't be completed
 // (InstanceError error 5)" wherever a load fails.
 extension InstanceError: LocalizedError {

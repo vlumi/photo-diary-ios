@@ -117,7 +117,8 @@ struct GalleryListView: View {
         await LoadState.load(
             cached: { await instance.cachedGalleries() },
             fresh: { try await instance.listGalleries() },
-            isEmpty: \.isEmpty
+            isEmpty: \.isEmpty,
+            onFailure: { registry.evictIfAccessLost($0) }
         ) { state = $0 }
     }
 }
@@ -243,6 +244,7 @@ private func loadCalendarSlice(
         cached: { await instance.cachedPhotos(inGallery: galleryId).map(derive) },
         fresh: { derive(try await instance.listPhotos(inGallery: galleryId)) },
         isEmpty: \.isEmpty,
+        onFailure: { registry.evictIfAccessLost($0) },
         into: update
     )
 }

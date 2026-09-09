@@ -16,6 +16,9 @@ import Observation
 public final class InstanceRegistry {
     public private(set) var instances: [any Instance] = []
     public private(set) var scope: Scope?
+    /// Why the last scope was left involuntarily, for the front page
+    /// to say; cleared when read off, or when a scope opens.
+    public private(set) var eviction: Eviction?
     /// Shared with the pairing flow so a freshly paired instance
     /// persists its cookies the same way a restored one does.
     public let remoteFactory: RemoteInstanceFactory
@@ -71,7 +74,43 @@ public final class InstanceRegistry {
     public func enter(_ scope: Scope) {
         guard instances.contains(where: { $0.id == scope.instanceId }) else { return }
         self.scope = scope
+        eviction = nil
         persist()
+    }
+
+    /// A refresh inside the scope failed: if the failure means the
+    /// scope can no longer be shown, leave it for the front page with
+    /// the reason, drop what was cached for it, and return true. Any
+    /// other failure is the screen's to show; the scope stays.
+    @discardableResult
+    public func evictIfAccessLost(_ error: any Error) -> Bool {
+        guard let scope, let error = error as? InstanceError, error.deniesAccess else {
+            return false
+        }
+        let cache = remoteFactory.cache
+        let reason: Eviction.Reason
+        switch error {
+        case .sessionExpired:
+            reason = .sessionExpired
+            cache?.clear(origin: scope.instanceId)
+        case .galleryNotFound:
+            reason = .galleryGone
+            if let galleryId = scope.galleryId {
+                cache?.clear(origin: scope.instanceId, key: "photos/" + galleryId)
+            }
+        default:
+            reason = .forbidden
+        }
+        eviction = Eviction(
+            scope: scope, instanceName: activeInstance?.displayName ?? scope.instanceId,
+            reason: reason)
+        self.scope = nil
+        persist()
+        return true
+    }
+
+    public func dismissEviction() {
+        eviction = nil
     }
 
     /// Back to the front page.
@@ -111,4 +150,17 @@ public final class InstanceRegistry {
         persistence.saveInstanceIds(instances.map(\.id))
         persistence.saveScope(scope)
     }
+}
+
+/// The scope the app was thrown out of, and why.
+public struct Eviction: Equatable, Sendable {
+    public enum Reason: Equatable, Sendable {
+        case sessionExpired
+        case galleryGone
+        case forbidden
+    }
+
+    public let scope: Scope
+    public let instanceName: String
+    public let reason: Reason
 }

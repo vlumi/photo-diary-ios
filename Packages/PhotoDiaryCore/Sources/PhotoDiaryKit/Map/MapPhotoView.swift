@@ -322,6 +322,7 @@ public struct MapPhotoView: View {
         do {
             place(try await gather(from: instance, cached: false) ?? [])
         } catch {
+            if registry.evictIfAccessLost(error) { return }
             // A failed refresh keeps the pins already on screen and says so.
             if havePins {
                 notice = .refreshFailed(error.localizedDescription)
