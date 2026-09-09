@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 3 — 2026-09-09
+
 - Launching no longer flashes a blank white screen: the launch frame is the icon's navy.
 - A proper app icon: a lens framing a sunrise over a navy horizon, replacing the placeholder camera glyph.
 - If a refresh finds you can no longer see what you were viewing (the pairing expired, the gallery is gone, or access was withdrawn), the app returns to the front page and says why; a plain connection failure keeps what is on screen.
