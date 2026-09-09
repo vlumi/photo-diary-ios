@@ -3,6 +3,26 @@ import MapKit
 import SwiftData
 import SwiftUI
 
+/// What the todo-pin editor sheet is opened for.
+enum MapEditorPresentation: Identifiable {
+    case create(CLLocationCoordinate2D)
+    case edit(TodoPin)
+
+    var id: String {
+        switch self {
+        case .create(let c): return "create:\(c.latitude),\(c.longitude)"
+        case .edit(let pin): return "edit:\(pin.id)"
+        }
+    }
+
+    var mode: TodoPinEditor.Mode {
+        switch self {
+        case .create(let c): return .create(latitude: c.latitude, longitude: c.longitude)
+        case .edit(let pin): return .edit(pin)
+        }
+    }
+}
+
 /// Where a pin is being dragged to, live, before it's saved.
 struct MovingPin: Equatable {
     let id: UUID

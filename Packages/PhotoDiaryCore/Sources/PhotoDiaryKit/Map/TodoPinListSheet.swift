@@ -3,14 +3,15 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// Sheet listing every saved todo pin. Tap a row to centre the map
-/// on that pin and open its editor; swipe-to-delete for cleanup.
+/// Sheet listing every saved todo pin. Tap a row to centre the map on
+/// that pin; the pencil opens its editor; swipe-to-delete for cleanup.
 struct TodoPinListSheet: View {
     let onDismiss: () -> Void
     let onSelect: (TodoPin) -> Void
 
     @Environment(\.modelContext) private var context
     @Query(sort: \TodoPin.createdAt, order: .reverse) private var pins: [TodoPin]
+    @State private var editing: TodoPin?
 
     var body: some View {
         NavigationStack {
@@ -22,6 +23,9 @@ struct TodoPinListSheet: View {
                         Button("Done", action: onDismiss)
                     }
                 }
+        }
+        .sheet(item: $editing) { pin in
+            TodoPinEditor(mode: .edit(pin)) { editing = nil }
         }
     }
 
@@ -36,12 +40,27 @@ struct TodoPinListSheet: View {
         } else {
             List {
                 ForEach(pins) { pin in
-                    Button {
-                        onSelect(pin)
-                    } label: {
-                        row(for: pin)
+                    HStack(spacing: 12) {
+                        Button {
+                            onSelect(pin)
+                        } label: {
+                            row(for: pin)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        Button {
+                            editing = pin
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.orange)
+                                .padding(8)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Edit note")
                     }
-                    .buttonStyle(.plain)
                 }
                 .onDelete(perform: delete)
             }

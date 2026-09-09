@@ -3,30 +3,6 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// Map of every geotagged photo across the active instance's
-/// galleries. Tapping a pin shows a callout; tapping that opens the
-/// paging viewer.
-///
-/// Pins are culled to the viewport and grid-clustered on every camera
-/// settle (MapClustering), so thousands of photos render as a few
-/// dozen annotations. A cluster zooms into its bounding box on tap;
-/// a pile at one exact spot shows a callout to browse its photos.
-///
-/// Load fans out to every gallery on the active instance so a photo
-/// pinned in gallery A shows up next to a pin in gallery B — matches
-/// the site's per-instance map. Photos without coordinates are
-/// silently omitted; if the whole result is empty, the surface shows
-/// an unavailable state.
-private enum MapEditorPresentation: Identifiable {
-    case edit(TodoPin)
-
-    var id: String {
-        switch self {
-        case .edit(let pin): return "edit:\(pin.id)"
-        }
-    }
-}
-
 private enum MapLoadState {
     case loading
     case loaded([PhotoMapPin])
@@ -45,6 +21,20 @@ private struct MapCalloutContent {
     let kind: Kind
 }
 
+/// Map of every geotagged photo across the active instance's
+/// galleries. Tapping a pin shows a callout; tapping that opens the
+/// paging viewer.
+///
+/// Pins are culled to the viewport and grid-clustered on every camera
+/// settle (MapClustering), so thousands of photos render as a few
+/// dozen annotations. A cluster zooms into its bounding box on tap;
+/// a pile at one exact spot shows a callout to browse its photos.
+///
+/// Load fans out to every gallery on the active instance so a photo
+/// pinned in gallery A shows up next to a pin in gallery B — matches
+/// the site's per-instance map. Photos without coordinates are
+/// silently omitted; if the whole result is empty, the surface shows
+/// an unavailable state.
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
@@ -100,12 +90,9 @@ public struct MapPhotoView: View {
                 )
             }
             .sheet(item: $editorPresentation) { presentation in
-                switch presentation {
-                case .edit(let pin):
-                    TodoPinEditor(
-                        mode: .edit(pin),
-                        onDismiss: { editorPresentation = nil }
-                    )
+                TodoPinEditor(mode: presentation.mode) {
+                    editorPresentation = nil
+                    placing = nil
                 }
             }
             .sheet(isPresented: $showingList) {
@@ -114,7 +101,6 @@ public struct MapPhotoView: View {
                     onSelect: { pin in
                         showingList = false
                         frame(pin.coordinate, meters: Self.closeUpMeters)
-                        editorPresentation = .edit(pin)
                     }
                 )
             }
@@ -290,7 +276,8 @@ public struct MapPhotoView: View {
     // MARK: - Todo pin gestures
 
     /// Long-press on the map shows a provisional pin under the finger
-    /// that follows it until release, then saves. LongPressGesture has
+    /// that follows it until release, then opens the editor for its note;
+    /// the pin stays provisional until saved there. LongPressGesture has
     /// no location and the sequenced drag only reports once the finger
     /// moves, so a zero-distance drag alongside catches the touch-down
     /// point for a press that stays put (a simulator click never moves).
@@ -312,10 +299,8 @@ public struct MapPhotoView: View {
                     }
                     .onEnded { _ in
                         if let coordinate = placing {
-                            try? TodoPinStore(context: modelContext).create(
-                                latitude: coordinate.latitude, longitude: coordinate.longitude)
+                            editorPresentation = .create(coordinate)
                         }
-                        placing = nil
                     }
             )
     }
