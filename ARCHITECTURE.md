@@ -104,14 +104,14 @@ Local-only. Never leaves the device.
 
 - **Writes to the server.** No upload, no photo edit, no admin. The site is where you manage content.
 - **Filters.** The site's filter widget is powerful but adds a whole UI surface. Come back to it if the browsing feel needs it.
-- **Offline mode.** Assume connectivity. Later: cache the last-loaded photo set so opening in a dead zone shows something.
+- **Offline mode beyond the response cache.** The last answers per endpoint are kept (see Instance registry); there is no download-for-later, no image cache promise beyond Nuke's, and nothing queued for a reconnect.
 - **Push notifications.**
 - **Third-party analytics or crash reporting.** iOS's built-in TestFlight crash logs are enough.
 - **iPad, macOS, Watch.** Focus.
 
 ## Planned
 
-Design questions still open. Move each into the prose above when settled.
+Design questions still open. Move each into the prose above when settled. (Settled: the offline cache is the per-endpoint `ResponseCache` described under Instance registry — raw responses, not a photo store.)
 
 ### Should map access be user-scoped?
 
@@ -126,6 +126,3 @@ Both can coexist: `hide_map` per gallery for content sensitivity, plus a client-
 
 Custom scheme for v1, Universal Links for v1.1 (needs the `.well-known/apple-app-site-association` file served from every instance's host). Decide based on how often the "open pairing link from email" case comes up in practice.
 
-### Cache strategy for offline
-
-Not a v1 goal; not clear whether the right shape is "last query result stays in memory across background/foreground" (cheap) or "SwiftData persistence of every browsed photo" (heavier, opens dedup / eviction questions). Revisit when someone hits an unusable dead zone.
