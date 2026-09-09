@@ -19,8 +19,16 @@ import SwiftUI
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
+    @Environment(MapFocusStore.self) private var focus
 
     @State private var state: LoadState = .loading
+    // A reload while pins are already on screen keeps the map mounted
+    // (tearing it down re-applies the camera and visibly re-fits) and
+    // shows a thin bar instead.
+    @State private var isRefreshing = false
+    // MapKit's selection drives every tap: no Button per annotation, so
+    // a pinch that lands on a pin isn't claimed as a tap first.
+    @State private var selection: String?
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var presented: Photo?
     // Keep the loaded photos around so tap-to-viewer can resolve a
@@ -60,6 +68,9 @@ public struct MapPhotoView: View {
     /// small continent, so the neighbourhood is legible but the wider
     /// spread is visible too.
     static let initialSpanDegrees = 20.0
+    /// Locate / show-on-map framing: close enough to read the street,
+    /// wide enough to keep the surroundings.
+    static let closeUpMeters: CLLocationDistance = 300
 
     public init() {}
 
@@ -150,102 +161,72 @@ public struct MapPhotoView: View {
     }
 
     private func map(pins: [PhotoMapPin]) -> some View {
-        Map(position: $cameraPosition) {
+        Map(position: $cameraPosition, selection: $selection) {
             ForEach(clusters) { cluster in
                 if cluster.isSingle {
-                    photoAnnotation(
+                    MapAnnotations.photo(
                         PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
                     )
                 } else {
-                    clusterAnnotation(cluster, pins: pins)
+                    MapAnnotations.cluster(cluster)
                 }
             }
             ForEach(todoPins) { todoPin in
-                todoAnnotation(todoPin)
+                MapAnnotations.todo(todoPin)
             }
-            UserAnnotation()
+            if let here = locator.lastLocation {
+                MapAnnotations.userMarker(at: here)
+            }
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
             recluster(pins: pins, region: context.region)
         }
         .overlay(alignment: .bottomTrailing) { controls }
-        .overlay(alignment: .top) { locationErrorBanner }
+        .overlay(alignment: .top) { topBanners }
+        .onAppear { locator.startTracking() }
+        .onDisappear { locator.stopTracking() }
         .onChange(of: locator.lastLocation?.latitude) {
-            centerOnUserLocation()
+            if let coord = locator.consumeCenterRequest() {
+                frame(coord, meters: Self.closeUpMeters)
+            }
+        }
+        .onChange(of: selection) { _, selected in
+            guard let selected else { return }
+            handleSelection(selected, pins: pins)
+            selection = nil
+        }
+        .onChange(of: focus.pending?.id) {
+            applyPendingFocus()
         }
     }
 
-    private func photoAnnotation(_ pin: PhotoMapPin) -> Annotation<Text, some View> {
-        Annotation("", coordinate: pin.coordinate) {
-            Button {
-                if let photo = photosById[pin.photoId] {
-                    presented = photo
-                }
-            } label: {
-                Image(systemName: "camera.fill")
-                    .font(.caption)
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .background(Color.accentColor)
-                    .clipShape(Circle())
-                    .shadow(radius: 2)
+    // Tags are "kind:id" so one selection binding covers every layer.
+    private func handleSelection(_ tag: String, pins: [PhotoMapPin]) {
+        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else { return }
+        switch parts[0] {
+        case "photo":
+            if let photo = photosById[parts[1]] { presented = photo }
+        case "cluster":
+            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return }
+            switch MapClustering.tapAction(for: cluster, pins: pins) {
+            case .zoom(let region):
+                cameraPosition = .region(MKCoordinateRegion(region))
+            case .list:
+                pile = cluster
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Open photo")
-        }
-    }
-
-    private func clusterAnnotation(
-        _ cluster: MapCluster, pins: [PhotoMapPin]
-    ) -> Annotation<Text, some View> {
-        Annotation("", coordinate: cluster.coordinate) {
-            Button {
-                switch MapClustering.tapAction(for: cluster, pins: pins) {
-                case .zoom(let region):
-                    cameraPosition = .region(MKCoordinateRegion(region))
-                case .list:
-                    pile = cluster
-                }
-            } label: {
-                Text("\(cluster.count)")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(minWidth: 32, minHeight: 32)
-                    .padding(.horizontal, 4)
-                    .background(Color.accentColor)
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(.white, lineWidth: 2))
-                    .shadow(radius: 2)
+        case "todo":
+            if let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) {
+                editorPresentation = .edit(pin)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("\(cluster.count) photos")
+        default:
+            break
         }
     }
 
     private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
-    }
-
-    private func todoAnnotation(_ todoPin: TodoPin) -> Annotation<Text, some View> {
-        let coord = CLLocationCoordinate2D(
-            latitude: todoPin.latitude, longitude: todoPin.longitude
-        )
-        return Annotation("", coordinate: coord) {
-            Button {
-                editorPresentation = .edit(todoPin)
-            } label: {
-                Image(systemName: "checklist")
-                    .font(.caption)
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .background(Color.orange)
-                    .clipShape(Circle())
-                    .shadow(radius: 2)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(todoPin.note.isEmpty ? "Todo pin" : "Todo: \(todoPin.note)")
-        }
     }
 
     private var controls: some View {
@@ -266,6 +247,15 @@ public struct MapPhotoView: View {
         )
     }
 
+    private var topBanners: some View {
+        VStack(spacing: 6) {
+            if isRefreshing {
+                ProgressView().progressViewStyle(.linear).padding(.horizontal)
+            }
+            locationErrorBanner
+        }
+    }
+
     @ViewBuilder
     private var locationErrorBanner: some View {
         if let error = locator.lastError {
@@ -280,22 +270,11 @@ public struct MapPhotoView: View {
         }
     }
 
-    private func centerOnUserLocation() {
-        guard let coord = locator.lastLocation else { return }
-        cameraPosition = .region(
-            MKCoordinateRegion(
-                center: coord,
-                latitudinalMeters: 2000,
-                longitudinalMeters: 2000
-            )
-        )
-        // One-shot: clear so a subsequent tap on the button triggers
-        // a fresh location read + re-centre.
-        locator.clearLast()
-    }
-
     private func load() async {
-        state = .loading
+        let hadPins: Bool
+        if case .loaded = state { hadPins = true } else { hadPins = false }
+        if hadPins { isRefreshing = true } else { state = .loading }
+        defer { isRefreshing = false }
         guard let instance = registry.activeInstance else {
             state = .failed("No active instance.")
             return
@@ -317,7 +296,11 @@ public struct MapPhotoView: View {
                 clusters = []
             } else {
                 state = .loaded(pins)
-                if let latest = PhotoMapping.latestGeotagged(in: unique),
+                if let region = currentRegion {
+                    // A refresh: the user's camera stands; only the pins
+                    // under it are recomputed.
+                    recluster(pins: pins, region: region)
+                } else if let latest = PhotoMapping.latestGeotagged(in: unique),
                     let coord = latest.location.coordinates
                 {
                     // Open where the diary most recently was, zoomed well
@@ -337,10 +320,30 @@ public struct MapPhotoView: View {
                     currentRegion = region
                     recluster(pins: pins, region: region)
                 }
+                applyPendingFocus()
             }
         } catch {
-            state = .failed(error.localizedDescription)
+            // A failed refresh keeps the pins already on screen.
+            if !hadPins { state = .failed(error.localizedDescription) }
         }
+    }
+
+    /// "Show on map" from the viewer: frame the photo's spot closely.
+    /// Called when the request arrives and again once pins have loaded,
+    /// whichever comes second.
+    private func applyPendingFocus() {
+        guard case .loaded = state, let photo = focus.pending,
+            let coord = photo.location.coordinates
+        else { return }
+        _ = focus.consume()
+        frame(coord, meters: Self.closeUpMeters)
+    }
+
+    private func frame(_ coord: CLLocationCoordinate2D, meters: CLLocationDistance) {
+        let region = MKCoordinateRegion(
+            center: coord, latitudinalMeters: meters, longitudinalMeters: meters)
+        cameraPosition = .region(region)
+        currentRegion = region
     }
 }
 extension MKCoordinateRegion {
