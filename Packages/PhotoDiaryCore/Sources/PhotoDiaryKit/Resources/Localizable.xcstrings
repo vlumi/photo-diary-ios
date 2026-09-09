@@ -1,5 +1,161 @@
 {
   "sourceLanguage" : "en",
-  "strings" : {},
-  "version" : "1.0"
+  "strings" : {
+    "%lld" : {
+      "comment" : "Badge on a map cluster pin: the number of photos gathered under it. Digits only.",
+      "shouldTranslate" : false
+    },
+    "%lld photos" : {
+      "comment" : "Two places: the caption under a gallery in the calendar's gallery list, and the accessibility label of a map cluster pin. The argument is the photo count."
+    },
+    "Active" : {
+      "comment" : "Accessibility label of the checkmark next to the instance the app is currently showing, in Settings."
+    },
+    "Add %@" : {
+      "comment" : "Confirmation button in pairing that adds the instance; the argument is the server host name, e.g. photos.example.com."
+    },
+    "Add instance" : {
+      "comment" : "Two places: the button at the bottom of Settings that starts pairing, and the title of the pairing screen it opens."
+    },
+    "Add this instance?" : {
+      "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognised."
+    },
+    "All of %@" : {
+      "comment" : "Link at the top of a year in the calendar that opens the whole year as one grid; the argument is the year, e.g. 2024."
+    },
+    "Built-in demo data" : {
+      "comment" : "Caption under the demo instance in Settings, distinguishing it from paired servers."
+    },
+    "Calendar" : {
+      "comment" : "Tab bar label for the calendar tab."
+    },
+    "Camera scanning isn't available here" : {
+      "comment" : "Title shown in place of the QR scanner when the device has no usable camera, e.g. in the simulator."
+    },
+    "Cancel" : {
+      "comment" : "Toolbar button that closes the todo-pin editor without saving."
+    },
+    "Center on my location" : {
+      "comment" : "Accessibility label of the map's location button (arrow icon)."
+    },
+    "Close" : {
+      "comment" : "Accessibility label of the X button in the full-screen photo viewer."
+    },
+    "Continue" : {
+      "comment" : "Button next to the pasted pairing link that submits it; disabled until the link parses."
+    },
+    "Couldn't load galleries" : {
+      "comment" : "Title of the error state in the calendar when the server's gallery list could not be fetched."
+    },
+    "Couldn't load map" : {
+      "comment" : "Title of the error state on the map tab when photo locations could not be fetched."
+    },
+    "Couldn't load photos" : {
+      "comment" : "Title of the error state in a calendar photo grid when photos could not be fetched."
+    },
+    "Delete pin" : {
+      "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only."
+    },
+    "Done" : {
+      "comment" : "Toolbar button that closes the todo-pin list sheet."
+    },
+    "Edit note" : {
+      "comment" : "Accessibility label of the pencil button that opens the todo-pin editor, on the map banner and on each list row."
+    },
+    "Instances" : {
+      "comment" : "Section header in Settings above the list of paired servers and the demo instance."
+    },
+    "List todo pins" : {
+      "comment" : "Accessibility label of the map's list button (bulleted-list icon with a count badge)."
+    },
+    "Long-press the map to drop one." : {
+      "comment" : "Hint under the empty state of the todo-pin list, telling how to create the first pin."
+    },
+    "Map" : {
+      "comment" : "Tab bar label for the map tab."
+    },
+    "Next photo" : {
+      "comment" : "Accessibility label of the right chevron in the photo viewer and the map callout mini pager."
+    },
+    "No photos" : {
+      "comment" : "Title of the empty state in a calendar photo grid."
+    },
+    "No todo pins yet" : {
+      "comment" : "Title of the empty state in the todo-pin list."
+    },
+    "Not this one" : {
+      "comment" : "Cancel button in the pairing confirmation, returning to the scanner / paste field."
+    },
+    "Note" : {
+      "comment" : "Section header above the note text field in the todo-pin editor."
+    },
+    "Open %@" : {
+      "comment" : "Accessibility label of the thumbnail in a map callout when the photo has a title; the argument is the title."
+    },
+    "Open photo" : {
+      "comment" : "Accessibility label of the thumbnail in a map callout when the photo has no title."
+    },
+    "Or paste the pairing link" : {
+      "comment" : "Section header above the text field for pasting a pairing link, as an alternative to scanning the QR code."
+    },
+    "Paste the pairing link instead." : {
+      "comment" : "Hint under the camera-unavailable state on the scanner screen."
+    },
+    "Previous photo" : {
+      "comment" : "Accessibility label of the left chevron in the photo viewer and the map callout mini pager."
+    },
+    "Save" : {
+      "comment" : "Toolbar button that saves the todo-pin editor."
+    },
+    "Scan code" : {
+      "comment" : "Title of the QR scanner screen."
+    },
+    "Scan pairing QR code" : {
+      "comment" : "Button on the pairing screen that opens the QR scanner."
+    },
+    "Settings" : {
+      "comment" : "Tab bar label for the settings tab."
+    },
+    "Show on map" : {
+      "comment" : "Button in the full-screen photo viewer that switches to the map tab centred on the photo; shown only for photos with coordinates."
+    },
+    "Sort" : {
+      "comment" : "Label of the Recent / Nearest segmented control at the top of the todo-pin list; read by VoiceOver, not shown."
+    },
+    "Star" : {
+      "comment" : "Accessibility label of the star button on a todo-pin list row when the pin is not starred; starring keeps it at the top of the list."
+    },
+    "The app will sign in to this server with the pairing code." : {
+      "comment" : "Explanation under the server name in the pairing confirmation."
+    },
+    "This period has no photos." : {
+      "comment" : "Hint under the empty state of a calendar photo grid (a month or a year)."
+    },
+    "Todo pin" : {
+      "comment" : "Accessibility label of a todo pin on the map when it has no note."
+    },
+    "Todo pins" : {
+      "comment" : "Title of the todo-pin list sheet."
+    },
+    "Todo: %@" : {
+      "comment" : "Accessibility label of a todo pin on the map; the argument is its note."
+    },
+    "Unencrypted connection — only for a test instance on your own network." : {
+      "comment" : "Warning in the pairing confirmation when the link points at a plain-http server."
+    },
+    "Unstar" : {
+      "comment" : "Accessibility label of the star button on a todo-pin list row when the pin is starred."
+    },
+    "What's here?" : {
+      "comment" : "Placeholder of the note text field in the todo-pin editor."
+    },
+    "Years" : {
+      "comment" : "Navigation title of the calendar's year list."
+    },
+    "photodiary://sso?host=…&token=…" : {
+      "comment" : "Placeholder of the paste field showing the shape of a pairing link. Not a sentence; keep as is.",
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.1"
 }
