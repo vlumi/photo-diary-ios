@@ -12,6 +12,9 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- If a refresh finds you can no longer see what you were viewing (the pairing expired, the gallery is gone, or access was withdrawn), the app returns to the front page and says why; a plain connection failure keeps what is on screen.
+- Galleries and photos you have seen are kept on the device: the front page, calendar and map show them at once on relaunch and refresh quietly behind them, so a slow or absent connection no longer means a blank screen.
+- The app comes back exactly where you left it, even after iOS has quit it in the background: the same instance and gallery, the same tab, the calendar's place, and the map's position and zoom.
 - **Front page**: the app opens on a list of your instances with their galleries beneath; tap an instance for all of its galleries or a gallery for just that one, and the map and calendar show only that scope. Adding and forgetting instances live there, and the Settings tab is gone. The scope you were in is restored on the next launch.
 - VoiceOver: map pins, clusters and todo pins read as buttons with what a tap does, photos are described by title and date in the grid, callout and viewer, the active instance reads as selected, and a todo note grows with accessibility text sizes.
 - The map says when an instance has no located photos yet, and when a background refresh fails, instead of a bare map that looks broken.

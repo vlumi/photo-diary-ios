@@ -31,7 +31,7 @@ Core is what tests target. Kit depends on Core and pulls SwiftUI + MapKit.
 
 ## Instance registry
 
-Multiple photo-diary instances per install. Each is a hostname + credentials pair; credentials live in the Keychain, keyed by host. The registry holds the open **scope** — an instance, optionally narrowed to one gallery — and persists it, so a relaunch lands where the app was. Every screen reads it; the front page sets it, and a button on the map and calendar clears it to return there.
+Multiple photo-diary instances per install. Each is a hostname + credentials pair; credentials live in the Keychain, keyed by host. The registry holds the open **scope** — an instance, optionally narrowed to one gallery — and persists it, so a relaunch lands where the app was. Every screen reads it; the front page sets it, and a button on the map and calendar clears it to return there. Each remote instance keeps the last JSON answer per endpoint on disk (`ResponseCache`, under Caches); screens render that first and refresh behind it, so a relaunch or a dead zone shows what was there last.
 
 ### The `Instance` protocol
 

@@ -32,7 +32,6 @@ struct LoadFailureView: View {
     let retry: () -> Void
 
     @Environment(InstanceRegistry.self) private var registry
-    @State private var showPairing = false
 
     var body: some View {
         if failure.sessionExpired {
@@ -41,16 +40,7 @@ struct LoadFailureView: View {
             } description: {
                 expiredMessage
             } actions: {
-                Button("Pair again") { showPairing = true }
-                    .buttonStyle(.borderedProminent)
-                // The site's "Pair a device" page hands the ticket back
-                // through its "Open in app" link, so this round-trips.
-                if let site = siteURL {
-                    Link("Open the site to sign in", destination: site)
-                }
-            }
-            .sheet(isPresented: $showPairing, onDismiss: retry) {
-                PairingView().environment(registry)
+                SessionExpiredActions(instance: registry.activeInstance, onPaired: retry)
             }
         } else {
             ContentUnavailableView {
@@ -64,13 +54,35 @@ struct LoadFailureView: View {
         }
     }
 
-    private var siteURL: URL? {
-        guard let instance = registry.activeInstance, !instance.isDemo else { return nil }
-        return URL(string: instance.id)
-    }
-
     private var expiredMessage: Text {
         let name = registry.activeInstance?.displayName ?? String(localized: "this instance")
         return Text("Your pairing with \(name) has expired. Pair this device again.")
+    }
+}
+
+/// What a dead session offers: the pairing sheet, and the site itself
+/// — its "Pair a device" page hands the ticket back through "Open in
+/// app", so the round trip lands in the sheet without typing.
+struct SessionExpiredActions: View {
+    let instance: (any Instance)?
+    let onPaired: () -> Void
+
+    @Environment(InstanceRegistry.self) private var registry
+    @State private var showPairing = false
+
+    var body: some View {
+        Button("Pair again") { showPairing = true }
+            .buttonStyle(.borderedProminent)
+            .sheet(isPresented: $showPairing, onDismiss: onPaired) {
+                PairingView().environment(registry)
+            }
+        if let site = siteURL {
+            Link("Open the site to sign in", destination: site)
+        }
+    }
+
+    private var siteURL: URL? {
+        guard let instance, !instance.isDemo else { return nil }
+        return URL(string: instance.id)
     }
 }

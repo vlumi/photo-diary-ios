@@ -5,15 +5,19 @@ import Foundation
 /// knowing anything about persistence.
 public struct RemoteInstanceFactory: Sendable {
     private let sessionStore: any SessionStore
+    /// Where instances keep their last answers; nil in tests.
+    public let cache: ResponseCache?
     /// URLSessionConfiguration isn't Sendable; a factory closure lets
     /// tests inject a stubbed protocol per API instance.
     private let configuration: @Sendable () -> URLSessionConfiguration
 
     public init(
         sessionStore: any SessionStore,
+        cache: ResponseCache? = nil,
         configuration: @escaping @Sendable () -> URLSessionConfiguration = { .ephemeral }
     ) {
         self.sessionStore = sessionStore
+        self.cache = cache
         self.configuration = configuration
     }
 
@@ -40,10 +44,11 @@ public struct RemoteInstanceFactory: Sendable {
     /// was persisted for it.
     public func restore(origin: String) -> RemoteInstance {
         let cookies = (try? sessionStore.load(host: origin)) ?? SessionCookies()
-        return RemoteInstance(origin: origin, api: makeAPI(origin: origin, cookies: cookies))
+        return RemoteInstance(
+            origin: origin, api: makeAPI(origin: origin, cookies: cookies), cache: cache)
     }
 
     public func make(origin: String, api: PhotoDiaryAPI) -> RemoteInstance {
-        RemoteInstance(origin: origin, api: api)
+        RemoteInstance(origin: origin, api: api, cache: cache)
     }
 }

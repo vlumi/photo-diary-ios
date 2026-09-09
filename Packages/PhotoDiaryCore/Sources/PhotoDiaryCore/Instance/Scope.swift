@@ -9,4 +9,7 @@ public struct Scope: Codable, Hashable, Sendable {
         self.instanceId = instanceId
         self.galleryId = galleryId
     }
+
+    /// One string per scope, for keying per-scope state.
+    public var key: String { "\(instanceId)/\(galleryId ?? "*")" }
 }
