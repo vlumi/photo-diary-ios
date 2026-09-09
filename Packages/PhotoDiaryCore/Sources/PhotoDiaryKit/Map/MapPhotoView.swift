@@ -4,24 +4,44 @@ import SwiftData
 import SwiftUI
 
 /// Map of every geotagged photo across the active instance's
-/// galleries. Tapping a pin opens PhotoViewerSheet.
+/// galleries. Tapping a pin shows a callout; tapping that opens the
+/// paging viewer.
 ///
 /// Pins are culled to the viewport and grid-clustered on every camera
 /// settle (MapClustering), so thousands of photos render as a few
 /// dozen annotations. A cluster zooms into its bounding box on tap;
-/// a pile at one exact spot lists its photos instead.
+/// a pile at one exact spot shows a callout to browse its photos.
 ///
 /// Load fans out to every gallery on the active instance so a photo
 /// pinned in gallery A shows up next to a pin in gallery B — matches
 /// the site's per-instance map. Photos without coordinates are
 /// silently omitted; if the whole result is empty, the surface shows
 /// an unavailable state.
+private enum MapEditorPresentation: Identifiable {
+    case create(latitude: Double, longitude: Double)
+    case edit(TodoPin)
+
+    var id: String {
+        switch self {
+        case .create(let lat, let lng): return "create:\(lat),\(lng)"
+        case .edit(let pin): return "edit:\(pin.id)"
+        }
+    }
+}
+
+private enum MapLoadState {
+    case loading
+    case loaded([PhotoMapPin])
+    case empty
+    case failed(String)
+}
+
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
 
-    @State private var state: LoadState = .loading
+    @State private var state: MapLoadState = .loading
     // A reload while pins are already on screen keeps the map mounted
     // (tearing it down re-applies the camera and visibly re-fits) and
     // shows a thin bar instead.
@@ -30,39 +50,19 @@ public struct MapPhotoView: View {
     // a pinch that lands on a pin isn't claimed as a tap first.
     @State private var selection: String?
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var presented: Photo?
+    @State private var presented: PhotoPagerSelection?
+    // The tag whose callout is showing (a single photo or a pile); nil
+    // when nothing is selected or the selection zoomed instead.
+    @State private var calloutFor: String?
     // Keep the loaded photos around so tap-to-viewer can resolve a
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State private var locator = UserLocationController()
-    @State private var editorPresentation: EditorPresentation?
+    @State private var editorPresentation: MapEditorPresentation?
     @State private var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
     @State private var clusters: [MapCluster] = []
-    @State private var pile: MapCluster?
-    // Chosen inside the pile sheet; presented once that sheet is gone
-    // so two presentations don't overlap.
-    @State private var pendingFromPile: Photo?
     @Query(sort: \TodoPin.createdAt, order: .reverse) private var todoPins: [TodoPin]
-
-    private enum EditorPresentation: Identifiable {
-        case create(latitude: Double, longitude: Double)
-        case edit(TodoPin)
-
-        var id: String {
-            switch self {
-            case .create(let lat, let lng): return "create:\(lat),\(lng)"
-            case .edit(let pin): return "edit:\(pin.id)"
-            }
-        }
-    }
-
-    private enum LoadState {
-        case loading
-        case loaded([PhotoMapPin])
-        case empty
-        case failed(String)
-    }
 
     /// Initial zoom around the latest photo: roughly a country to a
     /// small continent, so the neighbourhood is legible but the wider
@@ -77,9 +77,9 @@ public struct MapPhotoView: View {
     public var body: some View {
         content
             .task(id: registry.activeInstanceId) { await load() }
-            .fullScreenCover(item: $presented) { photo in
-                PhotoViewerSheet(
-                    photo: photo,
+            .fullScreenCover(item: $presented) { selection in
+                PhotoPagerSheet(
+                    selection: selection,
                     loader: loaderBox.loader,
                     onDismiss: { presented = nil }
                 )
@@ -106,25 +106,6 @@ public struct MapPhotoView: View {
                         centerOnTodoPin(pin)
                         editorPresentation = .edit(pin)
                     }
-                )
-            }
-            .sheet(
-                item: $pile,
-                onDismiss: {
-                    if let photo = pendingFromPile {
-                        pendingFromPile = nil
-                        presented = photo
-                    }
-                }
-            ) { cluster in
-                ClusterPhotosSheet(
-                    photos: cluster.photoIds.compactMap { photosById[$0] },
-                    loader: loaderBox.loader,
-                    onSelect: { photo in
-                        pendingFromPile = photo
-                        pile = nil
-                    },
-                    onDismiss: { pile = nil }
                 )
             }
     }
@@ -177,6 +158,19 @@ public struct MapPhotoView: View {
             if let here = locator.lastLocation {
                 MapAnnotations.userMarker(at: here)
             }
+            if let callout = calloutContent {
+                // Its own annotation, declared last, so it floats above
+                // the pin it belongs to. Tagged so a tap inside it reads
+                // as "keep this selection" rather than a deselect.
+                Annotation("", coordinate: callout.coordinate, anchor: .bottom) {
+                    MapPhotoCallout(photos: callout.photos, loader: loaderBox.loader) { index in
+                        presented = PhotoPagerSelection(photos: callout.photos, index: index)
+                    }
+                    .padding(.bottom, 24)
+                }
+                .annotationTitles(.hidden)
+                .tag("callout:\(callout.tag)")
+            }
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             currentRegion = context.region
@@ -192,9 +186,11 @@ public struct MapPhotoView: View {
             }
         }
         .onChange(of: selection) { _, selected in
-            guard let selected else { return }
-            handleSelection(selected, pins: pins)
-            selection = nil
+            guard let selected else {
+                calloutFor = nil
+                return
+            }
+            if !handleSelection(selected, pins: pins) { selection = nil }
         }
         .onChange(of: focus.pending?.id) {
             applyPendingFocus()
@@ -202,26 +198,66 @@ public struct MapPhotoView: View {
     }
 
     // Tags are "kind:id" so one selection binding covers every layer.
-    private func handleSelection(_ tag: String, pins: [PhotoMapPin]) {
+    // Returns whether the selection should stay (a callout is showing).
+    private func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
         let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return }
+        guard parts.count == 2 else { return false }
         switch parts[0] {
         case "photo":
-            if let photo = photosById[parts[1]] { presented = photo }
+            calloutFor = tag
+            return true
         case "cluster":
-            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return }
+            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return false }
             switch MapClustering.tapAction(for: cluster, pins: pins) {
             case .zoom(let region):
+                calloutFor = nil
                 cameraPosition = .region(MKCoordinateRegion(region))
+                return false
             case .list:
-                pile = cluster
+                calloutFor = tag
+                return true
             }
+        case "callout":
+            // A tap inside the callout (its thumbnail or chevrons) also
+            // selects the callout annotation; keep the underlying pin
+            // selected so the callout stays put.
+            selection = parts[1]
+            return true
         case "todo":
+            calloutFor = nil
             if let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) {
                 editorPresentation = .edit(pin)
             }
+            return false
         default:
-            break
+            return false
+        }
+    }
+
+    private struct CalloutContent {
+        let tag: String
+        let coordinate: CLLocationCoordinate2D
+        let photos: [Photo]
+    }
+
+    /// The selected photo or pile, resolved against the current
+    /// clusters; nil once reclustering has moved it out of view.
+    private var calloutContent: CalloutContent? {
+        guard let tag = calloutFor else { return nil }
+        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else { return nil }
+        switch parts[0] {
+        case "photo":
+            guard let photo = photosById[parts[1]],
+                let cluster = clusters.first(where: { $0.isSingle && $0.photoIds[0] == parts[1] })
+            else { return nil }
+            return CalloutContent(tag: tag, coordinate: cluster.coordinate, photos: [photo])
+        case "cluster":
+            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return nil }
+            let photos = cluster.photoIds.compactMap { photosById[$0] }
+            return CalloutContent(tag: tag, coordinate: cluster.coordinate, photos: photos)
+        default:
+            return nil
         }
     }
 

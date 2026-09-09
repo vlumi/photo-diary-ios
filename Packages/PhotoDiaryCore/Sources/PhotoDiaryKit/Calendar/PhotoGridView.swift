@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Grid of photos for a year+month slice of a gallery. Sectioned by
-/// day; each cell is a PhotoThumbnail that opens PhotoViewerSheet on
+/// day; each cell is a PhotoThumbnail that opens the paging viewer on
 /// tap.
 ///
 /// Loads its own photo list from the active instance in .task — no
@@ -16,7 +16,7 @@ public struct PhotoGridView: View {
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
     @State private var state: LoadState = .loading
-    @State private var presented: Photo?
+    @State private var presented: PhotoPagerSelection?
 
     private enum LoadState {
         case loading
@@ -65,14 +65,18 @@ public struct PhotoGridView: View {
     }
 
     private func grid(_ sections: [PhotoCalendar.DaySection]) -> some View {
-        ScrollView {
+        // The viewer pages through the whole grid in display order.
+        let ordered = sections.flatMap(\.photos)
+        return ScrollView {
             LazyVStack(alignment: .leading, spacing: 16, pinnedViews: .sectionHeaders) {
                 ForEach(sections) { section in
                     Section {
                         LazyVGrid(columns: gridColumns, spacing: 2) {
                             ForEach(section.photos) { photo in
                                 Button {
-                                    presented = photo
+                                    if let i = ordered.firstIndex(of: photo) {
+                                        presented = PhotoPagerSelection(photos: ordered, index: i)
+                                    }
                                 } label: {
                                     PhotoThumbnail(
                                         url: photo.thumbnailURL,
@@ -163,24 +167,24 @@ extension View {
     /// placeholder preview button — this is the one every real
     /// calendar / map surface routes through.
     fileprivate func photoViewerCover(
-        item: Binding<Photo?>,
+        item: Binding<PhotoPagerSelection?>,
         loader: any ImageLoader,
         onShowOnMap: @escaping (Photo) -> Void
     ) -> some View {
         #if canImport(UIKit)
-        return self.fullScreenCover(item: item) { photo in
-            PhotoViewerSheet(
-                photo: photo, loader: loader,
+        return self.fullScreenCover(item: item) { selection in
+            PhotoPagerSheet(
+                selection: selection, loader: loader,
                 onDismiss: { item.wrappedValue = nil },
-                onShowOnMap: { onShowOnMap(photo) }
+                onShowOnMap: onShowOnMap
             )
         }
         #else
-        return self.sheet(item: item) { photo in
-            PhotoViewerSheet(
-                photo: photo, loader: loader,
+        return self.sheet(item: item) { selection in
+            PhotoPagerSheet(
+                selection: selection, loader: loader,
                 onDismiss: { item.wrappedValue = nil },
-                onShowOnMap: { onShowOnMap(photo) }
+                onShowOnMap: onShowOnMap
             )
         }
         #endif
