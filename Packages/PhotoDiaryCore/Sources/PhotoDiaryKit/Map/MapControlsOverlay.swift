@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// The map's bottom-right button stack: todo list (with count badge),
-/// drop a todo pin at the map center, center on the user.
+/// The map's bottom-right button stack: todo list (with count badge)
+/// and the follow-my-location toggle (filled while on).
 struct MapControlsOverlay: View {
     let todoCount: Int
+    let isFollowing: Bool
     let onListPins: () -> Void
     let onLocate: () -> Void
 
@@ -25,8 +26,12 @@ struct MapControlsOverlay: View {
                 .accessibilityLabel("List todo pins")
                 .accessibilityValue(todoCount > 0 ? "\(todoCount)" : "")
 
-            MapRoundButton("location.fill", tint: .accentColor, action: onLocate)
-                .accessibilityLabel("Center on my location")
+            MapRoundButton(
+                isFollowing ? "location.fill" : "location", tint: .accentColor, action: onLocate
+            )
+            .accessibilityLabel("Follow my location")
+            .accessibilityValue(isFollowing ? "On" : "Off")
+            .accessibilityAddTraits(isFollowing ? .isSelected : [])
         }
         .padding(.trailing, 16)
         .padding(.bottom, 24)
