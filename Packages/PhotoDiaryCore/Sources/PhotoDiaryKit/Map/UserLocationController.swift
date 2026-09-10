@@ -22,6 +22,8 @@ public final class UserLocationController: NSObject {
     /// counter, not the coordinate: a stationary device gets the same
     /// fix back, and a same-value change would never fire onChange.
     public private(set) var freshFix = 0
+    /// Bumped on every position update, for the map to follow along.
+    public private(set) var updateCount = 0
     private var fixRequested = false
 
     private let manager: CLLocationManager
@@ -85,6 +87,7 @@ extension UserLocationController: @preconcurrency CLLocationManagerDelegate {
     ) {
         guard let last = locations.last else { return }
         lastLocation = last.coordinate
+        updateCount += 1
         if fixRequested {
             fixRequested = false
             freshFix += 1
