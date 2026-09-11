@@ -125,4 +125,19 @@ final class MapClusteringTests: XCTestCase {
         let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
         XCTAssertEqual(MapClustering.tapAction(for: cluster, pins: pins), .list)
     }
+
+    func testShortSpanMetersIsTheNarrowAxis() {
+        // A portrait map showing 300 m across: the latitude span is
+        // wider. Re-framing must read the 300 m, not the tall side.
+        let portrait = MapRegion(
+            centerLatitude: 35.68, centerLongitude: 139.76,
+            latitudeDelta: 600 / 111_000,
+            longitudeDelta: 300 / (111_000 * cos(35.68 * Double.pi / 180)))
+        XCTAssertEqual(portrait.shortSpanMeters, 300, accuracy: 1)
+        let landscape = MapRegion(
+            centerLatitude: 35.68, centerLongitude: 139.76,
+            latitudeDelta: 300 / 111_000,
+            longitudeDelta: 600 / (111_000 * cos(35.68 * Double.pi / 180)))
+        XCTAssertEqual(landscape.shortSpanMeters, 300, accuracy: 1)
+    }
 }

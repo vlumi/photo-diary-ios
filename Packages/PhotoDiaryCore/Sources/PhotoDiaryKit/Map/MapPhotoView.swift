@@ -409,7 +409,7 @@ extension MapPhotoView {
 
     private var currentMeters: CLLocationDistance {
         guard let currentRegion else { return Self.closeUpMeters }
-        return currentRegion.span.latitudeDelta * 111_000
+        return MapRegion(currentRegion).shortSpanMeters
     }
 }
 
