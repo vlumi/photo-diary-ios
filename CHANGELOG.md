@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 4 — 2026-09-11
+
 - The location button now follows you: the map keeps up with your position (every ten seconds or so) until you move it, the button shows filled while following, and coming back from another app jumps to where you are.
 - Locating zooms in to street level only if you were further out; when already zoomed in closer, it keeps your zoom.
 
