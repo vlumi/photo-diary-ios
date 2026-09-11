@@ -21,6 +21,16 @@ public struct MapRegion: Hashable, Sendable {
         self.longitudeDelta = longitudeDelta
     }
 
+    /// The zoom as a distance: the shorter of the two spans, in meters.
+    /// A map asked to show `d` meters fits `d` along the view's short
+    /// axis and shows more along the long one, so re-framing from the
+    /// long span would zoom out by the aspect ratio every time.
+    public var shortSpanMeters: Double {
+        let lat = latitudeDelta * 111_000
+        let lon = longitudeDelta * 111_000 * cos(centerLatitude * .pi / 180)
+        return min(lat, lon)
+    }
+
     /// The smallest region showing every corner of `box`, grown by
     /// `padding` (fraction of each span) so pins don't sit on the edge.
     /// The floor keeps a near-degenerate box from producing a window
