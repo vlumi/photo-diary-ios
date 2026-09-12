@@ -110,12 +110,16 @@ extension MapPhotoView {
             onPlaced: { editorPresentation = .create($0) },
             onTap: {
                 // A tap on empty map closes the callout; one a pin or the
-                // callout just took is theirs.
-                if let ownTap, Date().timeIntervalSince(ownTap.at) < 0.3 { return }
-                if let current = selection {
-                    ownDeselect = OwnTap(tag: current, at: Date(), handled: true)
+                // callout just took is theirs. The map's touch-up arrives
+                // before theirs does, so look again a moment later.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(60))
+                    if let ownTap, Date().timeIntervalSince(ownTap.at) < 0.3 { return }
+                    if let current = selection {
+                        ownDeselect = OwnTap(tag: current, at: Date(), handled: true)
+                    }
+                    selection = nil
                 }
-                selection = nil
             }
         ).gesture
     }
