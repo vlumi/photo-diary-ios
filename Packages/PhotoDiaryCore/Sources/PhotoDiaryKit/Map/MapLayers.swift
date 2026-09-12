@@ -15,21 +15,23 @@ struct MapLayers<Callout: View>: MapContent {
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
+    let onTapPin: (String) -> Void
     @ViewBuilder let calloutView: (MapCalloutContent) -> Callout
 
     var body: some MapContent {
         ForEach(clusters) { cluster in
             if cluster.isSingle {
                 MapAnnotations.photo(
-                    PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate)
+                    PhotoMapPin(photoId: cluster.photoIds[0], coordinate: cluster.coordinate),
+                    onTap: onTapPin
                 )
             } else {
-                MapAnnotations.cluster(cluster)
+                MapAnnotations.cluster(cluster, onTap: onTapPin)
             }
         }
         TodoPinsMapContent(
             pins: todoPins, moving: moving, placing: placing, proxy: proxy,
-            onMoveChanged: onMoveChanged, onMoveEnded: onMoveEnded
+            onMoveChanged: onMoveChanged, onMoveEnded: onMoveEnded, onTap: onTapPin
         )
         if let userLocation {
             MapAnnotations.userMarker(at: userLocation)

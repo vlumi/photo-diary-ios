@@ -28,7 +28,7 @@ public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
     @Environment(MapFocusStore.self) private var focus
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) var modelContext
     @Environment(\.restoration) private var restoration
 
     @State private var state: MapLoadState = .loading
@@ -40,8 +40,8 @@ public struct MapPhotoView: View {
     @State private var notice: MapNotice?
     // MapKit's selection drives every tap: no Button per annotation, so
     // a pinch that lands on a pin isn't claimed as a tap first.
-    @State private var selection: String?
-    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State var selection: String?
+    @State var cameraPosition: MapCameraPosition = .automatic
     @State private var presented: PhotoPagerSelection?
     // The tag whose callout is showing (a single photo or a pile); nil
     // when nothing is selected or the selection zoomed instead.
@@ -49,18 +49,23 @@ public struct MapPhotoView: View {
     // Keep the loaded photos around so tap-to-viewer can resolve a
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
-    @State private var locator = UserLocationController()
-    @State private var follow = FollowState()
+    @State var locator = UserLocationController()
+    @State var follow = FollowState()
+    // The tag a pin's own tap gesture selected, and when. MapKit
+    // reports the same tap as a selection about half a second later,
+    // after its double-tap wait; within that window, the map's
+    // tap-to-deselect stands down and MapKit's echo is dropped.
+    @State var ownTap: (tag: String, at: Date)?
     @Environment(\.scenePhase) private var scenePhase
-    @State private var editorPresentation: MapEditorPresentation?
-    @State private var currentRegion: MKCoordinateRegion?
+    @State var editorPresentation: MapEditorPresentation?
+    @State var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
     @State private var clusters: [MapCluster] = []
     // Todo-pin gestures: the pin being dragged (live position) and the
     // provisional pin while long-pressing to place a new one.
-    @State private var moving: MovingPin?
-    @State private var placing: CLLocationCoordinate2D?
-    @State private var pressPoint: CGPoint?
+    @State var moving: MovingPin?
+    @State var placing: CLLocationCoordinate2D?
+    @State var pressPoint: CGPoint?
     @Query(sort: TodoPinStore.sortOrder) private var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
@@ -160,6 +165,14 @@ public struct MapPhotoView: View {
             if scenePhase == .active, follow.isOn { locator.locate() }
         }
         .onChange(of: selection) { _, selected in
+            if let ownTap, selected == ownTap.tag, Date().timeIntervalSince(ownTap.at) < 0.7,
+                !ownTap.tag.hasPrefix("photo:")
+            {
+                // MapKit's late echo of a tap already handled (a cluster
+                // zoomed, a todo pin shown): nothing more to do.
+                selection = nil
+                return
+            }
             guard let selected else {
                 calloutFor = nil
                 return
@@ -179,6 +192,10 @@ public struct MapPhotoView: View {
                 moving = MovingPin(id: pin.id, coordinate: coordinate)
             },
             onMoveEnded: finishMove,
+            onTapPin: { tag in
+                ownTap = (tag, Date())
+                selection = tag
+            },
             calloutView: calloutView
         )
     }
@@ -219,6 +236,12 @@ public struct MapPhotoView: View {
 
     @ViewBuilder
     private func calloutView(_ callout: MapCalloutContent) -> some View {
+        calloutContentView(callout)
+            .simultaneousGesture(TapGesture().onEnded { ownTap = (callout.tag, Date()) })
+    }
+
+    @ViewBuilder
+    private func calloutContentView(_ callout: MapCalloutContent) -> some View {
         switch callout.kind {
         case .photos(let photos):
             MapPhotoCallout(photos: photos, loader: loaderBox.loader) { index in
@@ -365,7 +388,7 @@ public struct MapPhotoView: View {
         frame(coord, meters: Self.closeUpMeters)
     }
 
-    private func frame(_ coord: CLLocationCoordinate2D, meters: CLLocationDistance) {
+    func frame(_ coord: CLLocationCoordinate2D, meters: CLLocationDistance) {
         let region = MKCoordinateRegion(
             center: coord, latitudinalMeters: meters, longitudinalMeters: meters)
         cameraPosition = .region(region)
@@ -380,56 +403,6 @@ extension MapPhotoView {
             .accessibilityLabel("Photo Diary")
             .padding(.leading, 16)
             .padding(.top, 8)
-    }
-}
-
-// MARK: - Location following
-
-extension MapPhotoView {
-    /// Switching on centers on the fix already in hand so the button
-    /// responds at once — zooming in to street level, never out — and
-    /// asks for a fresh one. Switching off just stops following.
-    private func toggleFollow() {
-        if follow.isOn {
-            follow.stop()
-            return
-        }
-        follow.start()
-        if let here = locator.lastLocation {
-            withAnimation { frame(here, meters: min(currentMeters, Self.closeUpMeters)) }
-        }
-        locator.locate()
-    }
-
-    /// Following: move to the position at the zoom the user has.
-    private func keepUp(with coord: CLLocationCoordinate2D) {
-        withAnimation { frame(coord, meters: currentMeters) }
-        follow.recentered()
-    }
-
-    private var currentMeters: CLLocationDistance {
-        guard let currentRegion else { return Self.closeUpMeters }
-        return MapRegion(currentRegion).shortSpanMeters
-    }
-}
-
-// MARK: - Todo pin gestures
-
-extension MapPhotoView {
-    fileprivate func placementGesture(_ proxy: MapProxy) -> some Gesture {
-        todoPinPlacementGesture(
-            proxy: proxy, isMovingPin: { moving != nil },
-            pressPoint: $pressPoint, placing: $placing,
-            onPlaced: { editorPresentation = .create($0) }
-        )
-    }
-
-    private func finishMove(_ pin: TodoPin) {
-        if let moving, moving.id == pin.id {
-            try? TodoPinStore(context: modelContext).move(
-                pin, latitude: moving.coordinate.latitude, longitude: moving.coordinate.longitude)
-        }
-        moving = nil
     }
 }
 
