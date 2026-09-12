@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The arrows on a pile's callout page through its photos without closing the callout, and tapping its thumbnail no longer closes it behind the viewer.
+
 ### build 6 — 2026-09-12
 
 - Tapping a cluster zooms in again, and tapping the map closes a callout again; build 5 ignored both. Pins are also easier to hit, with a finger-sized tap area, and every callout has a close button in its corner.
