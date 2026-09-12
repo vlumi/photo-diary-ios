@@ -19,10 +19,11 @@ public struct PhotoPagerSelection: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Full-screen viewer over an ordered set of photos: swipe (or use the
-/// chevrons) to move between them, pinch-zoom the current one. Chrome —
-/// close, counter, chevrons, Show on map — is owned here; PhotoViewer
-/// is just the image + gestures.
+/// The viewer, presented as a sheet, over an ordered set of photos:
+/// swipe (or use the chevrons) to move between them, pinch-zoom the
+/// current one, swipe down to put it away. Chrome — close, counter,
+/// chevrons, Show on map — is owned here; PhotoViewer is just the
+/// image + gestures.
 ///
 /// Pages live in a paging ScrollView rather than a page-style TabView:
 /// the viewer's own drag gesture on each page made the TabView overshoot
@@ -37,6 +38,12 @@ public struct PhotoPagerSheet: View {
 
     @State private var currentId: String?
     @State private var zoomed = false
+    // A downward drag on the photo pulls the page along and, past the
+    // threshold or with a flick, puts the viewer away. The sheet's own
+    // dismiss only takes drags from its top edge; the pager's scroll
+    // view claims the rest, so PullDownRecognizer is what makes "swipe
+    // down" work where the finger naturally is.
+    @State private var pullDown: CGFloat = 0
 
     public init(
         selection: PhotoPagerSelection,
@@ -67,17 +74,42 @@ public struct PhotoPagerSheet: View {
                     }
                 }
                 .scrollTargetLayout()
+                #if canImport(UIKit)
+                .background(pullDownRecognizer)
+                #endif
             }
             .scrollTargetBehavior(.paging)
             .scrollPosition(id: $currentId)
             .scrollIndicators(.hidden)
             .scrollDisabled(zoomed)
             .ignoresSafeArea()
+            .offset(y: pullDown)
 
             chrome
+                .opacity(pullDown > 0 ? 0 : 1)
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color.black.opacity(1 - min(pullDown / 400, 0.6)).ignoresSafeArea())
+        .presentationBackground(.black)
+        .presentationDragIndicator(.hidden)
+        // A downward pan while zoomed in is the image moving, not the
+        // sheet going away.
+        .interactiveDismissDisabled(zoomed)
     }
+
+    #if canImport(UIKit)
+    private var pullDownRecognizer: some View {
+        PullDownRecognizer(
+            isEnabled: { !zoomed },
+            onChange: { pullDown = $0 },
+            onEnd: { translation, velocity in
+                if translation > 120 || velocity > 800 {
+                    onDismiss()
+                } else {
+                    withAnimation(.easeOut(duration: 0.2)) { pullDown = 0 }
+                }
+            })
+    }
+    #endif
 
     private func move(by delta: Int) {
         let target = index + delta
