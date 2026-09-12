@@ -186,6 +186,11 @@ private struct PhotoPage: View {
 
     @State private var state: LoadState = .loading
     @State private var attempt = 0
+    // The thumbnail this page was opened from, already in the image
+    // cache: it stands in for the display image while that loads, so
+    // the page opens with the picture in it rather than a spinner on
+    // black.
+    @State private var preview: PlatformImage?
 
     private enum LoadState {
         case loading
@@ -197,9 +202,17 @@ private struct PhotoPage: View {
         Group {
             switch state {
             case .loading:
-                ProgressView()
-                    .tint(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ZStack {
+                    if let preview {
+                        swiftUIImage(preview)
+                            .resizable()
+                            .scaledToFit()
+                            .ignoresSafeArea()
+                    }
+                    ProgressView()
+                        .tint(.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded(let image):
                 PhotoViewer(image: image, onZoomChange: onZoomChange)
                     .accessibilityElement(children: .ignore)
@@ -225,11 +238,22 @@ private struct PhotoPage: View {
         }
         .task(id: "\(photo.id):\(attempt)") {
             state = .loading
+            async let thumbnail = try? loader.loadImage(from: photo.thumbnailURL)
+            async let display = loader.loadImage(from: photo.displayImageURL)
+            preview = await thumbnail
             do {
-                state = .loaded(try await loader.loadImage(from: photo.displayImageURL))
+                state = .loaded(try await display)
             } catch {
                 state = .failed(error.localizedDescription)
             }
         }
+    }
+
+    private func swiftUIImage(_ image: PlatformImage) -> Image {
+        #if canImport(UIKit)
+        Image(uiImage: image)
+        #else
+        Image(nsImage: image)
+        #endif
     }
 }
