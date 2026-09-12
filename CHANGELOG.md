@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Relaunching into the demo instance returns to where you were, as it already did for a paired instance.
 - Locating while zoomed in, or following as you move, keeps your zoom exactly instead of drifting out a step each time.
 ### build 4 — 2026-09-11
 
