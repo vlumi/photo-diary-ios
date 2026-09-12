@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The photo viewer opens as a sheet, so a swipe down puts it away; pinch-zoom, paging and the close button work as before, and a downward pan while zoomed in moves the photo rather than closing it.
+
 ### build 6 — 2026-09-12
 
 - Tapping a cluster zooms in again, and tapping the map closes a callout again; build 5 ignored both. Pins are also easier to hit, with a finger-sized tap area, and every callout has a close button in its corner.

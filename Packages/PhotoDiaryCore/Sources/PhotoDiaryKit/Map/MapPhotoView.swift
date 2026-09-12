@@ -94,7 +94,7 @@ public struct MapPhotoView: View {
     public var body: some View {
         content
             .task(id: "\(scopeKey):\(attempt)") { await load() }
-            .fullScreenCover(item: $presented) { selection in
+            .sheet(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
                     loader: loaderBox.loader,

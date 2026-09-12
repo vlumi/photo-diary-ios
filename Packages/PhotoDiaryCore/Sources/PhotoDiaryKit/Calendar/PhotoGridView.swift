@@ -148,31 +148,19 @@ extension View {
         #endif
     }
 
-    /// Shared iOS-vs-macOS shim: fullScreenCover on iOS, sheet on
-    /// macOS. AppShell had its own version wired only for the
-    /// placeholder preview button — this is the one every real
-    /// calendar / map surface routes through.
+    /// The viewer as a sheet: a swipe down closes it, the way a
+    /// photo is put away everywhere else.
     fileprivate func photoViewerCover(
         item: Binding<PhotoPagerSelection?>,
         loader: any ImageLoader,
         onShowOnMap: @escaping (Photo) -> Void
     ) -> some View {
-        #if canImport(UIKit)
-        return self.fullScreenCover(item: item) { selection in
+        self.sheet(item: item) { selection in
             PhotoPagerSheet(
                 selection: selection, loader: loader,
                 onDismiss: { item.wrappedValue = nil },
                 onShowOnMap: onShowOnMap
             )
         }
-        #else
-        return self.sheet(item: item) { selection in
-            PhotoPagerSheet(
-                selection: selection, loader: loader,
-                onDismiss: { item.wrappedValue = nil },
-                onShowOnMap: onShowOnMap
-            )
-        }
-        #endif
     }
 }
