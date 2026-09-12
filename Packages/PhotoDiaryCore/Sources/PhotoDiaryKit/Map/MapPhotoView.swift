@@ -214,11 +214,15 @@ public struct MapPhotoView: View {
     private func calloutContentView(_ callout: MapCalloutContent) -> some View {
         switch callout.kind {
         case .photos(let photos):
-            MapPhotoCallout(photos: photos, loader: loaderBox.loader) { index in
-                presented = PhotoPagerSelection(photos: photos, index: index)
-            }
+            MapPhotoCallout(
+                photos: photos, loader: loaderBox.loader,
+                onOpen: { index in presented = PhotoPagerSelection(photos: photos, index: index) },
+                onClose: { selection = nil }
+            )
         case .todo(let pin):
-            TodoPinCallout(note: pin.note) { editorPresentation = .edit(pin) }
+            TodoPinCallout(
+                note: pin.note, onEdit: { editorPresentation = .edit(pin) },
+                onClose: { selection = nil })
         }
     }
 

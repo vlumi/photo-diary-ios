@@ -42,7 +42,7 @@
       "comment" : "Toolbar button that closes the todo-pin editor without saving."
     },
     "Close" : {
-      "comment" : "Accessibility label of the X button in the full-screen photo viewer."
+      "comment" : "Accessibility label of the close button in the full-screen photo viewer and in the map callouts."
     },
     "Continue" : {
       "comment" : "Button next to the pasted pairing link that submits it; disabled until the link parses."
