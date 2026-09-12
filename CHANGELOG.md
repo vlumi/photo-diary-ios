@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 5 — 2026-09-12
+
 - Tapping a pin, a cluster or a todo pin, and tapping the map to close a callout, respond the moment your finger lifts instead of over half a second later.
 - Relaunching into the demo instance returns to where you were, as it already did for a paired instance.
 - Opening a photo shows it at once: the thumbnail you tapped fills the viewer until the full-size image has loaded, instead of a spinner on black.
