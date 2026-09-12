@@ -3,6 +3,13 @@ import MapKit
 import SwiftData
 import SwiftUI
 
+/// A tap recognized on an annotation view, ahead of MapKit.
+struct OwnTap {
+    let tag: String
+    let at: Date
+    var handled: Bool
+}
+
 private enum MapLoadState {
     case loading
     case loaded([PhotoMapPin])
@@ -51,11 +58,13 @@ public struct MapPhotoView: View {
     @State private var photosById: [String: Photo] = [:]
     @State var locator = UserLocationController()
     @State var follow = FollowState()
-    // The tag a pin's own tap gesture selected, and when. MapKit
-    // reports the same tap as a selection about half a second later,
-    // after its double-tap wait; within that window, the map's
-    // tap-to-deselect stands down and MapKit's echo is dropped.
-    @State var ownTap: (tag: String, at: Date)?
+    // The tag a pin's own tap gesture selected, when, and whether the
+    // selection change for it has been handled. MapKit reports the
+    // same tap as a selection about half a second later, after its
+    // double-tap wait; within that window the map's tap-to-deselect
+    // stands down, and a second arrival of the tag is MapKit's echo
+    // and is dropped.
+    @State var ownTap: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
     @State var editorPresentation: MapEditorPresentation?
     @State var currentRegion: MKCoordinateRegion?
@@ -165,13 +174,15 @@ public struct MapPhotoView: View {
             if scenePhase == .active, follow.isOn { locator.locate() }
         }
         .onChange(of: selection) { _, selected in
-            if let ownTap, selected == ownTap.tag, Date().timeIntervalSince(ownTap.at) < 0.7,
-                !ownTap.tag.hasPrefix("photo:")
-            {
-                // MapKit's late echo of a tap already handled (a cluster
-                // zoomed, a todo pin shown): nothing more to do.
-                selection = nil
-                return
+            if var tap = ownTap, selected == tap.tag, Date().timeIntervalSince(tap.at) < 0.7 {
+                if tap.handled {
+                    // MapKit's echo of a tap already handled (a cluster
+                    // zoomed and cleared its selection): nothing to do.
+                    selection = nil
+                    return
+                }
+                tap.handled = true
+                ownTap = tap
             }
             guard let selected else {
                 calloutFor = nil
@@ -193,7 +204,7 @@ public struct MapPhotoView: View {
             },
             onMoveEnded: finishMove,
             onTapPin: { tag in
-                ownTap = (tag, Date())
+                ownTap = OwnTap(tag: tag, at: Date(), handled: false)
                 selection = tag
             },
             calloutView: calloutView
@@ -237,7 +248,10 @@ public struct MapPhotoView: View {
     @ViewBuilder
     private func calloutView(_ callout: MapCalloutContent) -> some View {
         calloutContentView(callout)
-            .simultaneousGesture(TapGesture().onEnded { ownTap = (callout.tag, Date()) })
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    ownTap = OwnTap(tag: callout.tag, at: Date(), handled: true)
+                })
     }
 
     @ViewBuilder
