@@ -29,6 +29,16 @@ final class InstanceRegistryPersistenceTests: XCTestCase {
         XCTAssertFalse(registry.activeInstance?.isDemo ?? true)
     }
 
+    func testDemoScopeRestores() {
+        let persistence = InMemoryInstancePersistence(
+            ids: ["demo"], scope: Scope(instanceId: "demo", galleryId: "g1"))
+        let registry = InstanceRegistry(
+            persistence: persistence, sessionStore: InMemorySessionStore()
+        )
+        XCTAssertEqual(registry.scope, Scope(instanceId: "demo", galleryId: "g1"))
+        XCTAssertTrue(registry.activeInstance?.isDemo ?? false)
+    }
+
     func testStaleScopeFallsBackToTheFrontPage() {
         let persistence = InMemoryInstancePersistence(
             ids: ["demo"], scope: Scope(instanceId: "gone.example"))
