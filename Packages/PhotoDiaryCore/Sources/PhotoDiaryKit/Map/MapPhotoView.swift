@@ -52,7 +52,7 @@ public struct MapPhotoView: View {
     @State private var presented: PhotoPagerSelection?
     // The tag whose callout is showing (a single photo or a pile); nil
     // when nothing is selected or the selection zoomed instead.
-    @State private var calloutFor: String?
+    @State var calloutFor: String?
     // Keep the loaded photos around so tap-to-viewer can resolve a
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
@@ -62,14 +62,18 @@ public struct MapPhotoView: View {
     // selection change for it has been handled. MapKit reports the
     // same tap as a selection about half a second later, after its
     // double-tap wait; within that window the map's tap-to-deselect
-    // stands down, and a second arrival of the tag is MapKit's echo
-    // and is dropped.
+    // stands down, and a cluster's second arrival (its echo, after it
+    // already zoomed) is dropped.
     @State var ownTap: OwnTap?
+    // The tag the map's own tap-to-deselect cleared, and when: MapKit
+    // reports that same tap half a second later as a selection of it
+    // again, which is dropped unless a newer own tap chose it.
+    @State var ownDeselect: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
     @State var editorPresentation: MapEditorPresentation?
     @State var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
-    @State private var clusters: [MapCluster] = []
+    @State var clusters: [MapCluster] = []
     // Todo-pin gestures: the pin being dragged (live position) and the
     // provisional pin while long-pressing to place a new one.
     @State var moving: MovingPin?
@@ -173,23 +177,7 @@ public struct MapPhotoView: View {
         .onChange(of: scenePhase) {
             if scenePhase == .active, follow.isOn { locator.locate() }
         }
-        .onChange(of: selection) { _, selected in
-            if var tap = ownTap, selected == tap.tag, Date().timeIntervalSince(tap.at) < 0.7 {
-                if tap.handled {
-                    // MapKit's echo of a tap already handled (a cluster
-                    // zoomed and cleared its selection): nothing to do.
-                    selection = nil
-                    return
-                }
-                tap.handled = true
-                ownTap = tap
-            }
-            guard let selected else {
-                calloutFor = nil
-                return
-            }
-            if !handleSelection(selected, pins: pins) { selection = nil }
-        }
+        .onChange(of: selection) { _, selected in selectionChanged(selected, pins: pins) }
         .onChange(of: focus.pending?.id) {
             applyPendingFocus()
         }
@@ -213,38 +201,6 @@ public struct MapPhotoView: View {
 
     // Tags are "kind:id" so one selection binding covers every layer.
     // Returns whether the selection should stay (a callout is showing).
-    private func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
-        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return false }
-        switch parts[0] {
-        case "photo":
-            calloutFor = tag
-            return true
-        case "cluster":
-            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return false }
-            switch MapClustering.tapAction(for: cluster, pins: pins) {
-            case .zoom(let region):
-                calloutFor = nil
-                cameraPosition = .region(MKCoordinateRegion(region))
-                return false
-            case .list:
-                calloutFor = tag
-                return true
-            }
-        case "callout":
-            // A tap inside the callout (its thumbnail or chevrons) also
-            // selects the callout annotation; keep the underlying pin
-            // selected so the callout stays put.
-            selection = parts[1]
-            return true
-        case "todo":
-            calloutFor = tag
-            return true
-        default:
-            return false
-        }
-    }
-
     @ViewBuilder
     private func calloutView(_ callout: MapCalloutContent) -> some View {
         calloutContentView(callout)

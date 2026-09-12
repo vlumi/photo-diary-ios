@@ -23,6 +23,11 @@ enum MapAnnotations {
                 .accessibilityLabel("Photo")
                 .accessibilityHint("Shows a preview.")
                 .accessibilityAddTraits(.isButton)
+                // A finger-sized target around the glyph; MapKit's own
+                // hit box is about this big, and the tap gesture must
+                // cover the same area or MapKit wins the edge taps.
+                .padding(8)
+                .contentShape(Circle())
                 .onTapGesture { onTap(tag) }
         }
         .tag(tag)
@@ -44,6 +49,8 @@ enum MapAnnotations {
                 .accessibilityLabel("\(cluster.count) photos")
                 .accessibilityHint("Zooms in, or lists the photos when they share one spot.")
                 .accessibilityAddTraits(.isButton)
+                .padding(8)
+                .contentShape(Capsule())
                 .onTapGesture { onTap(tag) }
         }
         .tag(tag)
@@ -64,6 +71,8 @@ enum MapAnnotations {
             .accessibilityLabel(note.isEmpty ? "Todo pin" : "Todo: \(note)")
             .accessibilityHint("Shows the note. Press and hold to move it.")
             .accessibilityAddTraits(.isButton)
+            .padding(8)
+            .contentShape(Circle())
     }
 
     static func userMarker(at coordinate: CLLocationCoordinate2D) -> some MapContent {
