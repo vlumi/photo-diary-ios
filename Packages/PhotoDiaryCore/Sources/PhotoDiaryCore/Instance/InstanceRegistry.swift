@@ -54,9 +54,12 @@ public final class InstanceRegistry {
             return remoteFactory.restore(origin: RemoteInstanceFactory.canonicalOrigin(id))
         }
         if let saved = persistence.loadScope() {
-            let canonical = Scope(
-                instanceId: RemoteInstanceFactory.canonicalOrigin(saved.instanceId),
-                galleryId: saved.galleryId)
+            // Only remote ids are origins; the demo's sentinel must
+            // not be turned into "https://demo".
+            let instanceId =
+                saved.instanceId == DemoInstance.instanceId
+                ? saved.instanceId : RemoteInstanceFactory.canonicalOrigin(saved.instanceId)
+            let canonical = Scope(instanceId: instanceId, galleryId: saved.galleryId)
             scope = instances.contains(where: { $0.id == canonical.instanceId }) ? canonical : nil
         }
         persist()
