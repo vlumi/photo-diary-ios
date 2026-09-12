@@ -53,16 +53,19 @@ struct TodoPinsMapContent: MapContent {
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
+    let onTap: (String) -> Void
 
     var body: some MapContent {
         ForEach(pins) { pin in
             let lifted = moving?.id == pin.id
             let coordinate = lifted ? moving!.coordinate : pin.coordinate
+            let tag = "todo:\(pin.id.uuidString)"
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
                     .highPriorityGesture(moveGesture(for: pin))
+                    .onTapGesture { onTap(tag) }
             }
-            .tag("todo:\(pin.id.uuidString)")
+            .tag(tag)
         }
         if let placing {
             Annotation("", coordinate: placing) {

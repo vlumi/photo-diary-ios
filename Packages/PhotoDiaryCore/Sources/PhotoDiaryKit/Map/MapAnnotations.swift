@@ -10,8 +10,9 @@ import SwiftUI
 /// sits beneath them), with hit testing off so it never steals a tap.
 @MainActor
 enum MapAnnotations {
-    static func photo(_ pin: PhotoMapPin) -> some MapContent {
-        Annotation("", coordinate: pin.coordinate) {
+    static func photo(_ pin: PhotoMapPin, onTap: @escaping (String) -> Void) -> some MapContent {
+        let tag = "photo:\(pin.photoId)"
+        return Annotation("", coordinate: pin.coordinate) {
             Image(systemName: "camera.fill")
                 .font(.caption)
                 .foregroundStyle(.white)
@@ -22,12 +23,15 @@ enum MapAnnotations {
                 .accessibilityLabel("Photo")
                 .accessibilityHint("Shows a preview.")
                 .accessibilityAddTraits(.isButton)
+                .onTapGesture { onTap(tag) }
         }
-        .tag("photo:\(pin.photoId)")
+        .tag(tag)
     }
 
-    static func cluster(_ cluster: MapCluster) -> some MapContent {
-        Annotation("", coordinate: cluster.coordinate) {
+    static func cluster(_ cluster: MapCluster, onTap: @escaping (String) -> Void) -> some MapContent
+    {
+        let tag = "cluster:\(cluster.id)"
+        return Annotation("", coordinate: cluster.coordinate) {
             Text("\(cluster.count)")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.white)
@@ -40,8 +44,9 @@ enum MapAnnotations {
                 .accessibilityLabel("\(cluster.count) photos")
                 .accessibilityHint("Zooms in, or lists the photos when they share one spot.")
                 .accessibilityAddTraits(.isButton)
+                .onTapGesture { onTap(tag) }
         }
-        .tag("cluster:\(cluster.id)")
+        .tag(tag)
     }
 
     /// The todo marker. `lifted` while being placed or dragged.

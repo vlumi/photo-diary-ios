@@ -34,6 +34,8 @@ struct MapPhotoCallout: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 6, y: 2)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("map-photo-callout")
         .onChange(of: photos.map(\.id)) { index = 0 }
     }
 
