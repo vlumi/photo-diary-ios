@@ -13,6 +13,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 ### Unreleased (next build)
 
 - Tapping a pin, a cluster or a todo pin, and tapping the map to close a callout, respond the moment your finger lifts instead of over half a second later.
+- Opening a photo shows it at once: the thumbnail you tapped fills the viewer until the full-size image has loaded, instead of a spinner on black.
 - Locating while zoomed in, or following as you move, keeps your zoom exactly instead of drifting out a step each time.
 ### build 4 — 2026-09-11
 
