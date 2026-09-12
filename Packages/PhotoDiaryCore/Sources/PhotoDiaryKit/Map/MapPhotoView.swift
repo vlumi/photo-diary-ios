@@ -3,6 +3,13 @@ import MapKit
 import SwiftData
 import SwiftUI
 
+/// A tap recognized on an annotation view, ahead of MapKit.
+struct OwnTap {
+    let tag: String
+    let at: Date
+    var handled: Bool
+}
+
 private enum MapLoadState {
     case loading
     case loaded([PhotoMapPin])
@@ -45,22 +52,28 @@ public struct MapPhotoView: View {
     @State private var presented: PhotoPagerSelection?
     // The tag whose callout is showing (a single photo or a pile); nil
     // when nothing is selected or the selection zoomed instead.
-    @State private var calloutFor: String?
+    @State var calloutFor: String?
     // Keep the loaded photos around so tap-to-viewer can resolve a
     // pin's photoId back to a full Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State var locator = UserLocationController()
     @State var follow = FollowState()
-    // The tag a pin's own tap gesture selected, and when. MapKit
-    // reports the same tap as a selection about half a second later,
-    // after its double-tap wait; within that window, the map's
-    // tap-to-deselect stands down and MapKit's echo is dropped.
-    @State var ownTap: (tag: String, at: Date)?
+    // The tag a pin's own tap gesture selected, when, and whether the
+    // selection change for it has been handled. MapKit reports the
+    // same tap as a selection about half a second later, after its
+    // double-tap wait; within that window the map's tap-to-deselect
+    // stands down, and a cluster's second arrival (its echo, after it
+    // already zoomed) is dropped.
+    @State var ownTap: OwnTap?
+    // The tag the map's own tap-to-deselect cleared, and when: MapKit
+    // reports that same tap half a second later as a selection of it
+    // again, which is dropped unless a newer own tap chose it.
+    @State var ownDeselect: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
     @State var editorPresentation: MapEditorPresentation?
     @State var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
-    @State private var clusters: [MapCluster] = []
+    @State var clusters: [MapCluster] = []
     // Todo-pin gestures: the pin being dragged (live position) and the
     // provisional pin while long-pressing to place a new one.
     @State var moving: MovingPin?
@@ -164,21 +177,7 @@ public struct MapPhotoView: View {
         .onChange(of: scenePhase) {
             if scenePhase == .active, follow.isOn { locator.locate() }
         }
-        .onChange(of: selection) { _, selected in
-            if let ownTap, selected == ownTap.tag, Date().timeIntervalSince(ownTap.at) < 0.7,
-                !ownTap.tag.hasPrefix("photo:")
-            {
-                // MapKit's late echo of a tap already handled (a cluster
-                // zoomed, a todo pin shown): nothing more to do.
-                selection = nil
-                return
-            }
-            guard let selected else {
-                calloutFor = nil
-                return
-            }
-            if !handleSelection(selected, pins: pins) { selection = nil }
-        }
+        .onChange(of: selection) { _, selected in selectionChanged(selected, pins: pins) }
         .onChange(of: focus.pending?.id) {
             applyPendingFocus()
         }
@@ -193,7 +192,7 @@ public struct MapPhotoView: View {
             },
             onMoveEnded: finishMove,
             onTapPin: { tag in
-                ownTap = (tag, Date())
+                ownTap = OwnTap(tag: tag, at: Date(), handled: false)
                 selection = tag
             },
             calloutView: calloutView
@@ -202,53 +201,28 @@ public struct MapPhotoView: View {
 
     // Tags are "kind:id" so one selection binding covers every layer.
     // Returns whether the selection should stay (a callout is showing).
-    private func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
-        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return false }
-        switch parts[0] {
-        case "photo":
-            calloutFor = tag
-            return true
-        case "cluster":
-            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return false }
-            switch MapClustering.tapAction(for: cluster, pins: pins) {
-            case .zoom(let region):
-                calloutFor = nil
-                cameraPosition = .region(MKCoordinateRegion(region))
-                return false
-            case .list:
-                calloutFor = tag
-                return true
-            }
-        case "callout":
-            // A tap inside the callout (its thumbnail or chevrons) also
-            // selects the callout annotation; keep the underlying pin
-            // selected so the callout stays put.
-            selection = parts[1]
-            return true
-        case "todo":
-            calloutFor = tag
-            return true
-        default:
-            return false
-        }
-    }
-
     @ViewBuilder
     private func calloutView(_ callout: MapCalloutContent) -> some View {
         calloutContentView(callout)
-            .simultaneousGesture(TapGesture().onEnded { ownTap = (callout.tag, Date()) })
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    ownTap = OwnTap(tag: callout.tag, at: Date(), handled: true)
+                })
     }
 
     @ViewBuilder
     private func calloutContentView(_ callout: MapCalloutContent) -> some View {
         switch callout.kind {
         case .photos(let photos):
-            MapPhotoCallout(photos: photos, loader: loaderBox.loader) { index in
-                presented = PhotoPagerSelection(photos: photos, index: index)
-            }
+            MapPhotoCallout(
+                photos: photos, loader: loaderBox.loader,
+                onOpen: { index in presented = PhotoPagerSelection(photos: photos, index: index) },
+                onClose: { selection = nil }
+            )
         case .todo(let pin):
-            TodoPinCallout(note: pin.note) { editorPresentation = .edit(pin) }
+            TodoPinCallout(
+                note: pin.note, onEdit: { editorPresentation = .edit(pin) },
+                onClose: { selection = nil })
         }
     }
 

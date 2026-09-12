@@ -6,6 +6,7 @@ import SwiftUI
 struct TodoPinCallout: View {
     let note: String
     let onEdit: () -> Void
+    let onClose: () -> Void
 
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -31,5 +32,6 @@ struct TodoPinCallout: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 6, y: 2)
+        .overlay(alignment: .topTrailing) { CalloutCloseButton(action: onClose) }
     }
 }

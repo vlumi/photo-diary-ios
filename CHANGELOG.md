@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Tapping a cluster zooms in again, and tapping the map closes a callout again; build 5 ignored both. Pins are also easier to hit, with a finger-sized tap area, and every callout has a close button in its corner.
+
 ### build 5 — 2026-09-12
 
 - Tapping a pin, a cluster or a todo pin, and tapping the map to close a callout, respond the moment your finger lifts instead of over half a second later.

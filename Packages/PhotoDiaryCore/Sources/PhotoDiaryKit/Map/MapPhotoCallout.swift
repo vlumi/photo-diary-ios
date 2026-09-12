@@ -8,6 +8,7 @@ struct MapPhotoCallout: View {
     let photos: [Photo]
     let loader: any ImageLoader
     let onOpen: (Int) -> Void
+    let onClose: () -> Void
 
     @State private var index = 0
 
@@ -34,6 +35,7 @@ struct MapPhotoCallout: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 6, y: 2)
+        .overlay(alignment: .topTrailing) { CalloutCloseButton(action: onClose) }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("map-photo-callout")
         .onChange(of: photos.map(\.id)) { index = 0 }
