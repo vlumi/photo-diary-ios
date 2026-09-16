@@ -79,7 +79,7 @@ public struct PhotoGridView: View {
                             }
                         }
                     } header: {
-                        Text(dayLabel(section.day))
+                        Text(dayLabel(section))
                             .font(.subheadline.weight(.semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -96,7 +96,7 @@ public struct PhotoGridView: View {
     }
 
     private var navTitle: String {
-        guard month != nil, let date = date(day: 1) else { return String(year) }
+        guard month != nil, let date = date(month: month, day: 1) else { return String(year) }
         return date.formatted(.dateTime.year().month(.wide))
     }
 
@@ -104,12 +104,14 @@ public struct PhotoGridView: View {
         "\(galleryId):\(year):\(month ?? -1):\(attempt)"
     }
 
-    private func dayLabel(_ day: Int) -> String {
-        guard month != nil, let date = date(day: day) else { return "Day \(day)" }
+    private func dayLabel(_ section: PhotoCalendar.DaySection) -> String {
+        guard let date = date(month: section.month, day: section.day) else {
+            return String(format: "%04d-%02d-%02d", year, section.month, section.day)
+        }
         return date.formatted(.dateTime.year().month(.wide).day())
     }
 
-    private func date(day: Int) -> Date? {
+    private func date(month: Int?, day: Int) -> Date? {
         Calendar.current.date(from: DateComponents(year: year, month: month, day: day))
     }
 

@@ -44,6 +44,15 @@ final class PhotoCalendarTests: XCTestCase {
         XCTAssertEqual(sections[1].photos.map(\.id), [d3a.id, d3b.id])
     }
 
+    func testGroupByDayKeepsMonthsApart() {
+        let june1 = fixture(year: 2024, month: 6, day: 1)
+        let july1 = fixture(year: 2024, month: 7, day: 1)
+        let june30 = fixture(year: 2024, month: 6, day: 30)
+        let sections = PhotoCalendar.groupByDay([july1, june30, june1])
+        XCTAssertEqual(sections.map { [$0.month, $0.day] }, [[6, 1], [6, 30], [7, 1]])
+        XCTAssertEqual(sections.map { $0.photos.map(\.id) }, [[june1.id], [june30.id], [july1.id]])
+    }
+
     // MARK: - Fixture helper
 
     private func fixture(

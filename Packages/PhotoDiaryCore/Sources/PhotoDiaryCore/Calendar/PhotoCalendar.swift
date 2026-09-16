@@ -30,25 +30,30 @@ public enum PhotoCalendar {
             .sorted { $0.timestamp < $1.timestamp }
     }
 
-    /// Groups photos by day-of-month. Order of returned sections is
-    /// day-ascending; within each section, photos are
+    /// Groups photos by calendar day. Order of returned sections is
+    /// date-ascending; within each section, photos are
     /// timestamp-ascending. Caller has already filtered to a single
-    /// year+month.
+    /// year, or a single year+month.
     public static func groupByDay(_ photos: [Photo]) -> [DaySection] {
         let sorted = photos.sorted { $0.timestamp < $1.timestamp }
         var byDay: [Int: [Photo]] = [:]
         for photo in sorted {
-            byDay[photo.timestamp.day, default: []].append(photo)
+            byDay[DaySection.key(photo.timestamp), default: []].append(photo)
         }
-        return byDay.keys.sorted().map { day in
-            DaySection(day: day, photos: byDay[day] ?? [])
+        return byDay.keys.sorted().map { key in
+            DaySection(month: key / 100, day: key % 100, photos: byDay[key] ?? [])
         }
     }
 
     public struct DaySection: Identifiable, Hashable, Sendable {
+        public let month: Int
         public let day: Int
         public let photos: [Photo]
 
-        public var id: Int { day }
+        public var id: Int { month * 100 + day }
+
+        static func key(_ timestamp: PhotoTimestamp) -> Int {
+            timestamp.month * 100 + timestamp.day
+        }
     }
 }
