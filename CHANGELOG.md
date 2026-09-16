@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 7 — 2026-09-16
+
 - Dates in photo captions, the calendar, the grid headers and the pin list now follow the phone's language and region instead of always showing English.
 - The year-wide grid groups photos by date, so photos from the same day of different months no longer share a section.
 - The photo viewer opens as a sheet, so a swipe down puts it away; pinch-zoom, paging and the close button work as before, and a downward pan while zoomed in moves the photo rather than closing it.
