@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Dates in photo captions, the calendar, the grid headers and the pin list now follow the phone's language and region instead of always showing English.
 - The photo viewer opens as a sheet, so a swipe down puts it away; pinch-zoom, paging and the close button work as before, and a downward pan while zoomed in moves the photo rather than closing it.
 - The arrows on a pile's callout page through its photos without closing the callout, and tapping its thumbnail no longer closes it behind the viewer.
 

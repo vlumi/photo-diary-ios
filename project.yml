@@ -35,6 +35,11 @@ targets:
         # No encryption beyond HTTPS to the operator's own server —
         # standard export exemption applies.
         ITSAppUsesNonExemptEncryption: false
+        # The UI ships in English only, so iOS would otherwise run the
+        # app in English and format dates and distances in it too. With
+        # mixed localizations allowed, Foundation follows the device
+        # language while the strings stay English.
+        CFBundleAllowMixedLocalizations: true
         LSApplicationCategoryType: public.app-category.photography
         # Location + camera are optional per-user features. The strings
         # explain what the app does with them; iOS shows them at the
