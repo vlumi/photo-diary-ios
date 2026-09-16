@@ -96,10 +96,8 @@ public struct PhotoGridView: View {
     }
 
     private var navTitle: String {
-        if let month {
-            return String(format: "%04d-%02d", year, month)
-        }
-        return String(year)
+        guard month != nil, let date = date(day: 1) else { return String(year) }
+        return date.formatted(.dateTime.year().month(.wide))
     }
 
     private var reloadKey: String {
@@ -107,10 +105,12 @@ public struct PhotoGridView: View {
     }
 
     private func dayLabel(_ day: Int) -> String {
-        if let month {
-            return String(format: "%04d-%02d-%02d", year, month, day)
-        }
-        return "Day \(day)"
+        guard month != nil, let date = date(day: day) else { return "Day \(day)" }
+        return date.formatted(.dateTime.year().month(.wide).day())
+    }
+
+    private func date(day: Int) -> Date? {
+        Calendar.current.date(from: DateComponents(year: year, month: month, day: day))
     }
 
     private func load() async {
