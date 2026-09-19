@@ -60,6 +60,57 @@ final class MapClusteringTests: XCTestCase {
         XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: closer))
     }
 
+    func testAWideBuildLastsUntilHalfAScreenOfItIsLeft() {
+        var panned = tokyo
+        panned.centerLongitude += 0.2 * 1.4
+        XCTAssertFalse(MapClustering.isStale(clustered: tokyo, for: panned, margin: 2))
+        panned.centerLongitude += 0.2 * 0.2
+        XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: panned, margin: 2))
+    }
+
+    func testASparseMapIsBuiltTwoScreensPastTheViewport() {
+        let pins = [pin("near", 35.68, 139.76), pin("far", 35.68, 139.76 + 0.2 * 2.4)]
+        let build = MapClustering.build(pins: pins, in: tokyo)
+        XCTAssertEqual(build.margin, MapClustering.widestMargin)
+        XCTAssertEqual(Set(build.clusters.flatMap(\.photoIds)), ["near", "far"])
+    }
+
+    func testADenseMapKeepsTheNearestClustersWithinBudget() {
+        // One pin per 1/32° cell across the whole two-screen area.
+        var pins: [PhotoMapPin] = []
+        for i in -16...16 {
+            for j in -16...16 {
+                pins.append(pin("p\(i)/\(j)", 35.68 + Double(i) / 32, 139.76 + Double(j) / 32))
+            }
+        }
+        let build = MapClustering.build(pins: pins, in: tokyo, budget: 200)
+        XCTAssertEqual(build.clusters.count, 200)
+        XCTAssertGreaterThanOrEqual(build.margin, MapClustering.defaultMargin)
+        XCTAssertLessThan(build.margin, MapClustering.widestMargin)
+        // Complete out to the reported margin: nothing inside it was dropped.
+        let reach = 0.2 * (0.5 + build.margin)
+        let inside = pins.filter {
+            abs($0.coordinate.latitude - 35.68) <= reach
+                && abs($0.coordinate.longitude - 139.76) <= reach
+        }
+        let built = Set(build.clusters.flatMap(\.photoIds))
+        XCTAssertTrue(Set(inside.map(\.photoId)).isSubset(of: built))
+    }
+
+    func testTheBudgetNeverCutsIntoTheGuaranteedMargin() {
+        var pins: [PhotoMapPin] = []
+        for i in -16...16 {
+            for j in -16...16 {
+                pins.append(pin("p\(i)/\(j)", 35.68 + Double(i) / 32, 139.76 + Double(j) / 32))
+            }
+        }
+        let build = MapClustering.build(pins: pins, in: tokyo, budget: 10)
+        XCTAssertEqual(build.margin, MapClustering.defaultMargin)
+        let guaranteed = MapClustering.clusters(pins: pins, in: tokyo)
+        XCTAssertGreaterThan(build.clusters.count, 10)
+        XCTAssertLessThanOrEqual(build.clusters.count, guaranteed.count)
+    }
+
     func testZoomingOutGoesStaleOnceTheViewportNearsTheBuiltEdge() {
         // 0.2° → 0.3° keeps the 1/32° cells but leaves too little
         // built area around the wider viewport.

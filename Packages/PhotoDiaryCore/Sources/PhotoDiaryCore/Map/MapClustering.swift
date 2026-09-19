@@ -90,10 +90,15 @@ public enum ClusterTapAction: Hashable, Sendable {
 /// whole cells for the same reason: a cell cut by the edge would
 /// report a different count and centroid after every pan.
 public enum MapClustering {
-    /// How far past the viewport pins are built, as a fraction of its
-    /// span on each side. Wide enough that a pan reveals pins already
-    /// in place; the annotation count grows with its square.
+    /// How far past the viewport pins are always built, as a fraction
+    /// of its span on each side, however dense the map is.
     public static let defaultMargin = 0.5
+
+    /// Annotation views the map is asked to hold at once. The count
+    /// grows with the square of the margin, so a dense map gets a
+    /// narrower one. Measured on the simulator, a rebuild stalls the
+    /// map for roughly 40 ms per hundred annotations.
+    public static let annotationBudget = 200
 
     public static func clusters(
         pins: [PhotoMapPin],
@@ -171,7 +176,7 @@ public enum MapClustering {
     /// fully zoomed-in map doesn't produce sub-meter cells.
     /// Whether the clusters built for `clustered` have stopped serving
     /// `region`: the zoom crossed into another cell size, or the
-    /// viewport came within half a margin of the built area's edge.
+    /// viewport came close to the built area's edge.
     /// Checked while the camera moves, so pins are rebuilt ahead of a
     /// pan rather than after it.
     public static func isStale(
@@ -182,8 +187,12 @@ public enum MapClustering {
     ) -> Bool {
         let cell = cellSize(for: region.longitudeDelta, columns: columns)
         if cell != cellSize(for: clustered.longitudeDelta, columns: columns) { return true }
+        // Every rebuild re-lays all the annotations, which costs a
+        // dropped frame or several however few of them changed. So
+        // rebuild late: only when half a screen of built area is left.
+        let reserve = min(margin / 2, 0.5)
         func outgrown(_ drift: Double, _ span: Double, _ builtSpan: Double) -> Bool {
-            abs(drift) + span / 2 * (1 + margin) > builtSpan / 2 * (1 + 2 * margin)
+            abs(drift) + span * (0.5 + reserve) > builtSpan * (0.5 + margin)
         }
         return outgrown(
             region.centerLatitude - clustered.centerLatitude,

@@ -12,7 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
-- Map pins are built half a screen past every edge and rebuilt while the map is still moving, so panning reveals pins already in place instead of filling them in after the map stops.
+- Map pins are built up to two screens past every edge (less where the map is crowded) and rebuilt while the map is still moving, so panning around reveals pins already in place instead of filling them in after the map stops.
 
 ### build 7 — 2026-09-16
 

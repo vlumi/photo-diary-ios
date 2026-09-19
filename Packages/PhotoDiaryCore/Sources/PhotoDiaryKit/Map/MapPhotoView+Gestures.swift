@@ -37,10 +37,11 @@ extension MapPhotoView {
 
 extension MapPhotoView {
     /// Runs every frame of a pan or pinch, so it only rebuilds once the
-    /// camera has used up half the margin the pins were built with.
+    /// camera nears the edge of the area the pins were built for.
     func cameraMoving(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
         guard let clusteredRegion,
-            MapClustering.isStale(clustered: clusteredRegion, for: MapRegion(region))
+            MapClustering.isStale(
+                clustered: clusteredRegion, for: MapRegion(region), margin: clusteredMargin)
         else { return }
         recluster(pins: pins, region: region)
     }
