@@ -7,6 +7,17 @@ import Foundation
 public struct FollowState: Sendable {
     public static let interval: TimeInterval = 10
 
+    /// A view up to this many times wider than the close-up still
+    /// shows the neighborhood around the user, so locating keeps it.
+    public static let keptZoomFactor = 10.0
+
+    /// The width a tap on the locate button frames: the zoom the user
+    /// has when it already shows their surroundings, the close-up when
+    /// they are looking at a city or a country.
+    public static func locateMeters(current: Double, closeUp: Double) -> Double {
+        current <= closeUp * keptZoomFactor ? current : closeUp
+    }
+
     public private(set) var isOn = false
     private var lastRecenter: Date?
 

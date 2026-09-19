@@ -7,8 +7,9 @@ import SwiftUI
 
 extension MapPhotoView {
     /// Switching on centers on the fix already in hand so the button
-    /// responds at once — zooming in to street level, never out — and
-    /// asks for a fresh one. Switching off just stops following.
+    /// responds at once — zooming in to street level from far out,
+    /// never out — and asks for a fresh one. Switching off just stops
+    /// following.
     func toggleFollow() {
         if follow.isOn {
             follow.stop()
@@ -16,7 +17,9 @@ extension MapPhotoView {
         }
         follow.start()
         if let here = locator.lastLocation {
-            withAnimation { frame(here, meters: min(currentMeters, Self.closeUpMeters)) }
+            let meters = FollowState.locateMeters(
+                current: currentMeters, closeUp: Self.closeUpMeters)
+            withAnimation { frame(here, meters: meters) }
         }
         locator.locate()
     }
