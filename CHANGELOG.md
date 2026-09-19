@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 8 — 2026-09-19
+
 - The locate button keeps your zoom when the map already shows your surroundings (up to about 3 km across) and only zooms in to street level from farther out.
 - Map pins are built up to two screens past every edge (less where the map is crowded) and rebuilt while the map is still moving, so panning around reveals pins already in place instead of filling them in after the map stops.
 
