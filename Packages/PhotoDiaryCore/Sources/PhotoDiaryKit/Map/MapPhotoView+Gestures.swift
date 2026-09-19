@@ -33,6 +33,20 @@ extension MapPhotoView {
     }
 }
 
+// MARK: - Pins ahead of a pan
+
+extension MapPhotoView {
+    /// Runs every frame of a pan or pinch, so it only rebuilds once the
+    /// camera nears the edge of the area the pins were built for.
+    func cameraMoving(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
+        guard let clusteredRegion,
+            MapClustering.isStale(
+                clustered: clusteredRegion, for: MapRegion(region), margin: clusteredMargin)
+        else { return }
+        recluster(pins: pins, region: region)
+    }
+}
+
 // MARK: - Selection
 
 extension MapPhotoView {
