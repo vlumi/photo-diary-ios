@@ -86,29 +86,30 @@ public enum ClusterTapAction: Hashable, Sendable {
 /// whose size is a power of two in degrees chosen so about `columns`
 /// cells span the viewport. Cells are anchored to absolute
 /// coordinates, not to the viewport, so panning doesn't reshuffle
-/// clusters — only zooming does.
+/// clusters — only zooming does. The considered area is grown to
+/// whole cells for the same reason: a cell cut by the edge would
+/// report a different count and centroid after every pan.
 public enum MapClustering {
+    /// How far past the viewport pins are built, as a fraction of its
+    /// span on each side. Wide enough that a pan reveals pins already
+    /// in place; the annotation count grows with its square.
+    public static let defaultMargin = 0.5
+
     public static func clusters(
         pins: [PhotoMapPin],
         in region: MapRegion,
         columns: Int = 6,
-        margin: Double = 0.25
+        margin: Double = defaultMargin
     ) -> [MapCluster] {
-        let latSpan = region.latitudeDelta * (1 + 2 * margin)
-        let lngSpan = region.longitudeDelta * (1 + 2 * margin)
-        let minLat = region.centerLatitude - latSpan / 2
-        let maxLat = region.centerLatitude + latSpan / 2
-        let minLng = region.centerLongitude - lngSpan / 2
-        let maxLng = region.centerLongitude + lngSpan / 2
-
+        let cell = cellSize(for: region.longitudeDelta, columns: columns)
+        let area = coverage(of: region, cell: cell, margin: margin)
         let visible = pins.filter { pin in
             let lat = pin.coordinate.latitude
             let lng = pin.coordinate.longitude
-            return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng
+            return lat >= area.minLat && lat <= area.maxLat
+                && lng >= area.minLng && lng <= area.maxLng
         }
         guard !visible.isEmpty else { return [] }
-
-        let cell = cellSize(for: region.longitudeDelta, columns: columns)
 
         struct Bucket {
             var ids: [String] = []
@@ -168,6 +169,43 @@ public enum MapClustering {
     /// Largest power of two (in degrees) that fits `columns` times into
     /// the viewport's longitude span. Floored to a sane minimum so a
     /// fully zoomed-in map doesn't produce sub-meter cells.
+    /// Whether the clusters built for `clustered` have stopped serving
+    /// `region`: the zoom crossed into another cell size, or the
+    /// viewport came within half a margin of the built area's edge.
+    /// Checked while the camera moves, so pins are rebuilt ahead of a
+    /// pan rather than after it.
+    public static func isStale(
+        clustered: MapRegion,
+        for region: MapRegion,
+        columns: Int = 6,
+        margin: Double = defaultMargin
+    ) -> Bool {
+        let cell = cellSize(for: region.longitudeDelta, columns: columns)
+        if cell != cellSize(for: clustered.longitudeDelta, columns: columns) { return true }
+        func outgrown(_ drift: Double, _ span: Double, _ builtSpan: Double) -> Bool {
+            abs(drift) + span / 2 * (1 + margin) > builtSpan / 2 * (1 + 2 * margin)
+        }
+        return outgrown(
+            region.centerLatitude - clustered.centerLatitude,
+            region.latitudeDelta, clustered.latitudeDelta)
+            || outgrown(
+                region.centerLongitude - clustered.centerLongitude,
+                region.longitudeDelta, clustered.longitudeDelta)
+    }
+
+    private static func coverage(
+        of region: MapRegion, cell: Double, margin: Double
+    ) -> PhotoMapping.BoundingBox {
+        let latSpan = region.latitudeDelta * (1 + 2 * margin)
+        let lngSpan = region.longitudeDelta * (1 + 2 * margin)
+        return PhotoMapping.BoundingBox(
+            minLat: ((region.centerLatitude - latSpan / 2) / cell).rounded(.down) * cell,
+            maxLat: ((region.centerLatitude + latSpan / 2) / cell).rounded(.up) * cell,
+            minLng: ((region.centerLongitude - lngSpan / 2) / cell).rounded(.down) * cell,
+            maxLng: ((region.centerLongitude + lngSpan / 2) / cell).rounded(.up) * cell
+        )
+    }
+
     static func cellSize(for longitudeDelta: Double, columns: Int) -> Double {
         let target = max(longitudeDelta, 1e-6) / Double(max(columns, 1))
         let exponent = (log2(target)).rounded(.down)

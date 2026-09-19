@@ -74,6 +74,9 @@ public struct MapPhotoView: View {
     @State var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
     @State var clusters: [MapCluster] = []
+    /// The region `clusters` was built for; pins are rebuilt mid-pan
+    /// once the camera drifts too far from it.
+    @State var clusteredRegion: MapRegion?
     // Todo-pin gestures: the pin being dragged (live position) and the
     // provisional pin while long-pressing to place a new one.
     @State var moving: MovingPin?
@@ -152,6 +155,9 @@ public struct MapPhotoView: View {
             layers(proxy: proxy)
         }
         .simultaneousGesture(placementGesture(proxy))
+        .onMapCameraChange(frequency: .continuous) { context in
+            cameraMoving(context.region, pins: pins)
+        }
         .onMapCameraChange(frequency: .onEnd) { context in
             cameraSettled(context.region, pins: pins)
         }
@@ -245,8 +251,10 @@ public struct MapPhotoView: View {
         if cameraPosition.positionedByUser { follow.stop() }
     }
 
-    private func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
-        clusters = MapClustering.clusters(pins: pins, in: MapRegion(region))
+    func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
+        let region = MapRegion(region)
+        clusters = MapClustering.clusters(pins: pins, in: region)
+        clusteredRegion = region
     }
 
     private var scopeKey: String {

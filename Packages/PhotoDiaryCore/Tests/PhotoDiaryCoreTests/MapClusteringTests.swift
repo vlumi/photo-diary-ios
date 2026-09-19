@@ -19,11 +19,54 @@ final class MapClusteringTests: XCTestCase {
     }
 
     func testPinsJustOutsideTheViewportButInsideTheMarginAreKept() {
-        // 0.2° span with 25% margin → kept up to 0.15° from center.
-        let pins = [pin("edge", 35.68, 139.76 + 0.14)]
+        // 0.2° span with 50% margin → kept up to 0.2° from center, and
+        // on to the end of the 1/32° cell that edge falls in.
+        let pins = [pin("edge", 35.68, 139.76 + 0.19)]
         XCTAssertEqual(MapClustering.clusters(pins: pins, in: tokyo).count, 1)
-        let beyond = [pin("beyond", 35.68, 139.76 + 0.16)]
+        let beyond = [pin("beyond", 35.68, 139.76 + 0.22)]
         XCTAssertEqual(MapClustering.clusters(pins: beyond, in: tokyo).count, 0)
+    }
+
+    func testACellAtTheEdgeIsBuiltWholeSoPanningKeepsItsCountAndCentroid() {
+        // Both pins share the cell the built area's east edge cuts
+        // through; one lies inside the raw margin, one past it.
+        let pins = [pin("inside", 35.68, 139.955), pin("past", 35.68, 139.965)]
+        let before = MapClustering.clusters(pins: pins, in: tokyo)
+        XCTAssertEqual(before.map(\.count), [2])
+        var panned = tokyo
+        panned.centerLongitude += 0.02
+        XCTAssertEqual(MapClustering.clusters(pins: pins, in: panned), before)
+    }
+
+    func testClustersStayFreshForSmallPansAndGoStaleBeforeTheMarginRunsOut() {
+        var panned = tokyo
+        panned.centerLongitude += 0.04
+        XCTAssertFalse(MapClustering.isStale(clustered: tokyo, for: panned))
+        // Half the 0.1° margin is the budget; past it, rebuild.
+        panned.centerLongitude += 0.02
+        XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: panned))
+        var north = tokyo
+        north.centerLatitude -= 0.06
+        XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: north))
+    }
+
+    func testClustersGoStaleWhenTheZoomChangesTheCellSize() {
+        var closer = tokyo
+        closer.latitudeDelta = 0.19
+        closer.longitudeDelta = 0.19
+        XCTAssertFalse(MapClustering.isStale(clustered: tokyo, for: closer))
+        closer.latitudeDelta = 0.05
+        closer.longitudeDelta = 0.05
+        XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: closer))
+    }
+
+    func testZoomingOutGoesStaleOnceTheViewportNearsTheBuiltEdge() {
+        // 0.2° → 0.3° keeps the 1/32° cells but leaves too little
+        // built area around the wider viewport.
+        var wider = tokyo
+        wider.latitudeDelta = 0.3
+        wider.longitudeDelta = 0.3
+        XCTAssertTrue(MapClustering.isStale(clustered: tokyo, for: wider))
     }
 
     func testNearbyPinsMergeIntoOneClusterWithCentroidAndBox() {
