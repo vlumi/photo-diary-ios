@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 10 — 2026-09-20
+
 - With all of an instance's galleries open, a gallery that disappears from the server costs only its own photos on the map, instead of sending you back to the front page.
 - A gallery still loads when the server holds a photo without a capture date, or one the app can't read: that photo is left out instead of the whole gallery failing.
 
