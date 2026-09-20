@@ -44,7 +44,7 @@ final class PairingTicketTests: XCTestCase {
         }
     }
 
-    func testSchemeHttpIsHonouredAndOthersRejected() {
+    func testSchemeHttpIsHonoredAndOthersRejected() {
         let dev = PairingTicket.parse("photodiary://sso?host=localhost:3000&token=t&scheme=http")
         XCTAssertEqual(dev?.scheme, "http")
         XCTAssertEqual(dev?.origin, "http://localhost:3000")
