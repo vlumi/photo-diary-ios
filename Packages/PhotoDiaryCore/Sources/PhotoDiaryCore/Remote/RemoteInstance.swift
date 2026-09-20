@@ -86,17 +86,17 @@ public actor RemoteInstance: Instance {
     }
 
     private static func galleries(from data: Data) throws -> [Gallery] {
-        let dtos: [GalleryDTO] = try PhotoDiaryAPI.decode(data)
-        return dtos.map { $0.toDomain() }
+        let dtos: [Lenient<GalleryDTO>] = try PhotoDiaryAPI.decode(data)
+        return dtos.compactMap { $0.value?.toDomain() }
     }
 
     private static func photos(from data: Data, galleryId: String, photoRoot: URL) throws
         -> [Photo]
     {
-        let dtos: [PhotoDTO] = try PhotoDiaryAPI.decode(data)
+        let dtos: [Lenient<PhotoDTO>] = try PhotoDiaryAPI.decode(data)
         return
             dtos
-            .map { $0.toDomain(galleryId: galleryId, photoRoot: photoRoot) }
+            .compactMap { $0.value?.toDomain(galleryId: galleryId, photoRoot: photoRoot) }
             .sorted { $0.timestamp < $1.timestamp }
     }
 
@@ -109,7 +109,10 @@ public actor RemoteInstance: Instance {
             APIRoute.galleryPhoto.path(galleryId, photoId),
             query: [URLQueryItem(name: "lang", value: lang)]
         )
-        return dto.toDomain(galleryId: galleryId, photoRoot: root)
+        guard let photo = dto.toDomain(galleryId: galleryId, photoRoot: root) else {
+            throw InstanceError.photoNotFound(photoId)
+        }
+        return photo
     }
 
     private func freshCache(for galleryId: String) -> [Photo]? {

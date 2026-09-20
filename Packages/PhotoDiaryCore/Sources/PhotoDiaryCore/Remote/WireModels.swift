@@ -6,6 +6,17 @@ import Foundation
 // omit is optional here, and the mapping into the domain types below
 // decides the fallbacks in one place.
 
+/// Decodes to nil instead of throwing, so one element a newer or an
+/// odd server sends in a shape the app can't read costs that element,
+/// not the whole list.
+struct Lenient<Wrapped: Decodable>: Decodable {
+    let value: Wrapped?
+
+    init(from decoder: Decoder) throws {
+        value = try? Wrapped(from: decoder)
+    }
+}
+
 struct GalleryDTO: Decodable {
     let id: String
     let title: String?
@@ -19,10 +30,11 @@ struct MetaDTO: Decodable {
 }
 
 struct PhotoDTO: Decodable {
+    /// Every part is null for a photo without a capture date.
     struct Instant: Decodable {
-        let year: Int
-        let month: Int
-        let day: Int
+        let year: Int?
+        let month: Int?
+        let day: Int?
         let hour: Int?
         let minute: Int?
         let second: Int?
@@ -83,7 +95,13 @@ extension PhotoDTO {
     /// the renditions column.
     static let fallbackRendition = 1500
 
-    func toDomain(galleryId: String, photoRoot: URL) -> Photo {
+    /// nil for a photo without a capture date: the app's two surfaces
+    /// are a calendar and a map of dated photos, and it has no place
+    /// on either.
+    func toDomain(galleryId: String, photoRoot: URL) -> Photo? {
+        guard let year = taken.instant.year, let month = taken.instant.month,
+            let day = taken.instant.day
+        else { return nil }
         let coords: CLLocationCoordinate2D? = {
             guard let c = taken.location?.coordinates,
                 let lat = c.latitude, let lng = c.longitude
@@ -98,9 +116,9 @@ extension PhotoDTO {
             title: title ?? "",
             author: taken.author,
             timestamp: PhotoTimestamp(
-                year: taken.instant.year,
-                month: taken.instant.month,
-                day: taken.instant.day,
+                year: year,
+                month: month,
+                day: day,
                 hour: taken.instant.hour ?? 0,
                 minute: taken.instant.minute ?? 0,
                 second: taken.instant.second ?? 0
