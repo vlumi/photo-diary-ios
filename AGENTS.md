@@ -55,7 +55,12 @@ The Core / Kit split matches sibling projects (`../donpa`, `../skid`). Core is w
 
 The client is hand-written: `PhotoDiaryAPI` covers the handful of endpoints the app reads, listed once in `Remote/APIRoute.swift`, and `WireModels.swift` decodes only the fields it uses, so additions on the server don't break it. Nothing is generated.
 
-The server's OpenAPI document is pinned at a release tag under `Tests/PhotoDiaryCoreTests/Fixtures/openapi.json`, and `ServerContractTests` checks the client against it: every route in `APIRoute.all` exists with the parameters the app sends, the session cookies are the ones the server reads, the 401 and refresh behavior the retry loop relies on is documented, and the typed models decode the least the server promises. `make sync-schema TAG=v1.0.9` moves the pin; do it as its own PR so the spec diff is reviewable, and treat a test that fails afterwards as a server change the app has to follow. Add a route to `APIRoute` rather than writing its path inline, or the contract test won't see it.
+The server's OpenAPI document is pinned twice under `Tests/PhotoDiaryCoreTests/Fixtures/`, and `ServerContractTests` checks the client against both:
+
+- `openapi.json` — the newest server the app is checked against. Every route in `APIRoute.all` exists with the parameters the app sends, the session cookies are the ones the server reads, the 401 and refresh behavior the retry loop relies on is documented, and the typed models decode the least the server promises. A failure after moving this pin is a server change the app has to follow.
+- `openapi-min.json` — the oldest server the app supports (README's "Compatibility"). The routes, parameters and model checks run against it too, so the app can rely only on what that server already offered: a field a later server added must be optional in the wire models, and a parameter it added can't be sent unconditionally. A failure here means the app started needing a newer server; either make the new thing optional or raise the minimum deliberately.
+
+`make sync-schema TAG=v1.0.9` moves the first pin and `make sync-schema TAG=v1.0.7 AS=min` the second; do either as its own PR so the spec diff is reviewable. Add a route to `APIRoute` rather than writing its path inline, or the contract test won't see it. The server holds up its side with its own check that a release never breaks what the previous one documented.
 
 The server types its photo responses as open objects, so the document cannot vouch for the fields `PhotoDTO` reads; the suite records that as a known issue, which starts failing (asking to be removed) once the server describes photos.
 
