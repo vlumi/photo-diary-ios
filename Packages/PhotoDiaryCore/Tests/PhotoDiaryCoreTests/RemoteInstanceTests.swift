@@ -109,6 +109,45 @@ final class RemoteInstanceTests: XCTestCase {
         XCTAssertNil(missing)
     }
 
+    func testAGalleryLoadsDespiteAnUndatedPhotoAndAnUnreadableOne() async throws {
+        StubProtocol.handler = { request in
+            switch request.url!.path {
+            case "/api/v1/meta": return .init(status: 200, body: "{}")
+            case "/api/v1/gallery-photos/g1/query":
+                return .init(
+                    status: 200,
+                    body: """
+                        [
+                          {"id":"undated.jpg","index":0,
+                           "taken":{"instant":{"year":null,"month":null,"day":null}}},
+                          {"id":"fine.jpg","index":1,
+                           "taken":{"instant":{"year":2024,"month":6,"day":1}}},
+                          {"id":"odd.jpg","index":2,"taken":"1999"}
+                        ]
+                        """
+                )
+            case "/api/v1/gallery-photos/g1/undated.jpg":
+                return .init(
+                    status: 200,
+                    body: """
+                        {"id":"undated.jpg",
+                         "taken":{"instant":{"year":null,"month":null,"day":null}}}
+                        """
+                )
+            default: return .init(status: 404)
+            }
+        }
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
+        let photos = try await instance.listPhotos(inGallery: "g1")
+        XCTAssertEqual(photos.map(\.id), ["fine.jpg"])
+        do {
+            _ = try await instance.getPhoto(id: "undated.jpg", inGallery: "g1")
+            XCTFail("an undated photo should not resolve")
+        } catch InstanceError.photoNotFound(let id) {
+            XCTAssertEqual(id, "undated.jpg")
+        }
+    }
+
     private func stubEmptyGallery() {
         StubProtocol.handler = { request in
             switch request.url!.path {

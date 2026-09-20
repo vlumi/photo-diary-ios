@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- A gallery still loads when the server holds a photo without a capture date, or one the app can't read: that photo is left out instead of the whole gallery failing.
+
 ### build 9 — 2026-09-20
 
 - Settings, behind the gear on the front page: choose the app's language (system, English or 日本語) independently of the phone's, which also switches the map's labels after a restart, and see the version, links to the source, and what the app talks to.
