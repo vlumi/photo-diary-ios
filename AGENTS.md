@@ -53,7 +53,11 @@ The Core / Kit split matches sibling projects (`../donpa`, `../skid`). Core is w
 
 ## Server API
 
-The client is hand-written: `PhotoDiaryAPI` covers the handful of endpoints the app reads (galleries, a gallery's photos, instance meta, and the token endpoints for pairing and refresh) and `WireModels.swift` decodes only the fields it uses, so additions on the server don't break it. Nothing is generated. `Scripts/sync-schema.sh <server-tag>` can fetch `server/openapi.json` at a tag for reference when checking a server change against the wire models; no copy of the spec is checked in.
+The client is hand-written: `PhotoDiaryAPI` covers the handful of endpoints the app reads, listed once in `Remote/APIRoute.swift`, and `WireModels.swift` decodes only the fields it uses, so additions on the server don't break it. Nothing is generated.
+
+The server's OpenAPI document is pinned at a release tag under `Tests/PhotoDiaryCoreTests/Fixtures/openapi.json`, and `ServerContractTests` checks the client against it: every route in `APIRoute.all` exists with the parameters the app sends, the session cookies are the ones the server reads, the 401 and refresh behavior the retry loop relies on is documented, and the typed models decode the least the server promises. `make sync-schema TAG=v1.0.9` moves the pin; do it as its own PR so the spec diff is reviewable, and treat a test that fails afterwards as a server change the app has to follow. Add a route to `APIRoute` rather than writing its path inline, or the contract test won't see it.
+
+The server types its photo responses as open objects, so the document cannot vouch for the fields `PhotoDTO` reads; the suite records that as a known issue, which starts failing (asking to be removed) once the server describes photos.
 
 ## Deliberately out of scope
 

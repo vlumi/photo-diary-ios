@@ -107,7 +107,7 @@ public actor PhotoDiaryAPI {
     }
 
     private func refresh() async throws {
-        var request = URLRequest(url: url("/api/v1/tokens/refresh"))
+        var request = URLRequest(url: url(APIRoute.refresh.path()))
         request.httpMethod = "POST"
         let (_, response) = try await perform(request)
         guard (200..<300).contains(response.statusCode) else {

@@ -46,7 +46,8 @@ let package = Package(
         ),
         .testTarget(
             name: "PhotoDiaryCoreTests",
-            dependencies: ["PhotoDiaryCore"]
+            dependencies: ["PhotoDiaryCore"],
+            resources: [.copy("Fixtures")]
         ),
         .testTarget(
             name: "PhotoDiaryKitTests",
