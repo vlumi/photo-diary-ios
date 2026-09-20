@@ -4,35 +4,20 @@ Living record of what the app is aiming for. Once something ships, its bullet mo
 
 ## v1.0 — App Store launch
 
-The full companion, both surfaces. Rough order of implementation:
+Everything but the submission has shipped to TestFlight; [CHANGELOG.md](CHANGELOG.md) has the detail per build.
 
-1. **Scaffold + toolchain.** XcodeGen `project.yml`, Package.swift split (`PhotoDiaryCore` + `PhotoDiaryKit`), Makefile, CI (lint + test + build), String Catalog. Nothing that runs; the goal is a green CI on an empty app.
-2. **API client interface + demo instance (`PhotoDiaryCore`).** Define the `Instance` protocol (list galleries, query photos, get one photo, list evolution, etc.). Ship a `DemoInstance` that returns bundled fixture data (2 galleries, ~30 photos with real EXIF + GPS + timestamps, resource-embedded). Headlessly testable — no UI, no network.
-3. **Instance registry + demo entry point.** Add / rename / remove hosts; per-host credentials. First-run onboarding offers a "Try demo mode" button that adds the `DemoInstance` to the registry. Every downstream view develops against demo mode until the real API client lands.
-4. **Shared photo viewer.** Bottom sheet, pinch-zoom, prev/next, metadata panel. Built against `DemoInstance` — real network not needed yet.
-5. **Map surface.** MapKit view, photo pins with clustering, tap → photo viewer, persistent "you are here" via CoreLocation. Demo-instance-driven.
-6. **Todo pins.** SwiftData model + list view + long-press-to-add + edit sheet. Local-only either way; demo mode doesn't affect this surface.
-7. **Calendar surface.** Gallery list → Year → Month → Day → Photo grid. Portrait-stacked, not multi-pane. Demo-instance-driven.
-8. **Tab bar + app shell.** Map | Calendar tabs. Settings from a top-level button.
-9. **Real API client (`RemoteInstance`).** Auth flow + refresh loop, gallery / photo / stats endpoints, Keychain-backed cookie storage. Same protocol as `DemoInstance` — a drop-in replacement for the demo path.
-10. **Onboarding — SSO pairing.** Three-transport pairing (QR / custom-scheme link / paste). Requires the corresponding `POST /api/v1/tokens/pairing` endpoint on the server side (see below).
-11. ~~**Polish.**~~ Shipped in build 3: error states, loading placeholders, empty states, accessibility pass, launch screen, app icon.
-12. **App Store submission.** Screenshots, description, TestFlight → App Store review (the icon and privacy manifest are done). **App Store review credentials = demo mode** — reviewers get the demo instance out of the box, no server access needed.
+- **Shipped:** the toolchain and CI; the `Instance` protocol with the built-in demo instance; the instance registry; the shared photo viewer; the map with clustering, location following and todo pins; the calendar; the app shell; the real API client; SSO pairing (the server side landed in photo-diary 1.0.7, [vlumi/photo-diary#744](https://github.com/vlumi/photo-diary/issues/744)); and the polish pass (error, loading and empty states, accessibility, launch screen, app icon, privacy manifest).
+- **Also shipped, brought forward from v1.1:** the front page that picks an instance or one gallery as the scope, full restoration of where the app was after a relaunch, the on-disk response cache with lazy refresh, a Japanese UI, and Settings with an app language and About.
 
-Estimated at ~12-14 dev days total. Individual items get their own PRs with a CHANGELOG bullet when landed.
+What is left:
 
-The demo-first order matters: steps 2-8 develop the whole UI against `DemoInstance` fixture data, so the app is functional (screenshots, App Store review, offline work sessions) before the real server connection is wired. Steps 9-10 are the "make it real" pass and can happen in parallel with the server-side pairing endpoint PR without blocking each other.
-
-### Server-side dependency
-
-**Pairing endpoint** (`POST /api/v1/tokens/pairing`) is the only server change needed for v1. It reuses the existing SSO ticket infrastructure — mints a one-use ticket bound to the current user, TTL ~2 minutes, consumed via the existing `GET /api/v1/tokens/sso`. Tracked in the server repo as [vlumi/photo-diary#744](https://github.com/vlumi/photo-diary/issues/744). App development can proceed against demo mode without this endpoint existing; step 10 is where the two tracks meet.
+- **App Store submission.** Screenshots, the store description in English and Japanese, and the review. **Reviewers get two paths:** the demo instance, which is there out of the box and needs no server, and a test account on a live instance with the pairing steps in the review notes, so the real sign-in flow can be exercised. If review insists on signing in inside the app, a username and password form is the fallback; it is deliberately not built otherwise (see [ARCHITECTURE.md](ARCHITECTURE.md#onboarding--sso-pairing)).
 
 ## v1.1 — post-launch polish
 
-Brought forward and shipped in build 3: the front page that picks an instance or one gallery as the scope, full restoration of where the app was after a relaunch, and the on-disk response cache with lazy refresh.
-
 - **Universal Links** for the pairing "Open in app" button. Needs `.well-known/apple-app-site-association` served from every instance's host and the App ID registered with Apple.
 - **Stats surface.** Reduced version — KPIs and category cards, skip charts initially. ~1-2 days.
+- **Real demo photos.** The demo instance draws a gradient tile per photo; licensed photos bundled with the app would make the screenshots and the first impression better.
 
 ## v2 — direction, not planned
 

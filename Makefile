@@ -97,7 +97,7 @@ release-upload:  ## Upload the already-built dist/ package (no rebuild)
 	@Scripts/release-distribute.sh --upload-only
 
 .PHONY: sync-schema
-sync-schema:  ## Fetch server/openapi.json for TAG and regenerate the Swift client (TAG=v1.0.5)
+sync-schema:  ## Fetch server/openapi.json at TAG for reference; nothing is generated from it (TAG=v1.0.7)
 	@Scripts/sync-schema.sh $(TAG)
 
 .PHONY: clean
