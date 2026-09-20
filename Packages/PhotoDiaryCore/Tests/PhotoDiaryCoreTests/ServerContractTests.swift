@@ -85,6 +85,27 @@ struct PinnedSpec: Sendable, CustomTestStringConvertible {
             }
         }
 
+        /// Everything a response may contain, each value present and
+        /// non-null.
+        func fullExample(_ schema: JSON) -> Any {
+            let schema = resolved(schema)
+            if let variants = (schema["anyOf"] ?? schema["oneOf"]) as? [JSON] {
+                let real = variants.first { $0["type"] as? String != "null" }
+                return real.map(fullExample) ?? NSNull()
+            }
+            switch schema["type"] as? String {
+            case "object":
+                let properties = schema["properties"] as? JSON ?? [:]
+                return properties.compactMapValues { ($0 as? JSON).map(fullExample) }
+            case "array":
+                return [(schema["items"] as? JSON).map(fullExample) ?? [:] as Any]
+            case "string": return "x"
+            case "boolean": return true
+            case "integer", "number": return 1
+            default: return NSNull()
+            }
+        }
+
         func decodeMinimal<T: Decodable>(_ type: T.Type, from route: APIRoute) throws -> T {
             let schema = try #require(bodySchema(of: response(route, "200")), "\(route.template)")
             let data = try JSONSerialization.data(
@@ -164,17 +185,54 @@ struct PinnedSpec: Sendable, CustomTestStringConvertible {
         #expect(document.response(.consumeTicket, "401") != nil)
     }
 
-    // MARK: - Photos
+    // MARK: - Photos (described from photo-diary 1.1.0)
 
-    /// The server types its photo responses as open objects, so the
-    /// document cannot vouch for a single field `PhotoDTO` reads. When
-    /// the server starts describing photos, this stops failing and the
-    /// wrapper reports it: remove it then, and the check is real.
-    @Test func photoResponsesAreNotDescribedByTheServerYet() throws {
+    /// A photo the server may send with nothing but what it promises:
+    /// the model has to decode it. Its date parts may be null (a photo
+    /// without a capture date), which the app leaves out rather than
+    /// failing on.
+    @Test func thePhotoModelDemandsNothingTheServerDoesNotPromise() throws {
         let document = try document(.newest)
-        withKnownIssue("photo-diary's spec leaves photo objects untyped") {
-            _ = try document.decodeMinimal(PhotoDTO.self, from: .galleryPhoto)
-            _ = try document.decodeMinimal([PhotoDTO].self, from: .galleryPhotosQuery)
-        }
+        let single = try document.decodeMinimal(PhotoDTO.self, from: .galleryPhoto)
+        #expect(single.id == "x")
+        let list = try document.decodeMinimal([PhotoDTO].self, from: .galleryPhotosQuery)
+        #expect(list.count == 1)
+    }
+
+    /// Every optional field the app reads must still exist under that
+    /// name: a renamed one would decode as nil without a murmur. A
+    /// photo carrying everything the server describes has to come out
+    /// of the mapping with each of them filled in.
+    @Test func everyFieldTheAppReadsIsOneTheServerDescribes() throws {
+        let document = try document(.newest)
+        let schema = try #require(document.bodySchema(of: document.response(.galleryPhoto, "200")))
+        let data = try JSONSerialization.data(withJSONObject: document.fullExample(schema))
+        let dto = try JSONDecoder().decode(PhotoDTO.self, from: data)
+        let root = try #require(URL(string: "https://photos.example.test/"))
+        let photo = try #require(dto.toDomain(galleryId: "g", photoRoot: root))
+
+        #expect(photo.id == "x")
+        #expect(photo.title == "x")
+        #expect(photo.author == "x")
+        #expect(photo.timestamp.year == 1 && photo.timestamp.hour == 1)
+        #expect(photo.location.country == "x")
+        #expect(photo.location.coordinates != nil)
+        #expect(photo.location.altitude != nil)
+        #expect(photo.camera.make == "x" && photo.camera.model == "x")
+        #expect(photo.camera.lensMake == "x" && photo.camera.lensModel == "x")
+        #expect(photo.exposure.focalLength != nil && photo.exposure.focalLength35mmEquiv != nil)
+        #expect(photo.exposure.aperture != nil && photo.exposure.exposureTime != nil)
+        #expect(photo.exposure.iso != nil)
+        // The largest rendition the server lists becomes the display URL.
+        #expect(photo.displayImageURL.absoluteString.hasSuffix("display/1/x"))
+    }
+
+    @Test func everyGalleryFieldTheAppReadsIsOneTheServerDescribes() throws {
+        let document = try document(.newest)
+        let schema = try #require(document.bodySchema(of: document.response(.galleries, "200")))
+        let data = try JSONSerialization.data(withJSONObject: document.fullExample(schema))
+        let gallery = try #require(try JSONDecoder().decode([GalleryDTO].self, from: data).first)
+        #expect(gallery.toDomain().title == "x")
+        #expect(gallery.toDomain().description == "x")
     }
 }
