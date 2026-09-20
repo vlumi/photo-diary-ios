@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Settings, behind the gear on the front page: choose the app's language (system, English or 日本語) independently of the phone's, which also switches the map's labels after a restart, and see the version, links to the source, and what the app talks to.
 - A gallery with a single photo says "1 photo" instead of "1 photos".
 - The app is available in Japanese, including the location and camera permission prompts; a few messages that were stuck in English (pairing errors, the pin editor's titles, the pin list's sort options) are now translated along with the rest.
 

@@ -80,6 +80,18 @@
       },
       "extractionState" : "manual"
     },
+    "About" : {
+      "comment" : "Section header in Settings above the version, author and links.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリについて"
+          }
+        }
+      }
+    },
     "Add %@" : {
       "comment" : "Confirmation button in pairing that adds the instance; the argument is the server host name, e.g. photos.example.com.",
       "localizations" : {
@@ -309,7 +321,7 @@
       "extractionState" : "manual"
     },
     "Done" : {
-      "comment" : "Toolbar button that closes the todo-pin list sheet.",
+      "comment" : "Two places: the toolbar button that closes the todo-pin list sheet, and the one that closes Settings.",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -368,6 +380,30 @@
       },
       "extractionState" : "manual"
     },
+    "Images load with Nuke" : {
+      "comment" : "Acknowledgment link in the About section; Nuke is the name of an open-source image loading library.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像の読み込みにNukeを使用"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "comment" : "Label of the language picker in Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語"
+          }
+        }
+      }
+    },
     "List todo pins" : {
       "comment" : "Accessibility label of the map's list button (bulleted-list icon with a count badge).",
       "localizations" : {
@@ -403,6 +439,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Made by" : {
+      "comment" : "Row label in the About section; the value is the author's name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作者"
+          }
+        }
+      }
     },
     "Map" : {
       "comment" : "Tab bar label for the map tab.",
@@ -704,6 +752,18 @@
       },
       "extractionState" : "manual"
     },
+    "Photo Diary server" : {
+      "comment" : "Link in the About section to the repository of the self-hosted site the app pairs with.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diaryサーバー"
+          }
+        }
+      }
+    },
     "Photo, %@" : {
       "comment" : "Accessibility description of a photo without a title, read in the grid, callout and viewer. The argument is the photo's date and time.",
       "localizations" : {
@@ -740,6 +800,18 @@
       },
       "extractionState" : "manual"
     },
+    "Privacy" : {
+      "comment" : "Section header in Settings above the privacy statement.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシー"
+          }
+        }
+      }
+    },
     "Recent" : {
       "comment" : "Segment of the todo-pin list's sort control: most recently changed first.",
       "localizations" : {
@@ -751,6 +823,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Restart the app to change the language." : {
+      "comment" : "Footer under the language picker after choosing a language the app is not currently running in.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を変更するにはアプリを再起動してください。"
+          }
+        }
+      }
     },
     "Retry" : {
       "comment" : "Button under a failed load (gallery list, photo grid, map, single photo) that runs the load again.",
@@ -812,6 +896,18 @@
       },
       "extractionState" : "manual"
     },
+    "Settings" : {
+      "comment" : "Two places: the accessibility label of the gear button on the front page, and the title of the sheet it opens.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        }
+      }
+    },
     "Show on map" : {
       "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates.",
       "localizations" : {
@@ -872,6 +968,18 @@
       },
       "extractionState" : "manual"
     },
+    "Source code" : {
+      "comment" : "Link in the About section to the app's source repository.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソースコード"
+          }
+        }
+      }
+    },
     "Star" : {
       "comment" : "Accessibility label of the star button on a todo-pin list row when the pin is not starred; starring keeps it at the top of the list.",
       "localizations" : {
@@ -884,6 +992,18 @@
       },
       "extractionState" : "manual"
     },
+    "System" : {
+      "comment" : "Option in the language picker that follows the device's language. The other options are language names in their own language and are not translated.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム"
+          }
+        }
+      }
+    },
     "That doesn't look like a pairing link." : {
       "comment" : "Error under the paste field when the pasted text is not a pairing link.",
       "localizations" : {
@@ -895,6 +1015,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "The app talks to the sites you pair it with, and to Apple for the map. Nothing is sent to its author or to anyone else." : {
+      "comment" : "Privacy statement at the bottom of Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリが通信するのは、ペアリングしたサイトと、マップを表示するためのAppleだけです。作者やその他の第三者には何も送信されません。"
+          }
+        }
+      }
     },
     "The app will sign in to this server with the pairing code." : {
       "comment" : "Explanation under the server name in the pairing confirmation.",
@@ -919,6 +1051,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "The map's labels follow the language too." : {
+      "comment" : "Footer under the language picker in Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップのラベルもこの言語で表示されます。"
+          }
+        }
+      }
     },
     "This gallery has no photos yet." : {
       "comment" : "Explanation under \"No photos\" on the year list of an empty gallery.",
@@ -1039,6 +1183,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Version" : {
+      "comment" : "Row label in the About section; the value is the version and build number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バージョン"
+          }
+        }
+      }
     },
     "What's here?" : {
       "comment" : "Placeholder of the note text field in the todo-pin editor.",

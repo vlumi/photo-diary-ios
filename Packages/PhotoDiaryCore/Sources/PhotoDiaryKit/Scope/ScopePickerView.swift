@@ -7,6 +7,7 @@ import SwiftUI
 public struct ScopePickerView: View {
     @Environment(InstanceRegistry.self) private var registry
     @State private var showPairing = false
+    @State private var showSettings = false
 
     public init() {}
 
@@ -15,6 +16,13 @@ public struct ScopePickerView: View {
             content
                 .navigationTitle("Photo Diary")
                 .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+                    }
                     ToolbarItem(placement: .primaryAction) {
                         Button {
                             showPairing = true
@@ -26,6 +34,7 @@ public struct ScopePickerView: View {
                 .sheet(isPresented: $showPairing) {
                     PairingView().environment(registry)
                 }
+                .sheet(isPresented: $showSettings) { SettingsView() }
         }
     }
 
