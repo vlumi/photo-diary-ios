@@ -112,8 +112,8 @@ struct PinnedSpec: Sendable, CustomTestStringConvertible {
     @Test(arguments: bothPins)
     func theRequestsCarryParametersTheServerDeclares(pin: PinnedSpec) throws {
         let document = try document(pin)
-        let queryBody = try #require(
-            document.bodySchema(of: document.operation(.galleryPhotosQuery)?["requestBody"] as? JSON))
+        let request = document.operation(.galleryPhotosQuery)?["requestBody"] as? JSON
+        let queryBody = try #require(document.bodySchema(of: request))
         #expect((queryBody["properties"] as? JSON)?["lang"] != nil)
         #expect(document.parameters(.galleryPhoto, in: "query").contains("lang"))
         #expect(document.parameters(.consumeTicket, in: "query").contains("token"))
