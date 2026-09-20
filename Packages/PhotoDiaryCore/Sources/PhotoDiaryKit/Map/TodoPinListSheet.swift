@@ -9,8 +9,16 @@ import SwiftUI
 /// top; the pencil opens its editor; swipe-to-delete for cleanup.
 struct TodoPinListSheet: View {
     enum Sort: String, CaseIterable {
+        // Raw values are what the user's choice is stored under.
         case recent = "Recent"
         case nearest = "Nearest"
+
+        var label: String {
+            switch self {
+            case .recent: String(localized: "Recent")
+            case .nearest: String(localized: "Nearest")
+            }
+        }
     }
 
     let mapCenter: CLLocationCoordinate2D?
@@ -50,7 +58,7 @@ struct TodoPinListSheet: View {
             List {
                 if mapCenter != nil {
                     Picker("Sort", selection: $sort) {
-                        ForEach(Sort.allCases, id: \.self) { Text($0.rawValue) }
+                        ForEach(Sort.allCases, id: \.self) { Text($0.label) }
                     }
                     .pickerStyle(.segmented)
                     .listRowBackground(Color.clear)
@@ -112,7 +120,7 @@ struct TodoPinListSheet: View {
 
     private func row(for pin: TodoPin) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(pin.note.isEmpty ? "(no note)" : pin.note)
+            (pin.note.isEmpty ? Text("(no note)") : Text(verbatim: pin.note))
                 .font(.body)
                 .foregroundStyle(pin.note.isEmpty ? .secondary : .primary)
                 .lineLimit(2)

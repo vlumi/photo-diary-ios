@@ -12,7 +12,7 @@ struct TodoPinCallout: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(note.isEmpty ? "No note yet" : note)
+            (note.isEmpty ? Text("No note yet") : Text(verbatim: note))
                 .font(.subheadline)
                 .foregroundStyle(note.isEmpty ? .secondary : .primary)
                 .lineLimit(typeSize.isAccessibilitySize ? 5 : 2)

@@ -24,7 +24,7 @@ When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and int
 - **Deployment target:** current-latest iOS only. No `#available` guards, no `@available` markers on public API, no legacy layout branches. Swift 6 strict concurrency clean from day one.
 - **Device family:** iPhone. Portrait-only.
 - **Spelling:** US English (en-US) everywhere — identifiers, comments, UI strings, docs, changelog, commit messages. `center`, `color`, `meter`, `recognized`.
-- **Localization:** English-only for v1, but String Catalog + `Text(_, bundle:)` / `String(localized:)` from day one — never hardcoded literals.
+- **Localization:** English and Japanese, via String Catalogs — never hardcoded literals. View strings (`Text("…")`, `String(localized:)` in `PhotoDiaryKit`) resolve against the **app** bundle, so their catalog is `Sources/Shared/Localizable.xcstrings`, not a package resource; its entries are `extractionState: manual` because Xcode can't see the package's sources from the app target. `PhotoDiaryCore` strings use `String(localized:, bundle: .module)` with the catalog in its own `Resources/`. Permission prompts live in `Sources/iOS/InfoPlist.xcstrings`. A `String` handed to `Text(_:)` or `navigationTitle(_:)` is shown verbatim, so wrap it in `String(localized:)`. Add a Japanese value with every new key, matching the site's terms (`react-app/src/lib/translations/ja.json` in photo-diary). Dates, numbers and distances follow the device language on their own (`CFBundleAllowMixedLocalizations`).
 - **Comments minimal.** Comments earn their keep by capturing non-obvious constraints, not by narrating what the next line does.
 - **Lint/format/CI:** SwiftLint + swift-format both `--strict`; CI runs lint + core tests (with coverage) + builds. Coverage-ignore the view layer; keep testable logic in `PhotoDiaryCore`.
 - **PRs:** branch off `main`, one focused change; `Co-Authored-By: <model> <noreply@anthropic.com>` trailer; a user-facing PR writes its own CHANGELOG bullet; wait for CI before merging.
@@ -36,7 +36,7 @@ Packages/PhotoDiaryCore/            SPM: pure API + models + persistence, no UI
   Sources/PhotoDiaryCore/           API client, auth, keychain, todo-pin store
   Sources/PhotoDiaryKit/            SwiftUI views + MapKit surface
   Tests/PhotoDiaryCoreTests/        headless tests
-Sources/Shared/                     Assets.xcassets, Localizable.xcstrings
+Sources/Shared/                     Localizable.xcstrings (the view layer's strings, en + ja)
 Sources/iOS/                        PhotoDiaryApp.swift, entitlements, Info.plist
 Scripts/                            sync-schema, generate, release-*
 project.yml                         XcodeGen source of truth

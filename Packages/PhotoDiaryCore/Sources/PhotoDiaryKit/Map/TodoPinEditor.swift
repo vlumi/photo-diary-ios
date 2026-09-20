@@ -57,8 +57,8 @@ struct TodoPinEditor: View {
 
     private var titleForMode: String {
         switch mode {
-        case .create: return "New pin"
-        case .edit: return "Edit pin"
+        case .create: return String(localized: "New pin")
+        case .edit: return String(localized: "Edit pin")
         }
     }
 

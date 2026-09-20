@@ -9,11 +9,18 @@ public enum PairingError: Error, Sendable, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .rejected(let status) where status == 401:
-            return "The pairing code was refused — it may have expired or already been used."
+            return String(
+                localized:
+                    "The pairing code was refused — it may have expired or already been used.",
+                bundle: .module)
         case .rejected(let status):
-            return "The server refused the pairing code (HTTP \(status))."
+            return String(
+                localized: "The server refused the pairing code (HTTP \(status)).",
+                bundle: .module)
         case .noSession:
-            return "The server accepted the code but returned no session."
+            return String(
+                localized: "The server accepted the code but returned no session.",
+                bundle: .module)
         }
     }
 }

@@ -2,34 +2,225 @@
   "sourceLanguage" : "en",
   "strings" : {
     "Couldn't reach the server. %@" : {
-      "comment" : "Error for a network failure (offline, DNS, TLS). The argument is the system's own description, e.g. \"The Internet connection appears to be offline.\""
+      "comment" : "Error for a network failure (offline, DNS, TLS). The argument is the system's own description, e.g. \"The Internet connection appears to be offline.\"",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach the server. %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーに接続できませんでした。%@"
+          }
+        }
+      }
     },
     "The image couldn't be decoded." : {
-      "comment" : "Error when a downloaded photo is not a readable image."
+      "comment" : "Error when a downloaded photo is not a readable image.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The image couldn't be decoded."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像を読み取れませんでした。"
+          }
+        }
+      }
     },
     "The image couldn't be downloaded." : {
-      "comment" : "Error when a photo's image request fails."
+      "comment" : "Error when a photo's image request fails.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The image couldn't be downloaded."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像をダウンロードできませんでした。"
+          }
+        }
+      }
+    },
+    "The pairing code was refused — it may have expired or already been used." : {
+      "comment" : "Pairing error when the server answers 401 to the pairing code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The pairing code was refused — it may have expired or already been used."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペアリングコードが拒否されました。期限切れか、すでに使用済みの可能性があります。"
+          }
+        }
+      }
+    },
+    "The server accepted the code but returned no session." : {
+      "comment" : "Pairing error when the server accepts the code without starting a session (a server misconfiguration).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server accepted the code but returned no session."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーはコードを受け付けましたが、セッションが返されませんでした。"
+          }
+        }
+      }
+    },
+    "The server refused the pairing code (HTTP %lld)." : {
+      "comment" : "Pairing error for any other refusal; the argument is the HTTP status code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server refused the pairing code (HTTP %lld)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーがペアリングコードを拒否しました（HTTP %lld）。"
+          }
+        }
+      }
     },
     "The server returned an error (HTTP %lld)." : {
-      "comment" : "Error for a failed request that is not a session problem. The argument is the HTTP status code."
+      "comment" : "Error for a failed request that is not a session problem. The argument is the HTTP status code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server returned an error (HTTP %lld)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーがエラーを返しました（HTTP %lld）。"
+          }
+        }
+      }
     },
     "The server sent a response the app couldn't read." : {
-      "comment" : "Error when a server response does not match the shape the app expects."
+      "comment" : "Error when a server response does not match the shape the app expects.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server sent a response the app couldn't read."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーからの応答を読み取れませんでした。"
+          }
+        }
+      }
     },
     "This gallery no longer exists on the server." : {
-      "comment" : "Error shown in place of a gallery's contents when the server reports the gallery is gone."
+      "comment" : "Error shown in place of a gallery's contents when the server reports the gallery is gone.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This gallery no longer exists on the server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このギャラリーはサーバー上に存在しなくなりました。"
+          }
+        }
+      }
     },
     "This image isn't at an address the app can open." : {
-      "comment" : "Error when a photo's URL uses a scheme no image loader handles."
+      "comment" : "Error when a photo's URL uses a scheme no image loader handles.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This image isn't at an address the app can open."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この画像のアドレスはアプリで開けません。"
+          }
+        }
+      }
     },
     "This isn't supported by the app yet." : {
-      "comment" : "Error for a server feature the app does not implement."
+      "comment" : "Error for a server feature the app does not implement.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't supported by the app yet."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この機能にはまだ対応していません。"
+          }
+        }
+      }
     },
     "This photo no longer exists on the server." : {
-      "comment" : "Error shown in place of a photo when the server reports the photo is gone."
+      "comment" : "Error shown in place of a photo when the server reports the photo is gone.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This photo no longer exists on the server."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この写真はサーバー上に存在しなくなりました。"
+          }
+        }
+      }
     },
     "Your session has expired. Pair this device again." : {
-      "comment" : "Error when the server rejects the stored session and the user must pair the device again from the site."
+      "comment" : "Error when the server rejects the stored session and the user must pair the device again from the site.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your session has expired. Pair this device again."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セッションの有効期限が切れました。もう一度ペアリングしてください。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

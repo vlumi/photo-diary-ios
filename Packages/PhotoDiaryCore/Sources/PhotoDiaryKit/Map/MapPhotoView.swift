@@ -290,7 +290,7 @@ public struct MapPhotoView: View {
             cameraPosition = .region(saved.region)
         }
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: "No active instance."))
+            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
             return
         }
         // What the cache holds goes up first; the network then refreshes

@@ -38,8 +38,7 @@ let package = Package(
         ),
         .target(
             name: "PhotoDiaryKit",
-            dependencies: ["PhotoDiaryCore"],
-            resources: [.process("Resources/Localizable.xcstrings")]
+            dependencies: ["PhotoDiaryCore"]
         ),
         .executableTarget(
             name: "PhotoDiaryIcon",

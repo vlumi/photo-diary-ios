@@ -1,5 +1,1112 @@
 {
   "sourceLanguage" : "en",
-  "strings" : {},
-  "version" : "1.0"
+  "strings" : {
+    "%@ no longer lets you see what you were viewing." : {
+      "comment" : "Notice on the front page after the server refused access to the scope the app was in. The argument is the instance name.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@で表示していた内容にアクセスできなくなりました。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "%@, %@" : {
+      "comment" : "Accessibility description of a photo with a title: the title, then the photo's date and time.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@、%2$@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "%lld" : {
+      "comment" : "Badge on a map cluster pin: the number of photos gathered under it. Digits only.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "%lld photos" : {
+      "comment" : "Two places: the caption under a gallery in the calendar's gallery list, and the accessibility label of a map cluster pin. The argument is the photo count.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld枚"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "(no note)" : {
+      "comment" : "Placeholder title of a row in the todo-pin list when the pin has no note.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "（メモなし）"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Add %@" : {
+      "comment" : "Confirmation button in pairing that adds the instance; the argument is the server host name, e.g. photos.example.com.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@を追加"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Add instance" : {
+      "comment" : "Two places: the button at the bottom of Settings that starts pairing, and the title of the pairing screen it opens.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インスタンスを追加"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Add this instance?" : {
+      "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognized.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このインスタンスを追加しますか？"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "All galleries" : {
+      "comment" : "Subtitle of an instance row on the front page: tapping the row opens every gallery.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのギャラリー"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "All of %@" : {
+      "comment" : "Link at the top of a year in the calendar that opens the whole year as one grid; the argument is the year, e.g. 2024.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@年すべて"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Built-in demo data" : {
+      "comment" : "Caption under the demo instance in Settings, distinguishing it from paired servers.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内蔵のデモデータ"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Calendar" : {
+      "comment" : "Tab bar label for the calendar tab.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダー"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Camera scanning isn't available here" : {
+      "comment" : "Title shown in place of the QR scanner when the device has no usable camera, e.g. in the simulator.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスではカメラでスキャンできません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Cancel" : {
+      "comment" : "Toolbar button that closes the todo-pin editor without saving.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャンセル"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Close" : {
+      "comment" : "Accessibility label of the close button in the full-screen photo viewer and in the map callouts.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閉じる"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Continue" : {
+      "comment" : "Button next to the pasted pairing link that submits it; disabled until the link parses.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続ける"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't load galleries" : {
+      "comment" : "Title of the error state in the calendar when the server's gallery list could not be fetched.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリーを読み込めませんでした"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't load map" : {
+      "comment" : "Title of the error state on the map tab when photo locations could not be fetched.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを読み込めませんでした"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't load photo" : {
+      "comment" : "Heading over the error shown in the full-screen viewer when a photo's image fails to load.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を読み込めませんでした"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't load photos" : {
+      "comment" : "Title of the error state in a calendar photo grid when photos could not be fetched.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を読み込めませんでした"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't reach %@: %@" : {
+      "comment" : "Pairing error for a network failure. First argument is the host name, second the system's description of the failure.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@に接続できませんでした：%2$@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Couldn't refresh. %@" : {
+      "comment" : "Banner at the top of the map when a background refresh fails while pins are already showing. The argument is the error's own sentence.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新できませんでした。%@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Delete pin" : {
+      "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ピンを削除"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Dismiss" : {
+      "comment" : "Accessibility label of the close button on a map banner and on the front page's notice.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閉じる"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Done" : {
+      "comment" : "Toolbar button that closes the todo-pin list sheet.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Edit note" : {
+      "comment" : "Accessibility label of the pencil button that opens the todo-pin editor, on the map banner and on each list row.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモを編集"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Edit pin" : {
+      "comment" : "Navigation title of the todo-pin editor when editing an existing pin.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ピンを編集"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Follow my location" : {
+      "comment" : "Accessibility label of the map's location button, a toggle: while on, the map keeps up with the user's position.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在地を追従"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Forget" : {
+      "comment" : "Swipe action on an instance row on the front page that removes the instance and its session.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "削除"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "List todo pins" : {
+      "comment" : "Accessibility label of the map's list button (bulleted-list icon with a count badge).",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ToDoピンの一覧"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Location permission denied. Enable it in Settings." : {
+      "comment" : "Banner at the top of the map when the user taps the location button but has denied location access.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置情報の利用が許可されていません。「設定」で許可してください。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Long-press the map to drop one." : {
+      "comment" : "Hint under the empty state of the todo-pin list, telling how to create the first pin.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しするとピンを置けます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Map" : {
+      "comment" : "Tab bar label for the map tab.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップ"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Nearest" : {
+      "comment" : "Segment of the todo-pin list's sort control: closest to the map's center first.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "近い順"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "New pin" : {
+      "comment" : "Navigation title of the todo-pin editor when creating a pin.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいピン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Next photo" : {
+      "comment" : "Accessibility label of the right chevron in the photo viewer and the map callout mini pager.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次の写真"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No active instance." : {
+      "comment" : "Error shown in place of content if a screen is reached with no instance selected. Should not normally appear.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有効なインスタンスがありません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No galleries" : {
+      "comment" : "Heading of the calendar's empty state when the instance lists no galleries.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリーがありません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No instances yet" : {
+      "comment" : "Heading of the front page's empty state when no instance is paired.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インスタンスがまだありません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No note yet" : {
+      "comment" : "Placeholder in a todo pin's callout on the map when the pin has no note.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモはまだありません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No photos" : {
+      "comment" : "Title of the empty state in a calendar photo grid.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真がありません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No photos with a location here yet. Long-press to drop a todo pin." : {
+      "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置情報のある写真がまだありません。長押しでToDoピンを置けます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "No todo pins yet" : {
+      "comment" : "Title of the empty state in the todo-pin list.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ToDoピンはまだありません"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Not this one" : {
+      "comment" : "Cancel button in the pairing confirmation, returning to the scanner / paste field.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加しない"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Note" : {
+      "comment" : "Section header above the note text field in the todo-pin editor.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモ"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Off" : {
+      "comment" : "Accessibility value of the follow-my-location toggle while it is not.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフ"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "On" : {
+      "comment" : "Accessibility value of the follow-my-location toggle while it is following.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "On the site, open the user menu and choose “Pair a device”. Then scan the code it shows, or paste the link." : {
+      "comment" : "Instructions at the top of the pairing screen. “Pair a device” is the name of the menu item on the site.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイトのユーザーメニューから「デバイスをペアリング」を選び、表示されたコードをスキャンするか、リンクを貼り付けてください。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Open the site to sign in" : {
+      "comment" : "Link under \"Session expired\" that opens the instance's site in the browser, where the user signs in and picks \"Pair a device\".",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイトを開いてログイン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Opens the photo." : {
+      "comment" : "Accessibility hint of a photo thumbnail in the calendar grid and the map callout.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を開きます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Or paste the pairing link" : {
+      "comment" : "Section header above the text field for pasting a pairing link, as an alternative to scanning the QR code.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "またはペアリングリンクを貼り付け"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Pair again" : {
+      "comment" : "Button under \"Session expired\" that opens the pairing sheet.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一度ペアリング"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Pair this device with a Photo Diary site to get started." : {
+      "comment" : "Explanation under \"No instances yet\".",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diaryのサイトとこのデバイスをペアリングして始めましょう。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Pairing failed: %@" : {
+      "comment" : "Pairing error for an unexpected failure; the argument is the system's description of it.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペアリングに失敗しました：%@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Paste the pairing link instead." : {
+      "comment" : "Hint under the camera-unavailable state on the scanner screen.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代わりにペアリングリンクを貼り付けてください。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Photo" : {
+      "comment" : "Accessibility label of a single photo pin on the map.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Photo Diary" : {
+      "comment" : "Title of the front page, and the label of the button on the map and calendar that returns to it.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diary"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Photo, %@" : {
+      "comment" : "Accessibility description of a photo without a title, read in the grid, callout and viewer. The argument is the photo's date and time.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真、%@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Pinch to zoom. Swipe for the next photo." : {
+      "comment" : "Accessibility hint of the full-screen photo in the viewer.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ピンチで拡大。スワイプで次の写真へ。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Previous photo" : {
+      "comment" : "Accessibility label of the left chevron in the photo viewer and the map callout mini pager.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前の写真"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Recent" : {
+      "comment" : "Segment of the todo-pin list's sort control: most recently changed first.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい順"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Retry" : {
+      "comment" : "Button under a failed load (gallery list, photo grid, map, single photo) that runs the load again.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再試行"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Save" : {
+      "comment" : "Toolbar button that saves the todo-pin editor.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Scan code" : {
+      "comment" : "Title of the QR scanner screen.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードをスキャン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Scan pairing QR code" : {
+      "comment" : "Button on the pairing screen that opens the QR scanner.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペアリング用QRコードをスキャン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Session expired" : {
+      "comment" : "Heading of the state shown when the server no longer accepts this device's pairing.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セッションの有効期限切れ"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Show on map" : {
+      "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップで表示"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Shows a preview." : {
+      "comment" : "Accessibility hint of a photo pin on the map: tapping shows its thumbnail callout.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレビューを表示します。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Shows it on the map." : {
+      "comment" : "Accessibility hint of a row in the todo pin list.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップ上に表示します。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Shows the note. Press and hold to move it." : {
+      "comment" : "Accessibility hint of a todo pin on the map.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモを表示します。長押しで移動できます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Sort" : {
+      "comment" : "Label of the Recent / Nearest segmented control at the top of the todo-pin list; read by VoiceOver, not shown.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "並び替え"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Star" : {
+      "comment" : "Accessibility label of the star button on a todo-pin list row when the pin is not starred; starring keeps it at the top of the list.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スターを付ける"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "That doesn't look like a pairing link." : {
+      "comment" : "Error under the paste field when the pasted text is not a pairing link.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペアリングリンクではないようです。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "The app will sign in to this server with the pairing code." : {
+      "comment" : "Explanation under the server name in the pairing confirmation.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペアリングコードを使ってこのサーバーにログインします。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "The gallery you were viewing on %@ is no longer there." : {
+      "comment" : "Notice on the front page after the app left a gallery that the server no longer lists. The argument is the instance name.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@で表示していたギャラリーはなくなりました。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "This gallery has no photos yet." : {
+      "comment" : "Explanation under \"No photos\" on the year list of an empty gallery.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このギャラリーにはまだ写真がありません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "This instance has no galleries you can see." : {
+      "comment" : "Explanation under the \"No galleries\" heading.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このインスタンスには表示できるギャラリーがありません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "This period has no photos." : {
+      "comment" : "Hint under the empty state of a calendar photo grid (a month or a year).",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この期間の写真はありません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "This year has no photos." : {
+      "comment" : "Explanation under \"No photos\" on a year's month list when it has none.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この年の写真はありません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Todo pin" : {
+      "comment" : "Accessibility label of a todo pin on the map when it has no note.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ToDoピン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Todo pins" : {
+      "comment" : "Title of the todo-pin list sheet.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ToDoピン"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Todo: %@" : {
+      "comment" : "Accessibility label of a todo pin on the map; the argument is its note.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ToDo：%@"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Unencrypted connection — only for a test instance on your own network." : {
+      "comment" : "Warning in the pairing confirmation when the link points at a plain-http server.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暗号化されていない接続です。自分のネットワーク上のテスト用インスタンスにのみ使用してください。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Unknown location authorization state." : {
+      "comment" : "Banner at the top of the map when iOS reports a location permission state the app does not know.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置情報の許可状態を確認できません。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Unstar" : {
+      "comment" : "Accessibility label of the star button on a todo-pin list row when the pin is starred.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スターを外す"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "What's here?" : {
+      "comment" : "Placeholder of the note text field in the todo-pin editor.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここには何がある？"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Years" : {
+      "comment" : "Navigation title of the calendar's year list.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "年"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Your location" : {
+      "comment" : "Accessibility label of the blue dot marking the user's position on the map.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在地"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Your pairing with %@ has expired. Pair this device again." : {
+      "comment" : "Explanation under the \"Session expired\" heading, and the front page's notice after the app was signed out of a scope. The argument is the instance's display name.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@とのペアリングの有効期限が切れました。もう一度ペアリングしてください。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Zooms in, or lists the photos when they share one spot." : {
+      "comment" : "Accessibility hint of a cluster pin on the map.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拡大します。同じ場所の写真は一覧で表示します。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "photodiary://sso?host=…&token=…" : {
+      "comment" : "Placeholder of the paste field showing the shape of a pairing link. Not a sentence; keep as is.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "photodiary://sso?host=…&token=…"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "this instance" : {
+      "comment" : "Fallback for the instance name in the session-expired message when no instance is active.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このインスタンス"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    }
+  },
+  "version" : "1.1"
 }
