@@ -41,6 +41,24 @@
     "%lld photos" : {
       "comment" : "Two places: the caption under a gallery in the calendar's gallery list, and the accessibility label of a map cluster pin. The argument is the photo count.",
       "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld photo"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld photos"
+                }
+              }
+            }
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",

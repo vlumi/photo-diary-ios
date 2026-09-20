@@ -12,6 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- A gallery with a single photo says "1 photo" instead of "1 photos".
 - The app is available in Japanese, including the location and camera permission prompts; a few messages that were stuck in English (pairing errors, the pin editor's titles, the pin list's sort options) are now translated along with the rest.
 
 ### build 8 — 2026-09-19
