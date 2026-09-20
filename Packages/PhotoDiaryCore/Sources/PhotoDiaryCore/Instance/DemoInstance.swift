@@ -1,13 +1,11 @@
 import CoreLocation
 import Foundation
 
-/// Fixture-backed Instance. Ships in v1 as the App Store review path,
-/// the screenshot source, and the offline dev fallback. Data lives in
-/// this file — small enough that a separate resource JSON would be
-/// more indirection than help. Photo bytes are resolved by
-/// `photodiary-demo://<id>.jpg` URLs; the image loader hasn't been
-/// written yet, so the photo viewer will show a placeholder until
-/// that's wired up in a follow-up commit.
+/// Fixture-backed Instance: the App Store review path, the screenshot
+/// source, and the offline fallback. Data lives in this file — small
+/// enough that a separate resource JSON would be more indirection than
+/// help. Photo bytes are `photodiary-demo://<id>.jpg` URLs, which
+/// `DemoImageLoader` answers with a drawn tile.
 public struct DemoInstance: Instance {
     /// Registry sentinel: the one id that isn't a hostname.
     public static let instanceId = "demo"

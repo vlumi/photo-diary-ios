@@ -2,7 +2,7 @@
 
 Read-only iPhone companion for a self-hosted Photo Diary instance. This file is how to *work on* the repo — for humans and AI agents alike.
 
-Fully independent of the [server repo](https://github.com/vlumi/photo-diary). The server exposes `/api/v1/*`; this app is a consumer, nothing more. Schema drift is caught by a `Scripts/sync-schema.sh` that fetches `server/openapi.json` from a pinned server tag and regenerates the Swift client — the pinned tag is checked in.
+Fully independent of the [server repo](https://github.com/vlumi/photo-diary). The server exposes `/api/v1/*`; this app is a consumer, nothing more, and needs server 1.0.7 or later (device pairing).
 
 ## Where things are documented
 
@@ -10,7 +10,8 @@ One place per concern — don't duplicate, link:
 
 | | |
 |---|---|
-| **What the system is** | [ARCHITECTURE.md](ARCHITECTURE.md) — the two-surface app (Map + Calendar), auth, API layer, and a fenced *Planned* chapter |
+| **What the system is** | [ARCHITECTURE.md](ARCHITECTURE.md) — the two-surface app (Map + Calendar), instances and scope, auth and pairing, localization, and a fenced *Planned* chapter |
+| **How to ship it** | [RELEASING.md](RELEASING.md) — versioning, the `make release` lane, recovery |
 | **How to work on it** | this file — conventions, toolchain, PR process |
 | **What's next, and when** | [ROADMAP.md](ROADMAP.md) |
 | **What shipped** | [CHANGELOG.md](CHANGELOG.md) |
@@ -32,22 +33,28 @@ When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and int
 ## Layout
 
 ```text
-Packages/PhotoDiaryCore/            SPM: pure API + models + persistence, no UI
-  Sources/PhotoDiaryCore/           API client, auth, keychain, todo-pin store
+Packages/PhotoDiaryCore/            SPM package
+  Sources/PhotoDiaryCore/           Logic, no UI: models, instances, API client, pairing,
+                                    clustering, todo-pin store, its own String Catalog
   Sources/PhotoDiaryKit/            SwiftUI views + MapKit surface
-  Tests/PhotoDiaryCoreTests/        headless tests
+  Sources/PhotoDiaryIcon/           Command-line renderer behind `make icon`
+  Tests/PhotoDiaryCoreTests/        headless tests (XCTest and Swift Testing)
+  Tests/PhotoDiaryKitTests/         the little of the view layer that is testable
 Sources/Shared/                     Localizable.xcstrings (the view layer's strings, en + ja)
-Sources/iOS/                        PhotoDiaryApp.swift, entitlements, Info.plist
-Scripts/                            sync-schema, generate, release-*
-project.yml                         XcodeGen source of truth
+Sources/iOS/                        PhotoDiaryApp.swift, assets, entitlements, InfoPlist.xcstrings,
+                                    privacy manifest
+Scripts/                            generate, run-ios, release-*, distribute, sync-schema
+project.yml                         XcodeGen source of truth (Info.plist values live here)
 ```
 
-The Core / Kit split matches sibling projects (`../donpa`, `../skid`). Core is what tests import; Kit depends on Core and pulls SwiftUI + MapKit.
+The Core / Kit split matches sibling projects (`../donpa`, `../skid`). Core is what tests import; Kit depends on Core and pulls SwiftUI + MapKit. Put logic worth testing in Core and keep views thin. SwiftLint caps a type body at 300 lines, a file at 450 and a function at 50, so a growing view gets split into extensions and helper types early.
 
-## Server schema
+`make ci` runs what CI runs (lint, tests, build). To check something on a simulator that tests can't reach — tap latency, a gesture, a screen in another language — add a throwaway `bundle.ui-testing` target to `project.yml` with a test under `Tests/UITests/`, read `Logger` output with `xcrun simctl spawn <udid> log stream`, and remove both before committing.
 
-The Swift API client is generated from a pinned `server/openapi.json` — never from `main` on the server side. `Scripts/sync-schema.sh <server-tag>` fetches the spec from that tag, writes it to `Packages/PhotoDiaryCore/Sources/PhotoDiaryCore/Generated/`, regenerates the Swift models, and commits the pair. Bumping the server tag is a deliberate operation with a PR that reviews the diff.
+## Server API
+
+The client is hand-written: `PhotoDiaryAPI` covers the handful of endpoints the app reads (galleries, a gallery's photos, instance meta, and the token endpoints for pairing and refresh) and `WireModels.swift` decodes only the fields it uses, so additions on the server don't break it. Nothing is generated. `Scripts/sync-schema.sh <server-tag>` can fetch `server/openapi.json` at a tag for reference when checking a server change against the wire models; no copy of the spec is checked in.
 
 ## Deliberately out of scope
 
-See [ARCHITECTURE.md](ARCHITECTURE.md#deliberately-out-of-scope) — no writes to the server, no offline mode beyond in-memory cache, no filters, no push notifications, no third-party analytics.
+See [ARCHITECTURE.md](ARCHITECTURE.md#deliberately-out-of-scope) — no writes to the server, no offline mode beyond the on-disk response cache, no filters, no push notifications, no third-party analytics.

@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 # Fetch server/openapi.json from a specific vlumi/photo-diary tag and place
-# it under Packages/PhotoDiaryCore/Sources/PhotoDiaryCore/Generated/. The
-# app tracks a pinned server version rather than a moving `main`, so schema
-# drift becomes an explicit "bump the tag" step with a reviewable diff.
+# it under Packages/PhotoDiaryCore/Sources/PhotoDiaryCore/Generated/, as a
+# reference for checking a server change against the hand-written client
+# (Remote/PhotoDiaryAPI.swift, Remote/WireModels.swift). Nothing is
+# generated from it and no copy is checked in.
 #
-# Usage: `Scripts/sync-schema.sh v1.0.5` or `make sync-schema TAG=v1.0.5`
-#
-# Follow-up (once we're generating Swift models, not just committing the
-# JSON): shell out to a Swift openapi codegen (e.g.
-# apple/swift-openapi-generator) to produce typed clients from the pinned
-# spec. For v0.0.x we only commit the JSON as a record.
+# Usage: `Scripts/sync-schema.sh v1.0.7` or `make sync-schema TAG=v1.0.7`
 
 set -euo pipefail
 
