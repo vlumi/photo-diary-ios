@@ -40,7 +40,7 @@ public struct PairingService: Sendable {
         let api = factory.makeAPI(origin: ticket.origin, cookies: SessionCookies())
 
         var components = URLComponents(url: api.baseURL, resolvingAgainstBaseURL: false)!
-        components.path = "/api/v1/tokens/sso"
+        components.path = APIRoute.consumeTicket.path()
         components.queryItems = [
             URLQueryItem(name: "token", value: ticket.token),
             URLQueryItem(name: "redirect", value: "/"),
@@ -55,7 +55,7 @@ public struct PairingService: Sendable {
         guard await api.currentCookies.refresh != nil else {
             throw PairingError.noSession
         }
-        let _: SessionIdentity = try await api.get("/api/v1/tokens")
+        let _: SessionIdentity = try await api.get(APIRoute.session.path())
         return factory.make(origin: ticket.origin, api: api)
     }
 }

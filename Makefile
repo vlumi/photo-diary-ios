@@ -97,7 +97,7 @@ release-upload:  ## Upload the already-built dist/ package (no rebuild)
 	@Scripts/release-distribute.sh --upload-only
 
 .PHONY: sync-schema
-sync-schema:  ## Fetch server/openapi.json at TAG for reference; nothing is generated from it (TAG=v1.0.7)
+sync-schema:  ## Pin the server's OpenAPI document at TAG for the contract test (TAG=v1.0.9)
 	@Scripts/sync-schema.sh $(TAG)
 
 .PHONY: clean

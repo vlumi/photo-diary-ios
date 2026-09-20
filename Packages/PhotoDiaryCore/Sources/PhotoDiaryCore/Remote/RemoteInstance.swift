@@ -50,7 +50,7 @@ public actor RemoteInstance: Instance {
     }
 
     public func listGalleries() async throws -> [Gallery] {
-        let data = try await api.fetch("/api/v1/galleries")
+        let data = try await api.fetch(APIRoute.galleries.path())
         let galleries = try Self.galleries(from: data)
         cache?.save(data, origin: id, key: "galleries")
         return galleries
@@ -62,7 +62,7 @@ public actor RemoteInstance: Instance {
         let data: Data
         do {
             data = try await api.fetch(
-                "/api/v1/gallery-photos/\(galleryId)/query", body: PhotoQuery(lang: lang))
+                APIRoute.galleryPhotosQuery.path(galleryId), body: PhotoQuery(lang: lang))
         } catch InstanceError.server(let status) where status == 404 {
             throw InstanceError.galleryNotFound(galleryId)
         }
@@ -106,7 +106,7 @@ public actor RemoteInstance: Instance {
         }
         let root = try await resolvePhotoRoot()
         let dto: PhotoDTO = try await api.get(
-            "/api/v1/gallery-photos/\(galleryId)/\(photoId)",
+            APIRoute.galleryPhoto.path(galleryId, photoId),
             query: [URLQueryItem(name: "lang", value: lang)]
         )
         return dto.toDomain(galleryId: galleryId, photoRoot: root)
@@ -121,7 +121,7 @@ public actor RemoteInstance: Instance {
 
     private func resolvePhotoRoot() async throws -> URL {
         if let photoRoot { return photoRoot }
-        let data = try await api.fetch("/api/v1/meta")
+        let data = try await api.fetch(APIRoute.meta.path())
         let root = try Self.photoRoot(from: data, apiBase: api.baseURL)
         cache?.save(data, origin: id, key: "meta")
         photoRoot = root

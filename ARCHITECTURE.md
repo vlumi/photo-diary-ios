@@ -53,7 +53,7 @@ Each remote instance keeps the last JSON answer per endpoint on disk (`ResponseC
 
 All data access above `PhotoDiaryCore` goes through a single `Instance` protocol: `listGalleries()`, `listPhotos(inGallery:)`, `getPhoto(id:inGallery:)`, and the cached variants of the first two that answer from disk without touching the network. Two implementations:
 
-- **`RemoteInstance`** — talks to a real photo-diary server through `PhotoDiaryAPI`, a small hand-written client over the endpoints the app reads, with wire models (`WireModels.swift`) that decode only the fields it uses. Photo queries carry the app's language, so the server picks localized titles.
+- **`RemoteInstance`** — talks to a real photo-diary server through `PhotoDiaryAPI`, a small hand-written client over the endpoints the app reads (`APIRoute`), with wire models (`WireModels.swift`) that decode only the fields it uses. A contract test checks both against the server's OpenAPI document, pinned at a release tag. Photo queries carry the app's language, so the server picks localized titles.
 - **`DemoInstance`** — fixture data defined in code: two galleries and thirty photos with timestamps, places and coordinates. No network, no auth, no server. Runs identically on-device and in unit tests. Its photos are gradient tiles drawn per URL by `DemoImageLoader`, not bundled images.
 
 Views only ever depend on the protocol, never on either concrete implementation.
