@@ -1,6 +1,7 @@
 /// The scope's photos across its galleries, from the cache (nil when
 /// any part is missing) or the network. A photo linked into two
-/// galleries arrives twice; one is kept.
+/// galleries arrives twice; one is kept. In an all-galleries scope a
+/// gallery the server no longer shows is skipped.
 enum MapPhotoGathering {
     static func photos(of scope: Scope, from instance: any Instance, cached: Bool) async throws
         -> [Photo]?
@@ -22,7 +23,16 @@ enum MapPhotoGathering {
                 }
                 allPhotos.append(contentsOf: photos)
             } else {
-                allPhotos.append(contentsOf: try await instance.listPhotos(inGallery: galleryId))
+                do {
+                    allPhotos.append(
+                        contentsOf: try await instance.listPhotos(inGallery: galleryId))
+                } catch InstanceError.galleryNotFound where scope.galleryId == nil {
+                    // One of an instance's galleries went away, or out of
+                    // reach, since they were listed. That costs its
+                    // photos, not the map: only losing the gallery the
+                    // scope is about should send the user back.
+                    continue
+                }
             }
         }
         // A photo linked into two galleries arrives twice; keep one.
