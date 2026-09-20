@@ -10,8 +10,8 @@
 # dropping support for older servers. Bumping either is a deliberate
 # step with a reviewable diff.
 #
-# Usage: `Scripts/sync-schema.sh v1.0.9` or `make sync-schema TAG=v1.0.9`
-#        `Scripts/sync-schema.sh v1.0.7 min` or `make sync-schema TAG=v1.0.7 AS=min`
+# Usage: `Scripts/sync-schema.sh v1.1.0` or `make sync-schema TAG=v1.1.0`
+#        `Scripts/sync-schema.sh v1.0.7 min` or `make sync-schema TAG=v1.0.7 PIN=min`
 
 set -euo pipefail
 
