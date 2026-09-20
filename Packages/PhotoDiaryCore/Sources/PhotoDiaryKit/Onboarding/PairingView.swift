@@ -47,8 +47,10 @@ public struct PairingView: View {
     private var intake: some View {
         Section {
             Text(
-                "On the site, open the user menu and choose “Pair a device”. "
-                    + "Then scan the code it shows, or paste the link."
+                """
+                On the site, open the user menu and choose “Pair a device”. \
+                Then scan the code it shows, or paste the link.
+                """
             )
             .font(.footnote)
             .foregroundStyle(.secondary)
@@ -150,7 +152,7 @@ public struct PairingView: View {
             ticket = parsed
             failure = nil
         } else {
-            failure = "That doesn't look like a pairing link."
+            failure = String(localized: "That doesn't look like a pairing link.")
         }
     }
 
@@ -166,9 +168,9 @@ public struct PairingView: View {
         } catch let error as PairingError {
             failure = error.errorDescription
         } catch InstanceError.transport(let detail) {
-            failure = "Couldn't reach \(ticket.host): \(detail)"
+            failure = String(localized: "Couldn't reach \(ticket.host): \(detail)")
         } catch {
-            failure = "Pairing failed: \(error.localizedDescription)"
+            failure = String(localized: "Pairing failed: \(error.localizedDescription)")
         }
     }
 }

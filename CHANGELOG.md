@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The app is available in Japanese, including the location and camera permission prompts; a few messages that were stuck in English (pairing errors, the pin editor's titles, the pin list's sort options) are now translated along with the rest.
+
 ### build 8 — 2026-09-19
 
 - The locate button keeps your zoom when the map already shows your surroundings (up to about 3 km across) and only zooms in to street level from farther out.

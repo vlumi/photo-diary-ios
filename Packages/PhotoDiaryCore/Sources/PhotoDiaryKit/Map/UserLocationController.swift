@@ -60,12 +60,12 @@ public final class UserLocationController: NSObject {
             fixRequested = true
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            lastError = "Location permission denied. Enable it in Settings."
+            lastError = String(localized: "Location permission denied. Enable it in Settings.")
         case .authorizedWhenInUse, .authorizedAlways:
             fixRequested = true
             manager.requestLocation()
         @unknown default:
-            lastError = "Unknown location authorization state."
+            lastError = String(localized: "Unknown location authorization state.")
         }
     }
 

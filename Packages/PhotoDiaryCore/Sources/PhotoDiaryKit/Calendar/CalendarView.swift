@@ -111,7 +111,7 @@ struct GalleryListView: View {
 
     private func load() async {
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: "No active instance."))
+            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
             return
         }
         await LoadState.load(
@@ -237,7 +237,7 @@ private func loadCalendarSlice(
     into update: (LoadState<[Int]>) -> Void, derive: ([Photo]) -> [Int]
 ) async {
     guard let instance = registry.activeInstance else {
-        update(.failed(LoadFailure(message: "No active instance.")))
+        update(.failed(LoadFailure(message: String(localized: "No active instance."))))
         return
     }
     await LoadState.load(

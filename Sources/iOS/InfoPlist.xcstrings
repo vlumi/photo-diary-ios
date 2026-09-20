@@ -1,0 +1,42 @@
+{
+  "sourceLanguage" : "en",
+  "version" : "1.0",
+  "strings" : {
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Explanation iOS shows when the app first asks for the user's location.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diary shows your current location on the map so you can see photos you've taken nearby. Location is never sent to the server or stored beyond the map view."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diaryは、近くで撮った写真を見られるよう、マップ上に現在地を表示します。位置情報がサーバーに送信されたり、マップ表示以外で保存されたりすることはありません。"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Explanation iOS shows when the app first asks for the camera, to scan a pairing QR code.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diary uses the camera to scan a pairing QR code from another device. Nothing is recorded or sent."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Diaryは、別のデバイスに表示されたペアリング用QRコードを読み取るためにカメラを使用します。撮影内容が記録・送信されることはありません。"
+          }
+        }
+      }
+    }
+  }
+}
