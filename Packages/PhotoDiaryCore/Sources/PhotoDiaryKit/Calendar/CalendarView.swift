@@ -6,6 +6,7 @@ import SwiftUI
 public struct CalendarView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.restoration) private var restoration
+    @Environment(PhotoFocusStore.self) private var focus
     @State private var path: [CalendarRoute] = []
 
     public init() {}
@@ -43,6 +44,12 @@ public struct CalendarView: View {
             guard let scope = registry.scope else { return }
             restoration.save(path, forKey: "calendar." + scope.key)
         }
+        .onChange(of: focus.pendingInCalendar?.id, initial: true) {
+            // "Show in calendar" from the map: open the photo's month.
+            // The grid then scrolls to the photo and takes the request.
+            guard let photo = focus.pendingInCalendar else { return }
+            path = CalendarRoute.path(to: photo, inGalleryScope: registry.scope?.galleryId != nil)
+        }
     }
 
     /// A gallery in scope skips the gallery list.
@@ -60,6 +67,20 @@ public enum CalendarRoute: Hashable, Codable, Sendable {
     case years(galleryId: String)
     case months(galleryId: String, year: Int)
     case grid(galleryId: String, year: Int, month: Int?)
+
+    /// The stack a user would have built by tapping down to the
+    /// photo's month, so the back button walks up the same way. In a
+    /// gallery scope the year list is the root, so the path starts
+    /// below it.
+    static func path(to photo: Photo, inGalleryScope: Bool) -> [CalendarRoute] {
+        let gallery = photo.galleryId
+        let year = photo.timestamp.year
+        let down: [CalendarRoute] = [
+            .months(galleryId: gallery, year: year),
+            .grid(galleryId: gallery, year: year, month: photo.timestamp.month),
+        ]
+        return inGalleryScope ? down : [.years(galleryId: gallery)] + down
+    }
 }
 
 // MARK: - Gallery list

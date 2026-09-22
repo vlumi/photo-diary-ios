@@ -14,7 +14,7 @@ public struct AppShell: View {
     private let todoPinContainer: ModelContainer
     @State private var pendingTicket: PairingTicket?
     @State private var selectedTab: AppTab = .map
-    @State private var mapFocus = MapFocusStore()
+    @State private var focus = PhotoFocusStore()
 
     public init() {
         _registry = State(
@@ -49,7 +49,7 @@ public struct AppShell: View {
         }
         .animation(.easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
-        .environment(mapFocus)
+        .environment(focus)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
         .environment(\.restoration, restoration)
         .modelContainer(todoPinContainer)
@@ -76,9 +76,14 @@ public struct AppShell: View {
                 .tabItem { Label("Calendar", systemImage: "calendar") }
                 .tag(AppTab.calendar)
         }
-        .onChange(of: mapFocus.pending?.id) {
-            // "Show on map" from another tab: switch; the map frames it.
-            if mapFocus.pending != nil { selectedTab = .map }
+        .onChange(of: focus.pendingOnMap?.id) {
+            // "Show on map" from the calendar: switch; the map frames it.
+            if focus.pendingOnMap != nil { selectedTab = .map }
+        }
+        .onChange(of: focus.pendingInCalendar?.id) {
+            // "Show in calendar" from the map: switch; the calendar
+            // opens the photo's month and scrolls to it.
+            if focus.pendingInCalendar != nil { selectedTab = .calendar }
         }
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }

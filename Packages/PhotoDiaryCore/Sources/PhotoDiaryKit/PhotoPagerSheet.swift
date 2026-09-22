@@ -35,6 +35,7 @@ public struct PhotoPagerSheet: View {
     /// Offered when set and the current photo has coordinates; the map
     /// itself passes nil since it is already there.
     private let onShowOnMap: ((Photo) -> Void)?
+    private let onShowInCalendar: ((Photo) -> Void)?
 
     @State private var currentId: String?
     @State private var zoomed = false
@@ -49,12 +50,14 @@ public struct PhotoPagerSheet: View {
         selection: PhotoPagerSelection,
         loader: any ImageLoader,
         onDismiss: @escaping () -> Void,
-        onShowOnMap: ((Photo) -> Void)? = nil
+        onShowOnMap: ((Photo) -> Void)? = nil,
+        onShowInCalendar: ((Photo) -> Void)? = nil
     ) {
         self.photos = selection.photos
         self.loader = loader
         self.onDismiss = onDismiss
         self.onShowOnMap = onShowOnMap
+        self.onShowInCalendar = onShowInCalendar
         let photos = selection.photos
         _currentId = State(
             initialValue: photos.indices.contains(selection.index)
@@ -167,16 +170,11 @@ public struct PhotoPagerSheet: View {
 
             HStack {
                 if let onShowOnMap, let current, current.location.coordinates != nil {
-                    Button {
-                        onShowOnMap(current)
-                    } label: {
-                        Label("Show on map", systemImage: "map")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.black.opacity(0.5))
-                            .clipShape(Capsule())
+                    jumpButton("Show on map", systemImage: "map") { onShowOnMap(current) }
+                }
+                if let onShowInCalendar, let current {
+                    jumpButton("Show in calendar", systemImage: "calendar") {
+                        onShowInCalendar(current)
                     }
                 }
                 Spacer()
@@ -188,6 +186,21 @@ public struct PhotoPagerSheet: View {
     private func caption(for photo: Photo) -> String {
         let date = photo.timestamp.display
         return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
+    }
+
+    /// A jump to the other surface, over the photo's bottom corner.
+    private func jumpButton(
+        _ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.5))
+                .clipShape(Capsule())
+        }
     }
 
     private func chevron(
