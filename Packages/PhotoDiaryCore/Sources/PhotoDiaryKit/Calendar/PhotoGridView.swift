@@ -14,10 +14,16 @@ public struct PhotoGridView: View {
 
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
-    @Environment(MapFocusStore.self) private var focus
+    @Environment(PhotoFocusStore.self) private var focus
     @State private var state: LoadState<[PhotoCalendar.DaySection]> = .loading
     @State private var attempt = 0
     @State private var presented: PhotoPagerSelection?
+    /// The photo "Show in calendar" asked for, marked for a moment
+    /// after the grid has scrolled to it.
+    @State private var spotlit: String?
+    /// The day section at the top of the scroll view; set to bring a
+    /// day into view, updated by the scrolling itself.
+    @State private var topDay: Int?
 
     public init(galleryId: String, year: Int, month: Int? = nil) {
         self.galleryId = galleryId
@@ -32,7 +38,7 @@ public struct PhotoGridView: View {
             .task(id: reloadKey) { await load() }
             .photoViewerCover(item: $presented, loader: loaderBox.loader) { photo in
                 presented = nil
-                focus.show(photo)
+                focus.showOnMap(photo)
             }
     }
 
@@ -60,34 +66,60 @@ public struct PhotoGridView: View {
         return ScrollView {
             LazyVStack(alignment: .leading, spacing: 16, pinnedViews: .sectionHeaders) {
                 ForEach(sections) { section in
-                    Section {
-                        LazyVGrid(columns: gridColumns, spacing: 2) {
-                            ForEach(section.photos) { photo in
-                                Button {
-                                    if let i = ordered.firstIndex(of: photo) {
-                                        presented = PhotoPagerSelection(photos: ordered, index: i)
-                                    }
-                                } label: {
-                                    PhotoThumbnail(
-                                        url: photo.thumbnailURL,
-                                        loader: loaderBox.loader
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(photo.accessibilityDescription)
-                                .accessibilityHint("Opens the photo.")
-                            }
-                        }
-                    } header: {
-                        Text(dayLabel(section))
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.regularMaterial)
-                    }
+                    daySection(section, ordered: ordered)
                 }
             }
+            .scrollTargetLayout()
+        }
+        .scrollPosition(id: $topDay, anchor: .top)
+        .onAppear { spotlight(in: sections) }
+    }
+
+    private func daySection(_ section: PhotoCalendar.DaySection, ordered: [Photo]) -> some View {
+        Section {
+            LazyVGrid(columns: gridColumns, spacing: 2) {
+                ForEach(section.photos) { photo in
+                    Button {
+                        if let i = ordered.firstIndex(of: photo) {
+                            presented = PhotoPagerSelection(photos: ordered, index: i)
+                        }
+                    } label: {
+                        PhotoThumbnail(url: photo.thumbnailURL, loader: loaderBox.loader)
+                            .overlay {
+                                if spotlit == photo.id {
+                                    Rectangle().strokeBorder(Color.accentColor, lineWidth: 4)
+                                }
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .id(photo.id)
+                    .accessibilityLabel(photo.accessibilityDescription)
+                    .accessibilityHint("Opens the photo.")
+                }
+            }
+        } header: {
+            Text(dayLabel(section))
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.regularMaterial)
+        }
+    }
+
+    /// "Show in calendar" from the map: once this grid is the photo's,
+    /// bring its day to the top and mark the photo for a moment, so
+    /// the eye lands on it among that day's other photos.
+    private func spotlight(in sections: [PhotoCalendar.DaySection]) {
+        guard let photo = focus.pendingInCalendar,
+            let day = sections.first(where: { $0.photos.contains { $0.id == photo.id } })
+        else { return }
+        _ = focus.consumeForCalendar()
+        topDay = day.id
+        spotlit = photo.id
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(4))
+            if spotlit == photo.id { spotlit = nil }
         }
     }
 

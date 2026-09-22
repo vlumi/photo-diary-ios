@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- A photo opened from the map has a "Show in calendar" button that switches to the calendar with the photo's month open, its day at the top and the photo marked for a moment, so you can see it among the photos around that day.
+
 ### build 10 — 2026-09-20
 
 - With all of an instance's galleries open, a gallery that disappears from the server costs only its own photos on the map, instead of sending you back to the front page.

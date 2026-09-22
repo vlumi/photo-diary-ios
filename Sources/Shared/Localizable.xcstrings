@@ -908,8 +908,20 @@
         }
       }
     },
+    "Show in calendar" : {
+      "comment" : "Button in the full-screen photo viewer, when opened from the map, that switches to the calendar tab with the photo's month open and the photo marked among that day's photos.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダーで表示"
+          }
+        }
+      }
+    },
     "Show on map" : {
-      "comment" : "Button in the full-screen photo viewer that switches to the map tab centered on the photo; shown only for photos with coordinates.",
+      "comment" : "Button in the full-screen photo viewer, when opened from the calendar, that switches to the map tab centered on the photo.",
       "localizations" : {
         "ja" : {
           "stringUnit" : {

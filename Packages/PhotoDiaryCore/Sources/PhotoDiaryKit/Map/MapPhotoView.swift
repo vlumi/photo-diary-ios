@@ -34,7 +34,7 @@ private enum MapLoadState {
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
-    @Environment(MapFocusStore.self) private var focus
+    @Environment(PhotoFocusStore.self) private var focus
     @Environment(\.modelContext) var modelContext
     @Environment(\.restoration) private var restoration
 
@@ -102,7 +102,11 @@ public struct MapPhotoView: View {
                 PhotoPagerSheet(
                     selection: selection,
                     loader: loaderBox.loader,
-                    onDismiss: { presented = nil }
+                    onDismiss: { presented = nil },
+                    onShowInCalendar: { photo in
+                        presented = nil
+                        focus.showInCalendar(photo)
+                    }
                 )
             }
             .sheet(item: $editorPresentation) { presentation in
@@ -185,7 +189,7 @@ public struct MapPhotoView: View {
             if scenePhase == .active, follow.isOn { locator.locate() }
         }
         .onChange(of: selection) { _, selected in selectionChanged(selected, pins: pins) }
-        .onChange(of: focus.pending?.id) {
+        .onChange(of: focus.pendingOnMap?.id) {
             applyPendingFocus()
         }
     }
@@ -366,10 +370,10 @@ public struct MapPhotoView: View {
     /// Called when the request arrives and again once pins have loaded,
     /// whichever comes second.
     private func applyPendingFocus() {
-        guard case .loaded = state, let photo = focus.pending,
+        guard case .loaded = state, let photo = focus.pendingOnMap,
             let coord = photo.location.coordinates
         else { return }
-        _ = focus.consume()
+        _ = focus.consumeForMap()
         frame(coord, meters: Self.closeUpMeters)
     }
 
