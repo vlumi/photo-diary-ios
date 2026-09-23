@@ -3,7 +3,9 @@ import XCTest
 
 @testable import PhotoDiaryCore
 
-final class WireModelsTests: XCTestCase {
+/// The mapping from the server's shapes (generated from its OpenAPI
+/// document) to the app's own, over realistic responses.
+final class ServerModelsTests: XCTestCase {
     private let root = URL(string: "https://photos.example.test/")!
 
     private let fullPhoto = """
@@ -40,7 +42,8 @@ final class WireModelsTests: XCTestCase {
         """
 
     func testFullPhotoMapsEveryField() throws {
-        let dto = try JSONDecoder().decode(PhotoDTO.self, from: Data(fullPhoto.utf8))
+        let dto = try JSONDecoder().decode(
+            Components.Schemas.Photo.self, from: Data(fullPhoto.utf8))
         let photo = try XCTUnwrap(dto.toDomain(galleryId: "g1", photoRoot: root))
         XCTAssertEqual(photo.id, "1.jpg")
         XCTAssertEqual(photo.galleryId, "g1")
@@ -69,7 +72,8 @@ final class WireModelsTests: XCTestCase {
     }
 
     func testSparsePhotoFallsBackSensibly() throws {
-        let dto = try JSONDecoder().decode(PhotoDTO.self, from: Data(sparsePhoto.utf8))
+        let dto = try JSONDecoder().decode(
+            Components.Schemas.Photo.self, from: Data(sparsePhoto.utf8))
         let photo = try XCTUnwrap(dto.toDomain(galleryId: "g1", photoRoot: root))
         XCTAssertEqual(photo.title, "")
         XCTAssertNil(photo.author)
@@ -94,21 +98,13 @@ final class WireModelsTests: XCTestCase {
                                    "hour": null, "minute": null, "second": null}},
              "dimensions": {"original": {}, "thumbnail": {}}}
             """
-        let dto = try JSONDecoder().decode(PhotoDTO.self, from: Data(undated.utf8))
+        let dto = try JSONDecoder().decode(Components.Schemas.Photo.self, from: Data(undated.utf8))
         XCTAssertNil(dto.toDomain(galleryId: "g1", photoRoot: root))
-    }
-
-    func testAnElementTheAppCannotReadCostsOnlyItself() throws {
-        let list = """
-            [{"id": "ok"}, {"id": 7}, "not even an object", {"id": "also ok", "title": null}]
-            """
-        let galleries = try JSONDecoder().decode([Lenient<GalleryDTO>].self, from: Data(list.utf8))
-        XCTAssertEqual(galleries.compactMap(\.value?.id), ["ok", "also ok"])
     }
 
     func testGalleryTitleFallsBackToId() throws {
         let dto = try JSONDecoder().decode(
-            GalleryDTO.self, from: Data(#"{"id":"g1","hideMap":false}"#.utf8))
+            Components.Schemas.Gallery.self, from: Data(#"{"id":"g1","hideMap":false}"#.utf8))
         let gallery = dto.toDomain()
         XCTAssertEqual(gallery.title, "g1")
         XCTAssertNil(gallery.photoCount)

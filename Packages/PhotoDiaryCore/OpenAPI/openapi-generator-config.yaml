@@ -1,0 +1,20 @@
+# What the app's generated client covers: only the operations it calls,
+# by the server's operation names. Add one here to call it.
+generate:
+  - types
+  - client
+accessModifier: internal
+namingStrategy: idiomatic
+# SwiftLint excludes the output directory; swift-format has no exclude,
+# so the files say it themselves.
+additionalFileComments:
+  - "swift-format-ignore-file"
+filter:
+  operations:
+    - getMeta
+    - getSession
+    - refreshSession
+    - consumeTicket
+    - listGalleries
+    - queryGalleryPhotos
+    - getGalleryPhoto

@@ -97,8 +97,12 @@ release-upload:  ## Upload the already-built dist/ package (no rebuild)
 	@Scripts/release-distribute.sh --upload-only
 
 .PHONY: sync-schema
-sync-schema:  ## Pin the server's OpenAPI document at TAG for the contract test (TAG=v1.1.0; PIN=min for the oldest supported server)
+sync-schema:  ## Pin the server's OpenAPI document at TAG and regenerate the client (TAG=v1.1.1; PIN=min for the oldest supported server)
 	@Scripts/sync-schema.sh $(TAG) $(PIN)
+
+.PHONY: generate-client
+generate-client:  ## Regenerate the API client from the pinned spec (after editing OpenAPI/openapi-generator-config.yaml)
+	@Scripts/generate-client.sh
 
 .PHONY: clean
 clean:  ## Remove the generated project + local build output

@@ -15,6 +15,7 @@ public actor RemoteInstance: Instance {
     public nonisolated let isDemo = false
 
     private let api: PhotoDiaryAPI
+    private let client: PhotoDiaryClient
     private let cache: ResponseCache?
     private var photoRoot: URL?
     /// Sent with photo queries so the server picks localized titles.
@@ -44,59 +45,64 @@ public actor RemoteInstance: Instance {
         self.displayName =
             origin.hasPrefix("https://") ? String(origin.dropFirst("https://".count)) : origin
         self.api = api
+        self.client = PhotoDiaryClient(api: api)
         self.cache = cache
         self.lang = lang ?? Locale.current.language.languageCode?.identifier ?? "en"
         self.now = now
     }
 
     public func listGalleries() async throws -> [Gallery] {
-        let data = try await api.fetch(APIRoute.galleries.path())
-        let galleries = try Self.galleries(from: data)
-        cache?.save(data, origin: id, key: "galleries")
-        return galleries
+        let galleries = try await client.call { client in
+            switch try await client.listGalleries() {
+            case .ok(let ok): return try ok.body.json
+            case .unauthorized: throw InstanceError.sessionExpired
+            case .forbidden: throw InstanceError.server(status: 403)
+            case .undocumented(let status, _): throw unexpected(status: status)
+            }
+        }
+        cache?.save(Self.encoded(galleries), origin: id, key: "galleries")
+        return galleries.map { $0.toDomain() }
     }
 
     public func listPhotos(inGallery galleryId: String) async throws -> [Photo] {
         if let cached = freshCache(for: galleryId) { return cached }
         let root = try await resolvePhotoRoot()
-        let data: Data
-        do {
-            data = try await api.fetch(
-                APIRoute.galleryPhotosQuery.path(galleryId), body: PhotoQuery(lang: lang))
-        } catch InstanceError.server(let status) where status == 404 {
-            throw InstanceError.galleryNotFound(galleryId)
+        let lang = lang
+        let wire = try await client.call { client in
+            switch try await client.queryGalleryPhotos(
+                path: .init(galleryId: galleryId), body: .json(.init(lang: lang)))
+            {
+            case .ok(let ok): return try ok.body.json
+            case .notFound: throw InstanceError.galleryNotFound(galleryId)
+            case .unauthorized: throw InstanceError.sessionExpired
+            case .forbidden: throw InstanceError.server(status: 403)
+            case .undocumented(let status, _): throw unexpected(status: status)
+            }
         }
-        let photos = try Self.photos(from: data, galleryId: galleryId, photoRoot: root)
-        cache?.save(data, origin: id, key: "photos/" + galleryId)
+        cache?.save(Self.encoded(wire), origin: id, key: "photos/" + galleryId)
+        let photos = Self.photos(from: wire, galleryId: galleryId, photoRoot: root)
         photoCache[galleryId] = CachedPhotos(photos: photos, fetchedAt: now())
         return photos
     }
 
     public func cachedGalleries() async -> [Gallery]? {
-        guard let data = cache?.load(origin: id, key: "galleries") else { return nil }
-        return try? Self.galleries(from: data)
+        let wire: [Components.Schemas.Gallery]? = cached("galleries")
+        return wire?.map { $0.toDomain() }
     }
 
     /// Needs the photo root too: resolved already, or the cached meta.
     public func cachedPhotos(inGallery galleryId: String) async -> [Photo]? {
-        guard let data = cache?.load(origin: id, key: "photos/" + galleryId),
+        guard let wire: [Components.Schemas.Photo] = cached("photos/" + galleryId),
             let root = photoRoot ?? cachedPhotoRoot()
         else { return nil }
-        return try? Self.photos(from: data, galleryId: galleryId, photoRoot: root)
+        return Self.photos(from: wire, galleryId: galleryId, photoRoot: root)
     }
 
-    private static func galleries(from data: Data) throws -> [Gallery] {
-        let dtos: [Lenient<GalleryDTO>] = try PhotoDiaryAPI.decode(data)
-        return dtos.compactMap { $0.value?.toDomain() }
-    }
-
-    private static func photos(from data: Data, galleryId: String, photoRoot: URL) throws
-        -> [Photo]
-    {
-        let dtos: [Lenient<PhotoDTO>] = try PhotoDiaryAPI.decode(data)
-        return
-            dtos
-            .compactMap { $0.value?.toDomain(galleryId: galleryId, photoRoot: photoRoot) }
+    private static func photos(
+        from wire: [Components.Schemas.Photo], galleryId: String, photoRoot: URL
+    ) -> [Photo] {
+        wire
+            .compactMap { $0.toDomain(galleryId: galleryId, photoRoot: photoRoot) }
             .sorted { $0.timestamp < $1.timestamp }
     }
 
@@ -105,11 +111,19 @@ public actor RemoteInstance: Instance {
             return hit
         }
         let root = try await resolvePhotoRoot()
-        let dto: PhotoDTO = try await api.get(
-            APIRoute.galleryPhoto.path(galleryId, photoId),
-            query: [URLQueryItem(name: "lang", value: lang)]
-        )
-        guard let photo = dto.toDomain(galleryId: galleryId, photoRoot: root) else {
+        let lang = lang
+        let wire = try await client.call { client in
+            switch try await client.getGalleryPhoto(
+                path: .init(galleryId: galleryId, photoId: photoId), query: .init(lang: lang))
+            {
+            case .ok(let ok): return try ok.body.json
+            case .notFound: throw InstanceError.photoNotFound(photoId)
+            case .unauthorized: throw InstanceError.sessionExpired
+            case .forbidden: throw InstanceError.server(status: 403)
+            case .undocumented(let status, _): throw unexpected(status: status)
+            }
+        }
+        guard let photo = wire.toDomain(galleryId: galleryId, photoRoot: root) else {
             throw InstanceError.photoNotFound(photoId)
         }
         return photo
@@ -124,27 +138,40 @@ public actor RemoteInstance: Instance {
 
     private func resolvePhotoRoot() async throws -> URL {
         if let photoRoot { return photoRoot }
-        let data = try await api.fetch(APIRoute.meta.path())
-        let root = try Self.photoRoot(from: data, apiBase: api.baseURL)
-        cache?.save(data, origin: id, key: "meta")
+        let meta = try await client.call { client in
+            switch try await client.getMeta() {
+            case .ok(let ok): return try ok.body.json
+            case .undocumented(let status, _): throw unexpected(status: status)
+            }
+        }
+        cache?.save(Self.encoded(meta), origin: id, key: "meta")
+        let root = Self.photoRoot(from: meta, apiBase: api.baseURL)
         photoRoot = root
         return root
     }
 
     private func cachedPhotoRoot() -> URL? {
-        guard let data = cache?.load(origin: id, key: "meta") else { return nil }
-        return try? Self.photoRoot(from: data, apiBase: api.baseURL)
+        let meta: Operations.GetMeta.Output.Ok.Body.JsonPayload? = cached("meta")
+        return meta.map { Self.photoRoot(from: $0, apiBase: api.baseURL) }
     }
 
-    private static func photoRoot(from data: Data, apiBase: URL) throws -> URL {
-        let meta: MetaDTO = try PhotoDiaryAPI.decode(data)
+    private static func photoRoot(
+        from meta: Operations.GetMeta.Output.Ok.Body.JsonPayload, apiBase: URL
+    ) -> URL {
         if let cdn = meta.cdn, let url = URL(string: cdn.hasSuffix("/") ? cdn : cdn + "/") {
             return url
         }
         return apiBase
     }
-}
 
-private struct PhotoQuery: Encodable {
-    let lang: String
+    // The disk cache keeps each answer as the JSON the server sent, so
+    // an entry written before the generated client reads the same way.
+    private static func encoded<T: Encodable>(_ value: T) -> Data {
+        (try? JSONEncoder().encode(value)) ?? Data()
+    }
+
+    private func cached<T: Decodable>(_ key: String) -> T? {
+        guard let data = cache?.load(origin: id, key: key) else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
 }

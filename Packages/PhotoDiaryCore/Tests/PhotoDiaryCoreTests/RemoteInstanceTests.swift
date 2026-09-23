@@ -46,7 +46,8 @@ final class RemoteInstanceTests: XCTestCase {
         )
         let query = StubProtocol.requests.first { $0.url!.path.hasSuffix("/query") }!
         XCTAssertEqual(query.httpMethod, "POST")
-        XCTAssertEqual(query.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertTrue(
+            query.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("application/json") == true)
     }
 
     func testPhotoRootFallsBackToApiHostAndIsResolvedOnce() async throws {
@@ -70,7 +71,9 @@ final class RemoteInstanceTests: XCTestCase {
             case "/api/v1/meta":
                 return .init(status: 200, body: #"{"cdn":"https://cdn.example.test/"}"#)
             case "/api/v1/galleries":
-                return .init(status: 200, body: #"[{"id":"g1","title":"One","description":""}]"#)
+                return .init(
+                    status: 200,
+                    body: #"[{"id":"g1","hideMap":false,"title":"One","description":""}]"#)
             case "/api/v1/gallery-photos/g1/query":
                 return .init(
                     status: 200,
@@ -109,7 +112,7 @@ final class RemoteInstanceTests: XCTestCase {
         XCTAssertNil(missing)
     }
 
-    func testAGalleryLoadsDespiteAnUndatedPhotoAndAnUnreadableOne() async throws {
+    func testAGalleryLoadsDespiteAnUndatedPhoto() async throws {
         StubProtocol.handler = { request in
             switch request.url!.path {
             case "/api/v1/meta": return .init(status: 200, body: "{}")
@@ -119,10 +122,11 @@ final class RemoteInstanceTests: XCTestCase {
                     body: """
                         [
                           {"id":"undated.jpg","index":0,
-                           "taken":{"instant":{"year":null,"month":null,"day":null}}},
+                           "taken":{"instant":{"year":null,"month":null,"day":null}},
+                           "dimensions":{"original":{},"thumbnail":{}}},
                           {"id":"fine.jpg","index":1,
-                           "taken":{"instant":{"year":2024,"month":6,"day":1}}},
-                          {"id":"odd.jpg","index":2,"taken":"1999"}
+                           "taken":{"instant":{"year":2024,"month":6,"day":1}},
+                           "dimensions":{"original":{},"thumbnail":{}}}
                         ]
                         """
                 )
@@ -130,8 +134,9 @@ final class RemoteInstanceTests: XCTestCase {
                 return .init(
                     status: 200,
                     body: """
-                        {"id":"undated.jpg",
-                         "taken":{"instant":{"year":null,"month":null,"day":null}}}
+                        {"id":"undated.jpg","index":0,
+                         "taken":{"instant":{"year":null,"month":null,"day":null}},
+                         "dimensions":{"original":{},"thumbnail":{}}}
                         """
                 )
             default: return .init(status: 404)

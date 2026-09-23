@@ -15,8 +15,9 @@ Packages/PhotoDiaryCore/
 │   ├── Models/                     Domain types (Gallery, Photo, PhotoTimestamp, …)
 │   ├── Instance/                   The Instance protocol, the demo instance, the
 │   │                               registry, the open scope, restoration state
-│   ├── Remote/                     RemoteInstance: API client, wire models, session
-│   │                               cookies, on-disk response cache
+│   ├── Remote/                     RemoteInstance, the session and transport, the
+│   │                               mapping from server types, on-disk response cache
+│   ├── Generated/                  The API client, generated from the pinned spec
 │   ├── Pairing/                    Pairing tickets and service, Keychain session
 │   │                               store, registry persistence
 │   ├── Image/                      Image loading: Nuke for http(s), drawn tiles for
@@ -53,7 +54,7 @@ Each remote instance keeps the last JSON answer per endpoint on disk (`ResponseC
 
 All data access above `PhotoDiaryCore` goes through a single `Instance` protocol: `listGalleries()`, `listPhotos(inGallery:)`, `getPhoto(id:inGallery:)`, and the cached variants of the first two that answer from disk without touching the network. Two implementations:
 
-- **`RemoteInstance`** — talks to a real photo-diary server through `PhotoDiaryAPI`, a small hand-written client over the endpoints the app reads (`APIRoute`), with wire models (`WireModels.swift`) that decode only the fields it uses. A contract test checks both against the server's OpenAPI document, pinned at a release tag. Photo queries carry the app's language, so the server picks localized titles.
+- **`RemoteInstance`** — talks to a real photo-diary server through a client generated from the server's own OpenAPI document (pinned at a release, covering only the operations the app calls), over `PhotoDiaryAPI`, the hand-written session that handles cookies, refresh and pairing's redirect. The generated types are mapped to the app's own in one place. A contract test checks the calls against the oldest supported server.
 - **`DemoInstance`** — fixture data defined in code: two galleries and thirty photos with timestamps, places and coordinates. No network, no auth, no server. Runs identically on-device and in unit tests. Its photos are gradient tiles drawn per URL by `DemoImageLoader`, not bundled images.
 
 Views only ever depend on the protocol, never on either concrete implementation.
