@@ -38,29 +38,29 @@ public struct PairingService: Sendable {
 
     public func pair(_ ticket: PairingTicket) async throws -> RemoteInstance {
         let api = factory.makeAPI(origin: ticket.origin, cookies: SessionCookies())
-
-        var components = URLComponents(url: api.baseURL, resolvingAgainstBaseURL: false)!
-        components.path = APIRoute.consumeTicket.path()
-        components.queryItems = [
-            URLQueryItem(name: "token", value: ticket.token),
-            URLQueryItem(name: "redirect", value: "/"),
-        ]
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-
-        let (_, response) = try await api.send(request)
-        guard response.statusCode == 302 || (200..<300).contains(response.statusCode) else {
-            throw PairingError.rejected(status: response.statusCode)
+        let client = PhotoDiaryClient(api: api)
+        // The server answers with a redirect into the site, carrying the
+        // session cookies; the transport doesn't follow it.
+        try await client.call { client in
+            switch try await client.consumeTicket(query: .init(token: ticket.token, redirect: "/"))
+            {
+            case .found: return
+            case .unauthorized: throw PairingError.rejected(status: 401)
+            case .undocumented(let status, _) where (200..<300).contains(status): return
+            case .undocumented(let status, _): throw PairingError.rejected(status: status)
+            }
         }
         guard await api.currentCookies.refresh != nil else {
             throw PairingError.noSession
         }
-        let _: SessionIdentity = try await api.get(APIRoute.session.path())
+        // Proves the session before the instance is handed back.
+        try await client.call { client in
+            switch try await client.getSession() {
+            case .ok: return
+            case .unauthorized, .forbidden: throw InstanceError.sessionExpired
+            case .undocumented(let status, _): throw unexpected(status: status)
+            }
+        }
         return factory.make(origin: ticket.origin, api: api)
     }
-}
-
-struct SessionIdentity: Decodable, Sendable {
-    let id: String
-    let isAdmin: Bool
 }

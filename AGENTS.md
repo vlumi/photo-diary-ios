@@ -53,16 +53,17 @@ The Core / Kit split matches sibling projects (`../donpa`, `../skid`). Core is w
 
 ## Server API
 
-The client is hand-written: `PhotoDiaryAPI` covers the handful of endpoints the app reads, listed once in `Remote/APIRoute.swift`, and `WireModels.swift` decodes only the fields it uses, so additions on the server don't break it. Nothing is generated.
+The client is generated from the server's own OpenAPI document with Apple's [swift-openapi-generator](https://github.com/apple/swift-openapi-generator), and the generated code is committed:
 
-The server's OpenAPI document is pinned twice under `Tests/PhotoDiaryCoreTests/Fixtures/`, and `ServerContractTests` checks the client against both:
+- `Packages/PhotoDiaryCore/OpenAPI/openapi.json` is the server's document, pinned at a release tag. `make sync-schema TAG=v1.1.1` moves the pin and regenerates; the compiler then holds the app to that release. Do it as its own PR so the spec and code diff is reviewable.
+- `OpenAPI/openapi-generator-config.yaml` lists the operations the app calls, by the server's operation names (`listGalleries`, `queryGalleryPhotos`, …). To call another, add its name and run `make generate-client`.
+- `Sources/PhotoDiaryCore/Generated/` is the output. Never edit it; SwiftLint excludes it and each file opts out of swift-format. The generator itself lives in `Tools/OpenAPIGenerator`, outside the app's dependency graph, so the app's build, the release lane and CI never run it; only the small `OpenAPIRuntime` and `HTTPTypes` packages ship.
+- `Remote/ServerModels+Domain.swift` maps the generated types to the app's own. It is the one place that decides what a missing value means.
+- `PhotoDiaryAPI` stays hand-written and is the generated client's transport (`PhotoDiaryAPI+Transport.swift`): it owns the session cookies, the Keychain handoff, one refresh and retry on a 401, and not following redirects (pairing reads its cookies off the 302). `PhotoDiaryClient.call` turns the client's errors back into `InstanceError`.
 
-- `openapi.json` — the newest server the app is checked against. Every route in `APIRoute.all` exists with the parameters the app sends, the session cookies are the ones the server reads, the 401 and refresh behavior the retry loop relies on is documented, and the typed models decode the least the server promises. A failure after moving this pin is a server change the app has to follow.
-- `openapi-min.json` — the oldest server the app supports (README's "Compatibility"). The routes, parameters and model checks run against it too, so the app can rely only on what that server already offered: a field a later server added must be optional in the wire models, and a parameter it added can't be sent unconditionally. A failure here means the app started needing a newer server; either make the new thing optional or raise the minimum deliberately.
+Generated decoding is all-or-nothing per response: one element that doesn't match the document fails the whole list. That is acceptable because the server serializes every response through the same typed schema, but it means the document must be right. A field the server sometimes omits has to be optional there, not just in practice.
 
-`make sync-schema TAG=v1.1.0` moves the first pin and `make sync-schema TAG=v1.0.7 PIN=min` the second; do either as its own PR so the spec diff is reviewable. Add a route to `APIRoute` rather than writing its path inline, or the contract test won't see it. The server holds up its side with its own check that a release never breaks what the previous one documented.
-
-Since photo-diary 1.1.0 the server describes photos and galleries, and the suite checks the models against that in both directions: a response holding only what the server promises must decode (so a model can't require an optional field; a photo's date parts may be null, and the app leaves such a photo out), and a response holding everything the server describes must come out of the mapping with every field the app reads filled in (so a renamed field fails the test instead of silently decoding as nil).
+`ServerContractTests` covers what the compiler can't: the oldest supported server (`Fixtures/openapi-min.json`, moved with `make sync-schema TAG=v1.0.7 PIN=min`) must have every operation the app calls, take every parameter it sends, and promise enough for the generated types to decode; and the document must still describe the session the transport is written for.
 
 ## Deliberately out of scope
 

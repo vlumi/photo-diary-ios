@@ -9,6 +9,8 @@ included:
 excluded:
   - .build
   - Packages/PhotoDiaryCore/.build
+  # Generated from the server's OpenAPI document (make generate-client).
+  - Packages/PhotoDiaryCore/Sources/PhotoDiaryCore/Generated
 
 opt_in_rules:
   - empty_count

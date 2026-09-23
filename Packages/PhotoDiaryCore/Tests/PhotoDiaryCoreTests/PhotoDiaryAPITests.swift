@@ -55,8 +55,16 @@ func stubbedAPI(
     )
 }
 
-private struct GalleryRow: Decodable, Sendable {
-    let id: String
+/// The gallery list, through the generated client and this session.
+private func listGalleries(_ api: PhotoDiaryAPI) async throws -> [Components.Schemas.Gallery] {
+    try await PhotoDiaryClient(api: api).call { client in
+        switch try await client.listGalleries() {
+        case .ok(let ok): return try ok.body.json
+        case .unauthorized: throw InstanceError.sessionExpired
+        case .forbidden: throw InstanceError.server(status: 403)
+        case .undocumented(let status, _): throw unexpected(status: status)
+        }
+    }
 }
 
 final class PhotoDiaryAPITests: XCTestCase {
@@ -80,8 +88,8 @@ final class PhotoDiaryAPITests: XCTestCase {
             return .init(status: 200, body: "[]")
         }
         let api = stubbedAPI()
-        let _: [GalleryRow] = try await api.get("/api/v1/galleries")
-        let _: [GalleryRow] = try await api.get("/api/v1/galleries")
+        _ = try await listGalleries(api)
+        _ = try await listGalleries(api)
 
         XCTAssertNil(StubProtocol.requests[0].value(forHTTPHeaderField: "Cookie"))
         XCTAssertEqual(
@@ -104,13 +112,13 @@ final class PhotoDiaryAPITests: XCTestCase {
                     body: #"{"id":"u","isAdmin":false,"editorGalleries":[]}"#
                 )
             case ("GET", "/api/v1/galleries"):
-                return .init(status: 200, body: #"[{"id":"g1"}]"#)
+                return .init(status: 200, body: #"[{"id":"g1","hideMap":false}]"#)
             default:
                 return .init(status: 500)
             }
         }
         let api = stubbedAPI(cookies: SessionCookies(access: "stale", refresh: "r1"))
-        let rows: [GalleryRow] = try await api.get("/api/v1/galleries")
+        let rows = try await listGalleries(api)
 
         XCTAssertEqual(rows.map(\.id), ["g1"])
         XCTAssertEqual(
@@ -131,7 +139,7 @@ final class PhotoDiaryAPITests: XCTestCase {
             onCookiesChanged: { changes.record($0) }
         )
         do {
-            let _: [GalleryRow] = try await api.get("/api/v1/galleries")
+            _ = try await listGalleries(api)
             XCTFail("expected sessionExpired")
         } catch InstanceError.sessionExpired {
             // expected
@@ -148,7 +156,7 @@ final class PhotoDiaryAPITests: XCTestCase {
         StubProtocol.handler = { _ in .init(status: 401) }
         let api = stubbedAPI()
         do {
-            let _: [GalleryRow] = try await api.get("/api/v1/galleries")
+            _ = try await listGalleries(api)
             XCTFail("expected sessionExpired")
         } catch InstanceError.sessionExpired {
             // expected
@@ -192,7 +200,7 @@ final class PhotoDiaryAPITests: XCTestCase {
             )
         }
         let api = stubbedAPI(cookies: SessionCookies(access: "a1", refresh: "r1"))
-        let _: [GalleryRow] = try await api.get("/api/v1/galleries")
+        _ = try await listGalleries(api)
         let current = await api.currentCookies
         XCTAssertEqual(current, SessionCookies(access: nil, refresh: "r1"))
     }
