@@ -1,5 +1,10 @@
-# photo-diary-ios — command-line build/test/lint, so you never have to open Xcode.
-# Run `make` (or `make help`) to list targets.
+# photo-diary-ios — command-line build/run/test, so you never have to open Xcode.
+#
+# The Scripts/*.sh do the actual work (one job each); this Makefile wires up the
+# dependencies (e.g. the Xcode project is regenerated only when project.yml or a
+# string catalog changes) and gives short targets. Run `make` (or `make help`)
+# to list them, grouped: a `##@` line starts a group, a `##~` line is a note
+# under it.
 
 .DEFAULT_GOAL := help
 
@@ -7,7 +12,11 @@
 help:  ## List the available commands
 	@echo "photo-diary-ios — available make targets:"
 	@awk 'BEGIN {FS = ":.*## "} \
-		/^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+		/^##@ / {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} \
+		/^##~ / {printf "  \033[2m%s\033[0m\n", substr($$0, 5); next} \
+		/^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-26s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+##@ Dev — build, run, test
 
 # Inputs xcodegen reads — regenerate the project when any of these change.
 # Info.plist is not in this list: xcodegen synthesises it under
@@ -36,31 +45,6 @@ build: PhotoDiary.xcodeproj  ## Build the app (simulator, unsigned)
 
 # A staged launch opens where the variables say and keeps all of it in memory
 # (LaunchStage); the variables are listed at the top of Scripts/stage.sh.
-.PHONY: stage
-stage: build  ## Launch the last build staged for a screenshot (SCOPE=, GALLERY=, TAB=, CAMERA=, CALENDAR=, PHOTO=, PINS=, SELECT=, SHEET=, DEMO_LANG=)
-	@Scripts/stage.sh
-
-# App Store (Scripts/asc: listing.json and shots.json are the sources; asc-* are dry runs, -apply writes)
-.PHONY: shots
-shots: PhotoDiary.xcodeproj  ## Capture the store screenshots: [LANGS=en] [OUT=shots] [PAUSE=1] [ONLY=a,b] [INSTANCE=<host>]
-	@Scripts/shoot.sh
-
-.PHONY: asc-listing
-asc-listing:  ## Show what the listing text in listing.json would change in ASC
-	@Scripts/asc/run.sh listing
-
-.PHONY: asc-listing-apply
-asc-listing-apply:  ## Write the listing text to ASC
-	@Scripts/asc/run.sh listing --apply
-
-.PHONY: asc-screenshots
-asc-screenshots:  ## Show the screenshot upload plan from shots/
-	@Scripts/asc/run.sh screens
-
-.PHONY: asc-screenshots-apply
-asc-screenshots-apply:  ## Replace the ASC screenshot sets with shots/
-	@Scripts/asc/run.sh screens --apply
-
 .PHONY: test
 test:  ## Run the package logic tests
 	@swift test --package-path Packages/PhotoDiaryCore
@@ -87,7 +71,54 @@ ci:  ## Run every check CI runs (lint + test + build), so a green run here is a 
 	@$(MAKE) --no-print-directory test
 	@$(MAKE) --no-print-directory build
 
-# Release lane — see RELEASING.md. UPLOAD=0 stops after export.
+.PHONY: clean
+clean:  ## Remove the generated project + local build output
+	@rm -rf PhotoDiary.xcodeproj .build-xcode Packages/PhotoDiaryCore/.build dist
+	@echo "removed PhotoDiary.xcodeproj, .build-xcode, package .build, dist"
+
+##@ API client — generated from the server's OpenAPI document
+
+.PHONY: sync-schema
+sync-schema:  ## Pin the server's OpenAPI document at TAG and regenerate the client (TAG=v1.1.1; PIN=min for the oldest supported server)
+	@Scripts/sync-schema.sh $(TAG) $(PIN)
+
+.PHONY: generate-client
+generate-client:  ## Regenerate the API client from the pinned spec (after editing OpenAPI/openapi-generator-config.yaml)
+	@Scripts/generate-client.sh
+
+##@ App Store — listing.json and shots.json in Scripts/asc are the sources
+##~ asc-* are dry runs; -apply writes to App Store Connect (Scripts/asc/README.md)
+
+# A staged launch opens where the variables say and keeps all of it in memory
+# (LaunchStage); the variables are listed at the top of Scripts/stage.sh.
+.PHONY: stage
+stage: build  ## Launch the last build staged for a shot (SCOPE=, GALLERY=, TAB=, CAMERA=, CALENDAR=, PHOTO=, PINS=, SELECT=, SHEET=, DEMO_LANG=)
+	@Scripts/stage.sh
+
+.PHONY: shots
+shots: PhotoDiary.xcodeproj  ## Capture the store screenshots: [LANGS=en] [OUT=shots] [PAUSE=1] [ONLY=a,b] [INSTANCE=<host>]
+	@Scripts/shoot.sh
+
+.PHONY: asc-listing
+asc-listing:  ## Show what the listing text in listing.json would change in ASC
+	@Scripts/asc/run.sh listing
+
+.PHONY: asc-listing-apply
+asc-listing-apply:  ## Write the listing text to ASC
+	@Scripts/asc/run.sh listing --apply
+
+.PHONY: asc-screenshots
+asc-screenshots:  ## Show the screenshot upload plan from shots/
+	@Scripts/asc/run.sh screens
+
+.PHONY: asc-screenshots-apply
+asc-screenshots-apply:  ## Replace the ASC screenshot sets with shots/
+	@Scripts/asc/run.sh screens --apply
+
+##@ Release lane
+
+##~ Cut a build: make release — runs preflight → publish → tag → distribute (RELEASING.md)
+# UPLOAD=0 stops after export.
 UPLOAD ?= 1
 DIST_FLAGS := $(if $(filter 0,$(UPLOAD)),--no-upload,)
 
@@ -122,16 +153,3 @@ release-distribute-retry:  ## Re-distribute an already-tagged release (no PR/tag
 .PHONY: release-upload
 release-upload:  ## Upload the already-built dist/ package (no rebuild)
 	@Scripts/release-distribute.sh --upload-only
-
-.PHONY: sync-schema
-sync-schema:  ## Pin the server's OpenAPI document at TAG and regenerate the client (TAG=v1.1.1; PIN=min for the oldest supported server)
-	@Scripts/sync-schema.sh $(TAG) $(PIN)
-
-.PHONY: generate-client
-generate-client:  ## Regenerate the API client from the pinned spec (after editing OpenAPI/openapi-generator-config.yaml)
-	@Scripts/generate-client.sh
-
-.PHONY: clean
-clean:  ## Remove the generated project + local build output
-	@rm -rf PhotoDiary.xcodeproj .build-xcode Packages/PhotoDiaryCore/.build dist
-	@echo "removed PhotoDiary.xcodeproj, .build-xcode, package .build, dist"
