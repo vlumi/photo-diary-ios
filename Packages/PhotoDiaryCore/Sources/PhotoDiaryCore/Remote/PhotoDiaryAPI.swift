@@ -13,6 +13,7 @@ public actor PhotoDiaryAPI {
     private let session: URLSession
     private var cookies: SessionCookies
     private let onCookiesChanged: (@Sendable (SessionCookies) -> Void)?
+    private var persisting: Bool
 
     /// - Parameters:
     ///   - origin: scheme + host (+ port) of the instance, e.g.
@@ -20,13 +21,17 @@ public actor PhotoDiaryAPI {
     ///   - cookies: a previously persisted session, if any.
     ///   - onCookiesChanged: called whenever the server rotates or
     ///     clears a cookie — the persistence hook.
+    ///   - persisting: false holds the hook back until
+    ///     `startPersisting()`.
     ///   - configuration: overridable for tests (URLProtocol stubs).
     public init(
         origin: String,
         cookies: SessionCookies = SessionCookies(),
         onCookiesChanged: (@Sendable (SessionCookies) -> Void)? = nil,
+        persisting: Bool = true,
         configuration: URLSessionConfiguration = .ephemeral
     ) {
+        self.persisting = persisting
         self.baseURL = URL(string: origin + "/")!
         self.cookies = cookies
         self.onCookiesChanged = onCookiesChanged
@@ -43,6 +48,21 @@ public actor PhotoDiaryAPI {
     }
 
     public var currentCookies: SessionCookies { cookies }
+
+    /// Hands the session to the hook from now on, starting with the
+    /// cookies held now.
+    public func startPersisting() {
+        persisting = true
+        onCookiesChanged?(cookies)
+    }
+
+    public func stopPersisting() {
+        persisting = false
+    }
+
+    private func cookiesChanged() {
+        if persisting { onCookiesChanged?(cookies) }
+    }
 
     /// One request through the session: cookies attached and captured,
     /// and one refresh and retry on a 401. The generated client's
@@ -88,7 +108,7 @@ public actor PhotoDiaryAPI {
             // retry with. Drop both cookies so the next attempt doesn't
             // loop, and let the UI route to re-pairing.
             cookies = SessionCookies()
-            onCookiesChanged?(cookies)
+            cookiesChanged()
             throw InstanceError.sessionExpired
         }
     }
@@ -97,7 +117,7 @@ public actor PhotoDiaryAPI {
         let before = cookies
         cookies.apply(response: response, url: url)
         if cookies != before {
-            onCookiesChanged?(cookies)
+            cookiesChanged()
         }
     }
 

@@ -12,6 +12,13 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Forgetting an instance asks first, and a forgotten demo can be shown again from the front page.
+- Swiping away the editor for a new todo pin no longer leaves the map unable to pan or zoom.
+- Deleting a todo pin asks first, an editor with unsaved changes can't be swiped away, and a pin that fails to save says so and keeps the editor open.
+- Forgetting an instance also signs this device out of it on the server, and a pairing link for a server that's already paired says it will replace that pairing.
+- Sessions stay on this device: a restored backup or a new phone pairs again instead of carrying them over.
+- A plain-http pairing link is accepted only for a server on the local network.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
