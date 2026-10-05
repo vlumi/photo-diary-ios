@@ -36,8 +36,8 @@ What the API tooling does not cover, set once on the record:
   shared between users.
 - **App Privacy**: *Data Not Collected*. The app talks only to servers the
   user pairs it with; location and the camera are used on the device, and
-  todo pins never leave it. The privacy policy URL is in `listing.json`
-  (`PRIVACY.md` in this repo).
+  todo pins never leave it. The privacy policy URL is in `listing.json`:
+  photodiary.misaki.fi/privacy/, the site's copy of `PRIVACY.md` in this repo.
 - **Pricing and availability**: free, all territories.
 - **Review notes**: the app needs a Photo Diary server to show real photos;
   the built-in Demo instance on the front page works without one. Give the

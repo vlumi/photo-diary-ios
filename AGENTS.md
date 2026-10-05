@@ -16,7 +16,7 @@ One place per concern — don't duplicate, link:
 | **What's next, and when** | [ROADMAP.md](ROADMAP.md) |
 | **What shipped** | [CHANGELOG.md](CHANGELOG.md) |
 | **The App Store listing and screenshots** | [Scripts/asc/README.md](Scripts/asc/README.md), [Scripts/asc/SCREENSHOTS.md](Scripts/asc/SCREENSHOTS.md) |
-| **What the app does with data** | [PRIVACY.md](PRIVACY.md) — the policy the store listing links to |
+| **What the app does with data** | [PRIVACY.md](PRIVACY.md) — the policy the store listing links to, published at [photodiary.misaki.fi/privacy](https://photodiary.misaki.fi/privacy/) (the site copies it) |
 
 When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and into the prose above it.
 
