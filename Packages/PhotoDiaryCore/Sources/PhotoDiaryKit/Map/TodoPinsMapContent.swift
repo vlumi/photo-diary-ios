@@ -63,7 +63,9 @@ struct TodoPinsMapContent: MapContent {
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
                     .highPriorityGesture(moveGesture(for: pin))
-                    .onTapGesture { onTap(tag) }
+                    // Simultaneous, not plain: the high-priority long press
+                    // claims the touch and starves an ordinary tap gesture.
+                    .simultaneousGesture(TapGesture().onEnded { onTap(tag) })
             }
             .tag(tag)
         }
