@@ -34,6 +34,33 @@ build: PhotoDiary.xcodeproj  ## Build the app (simulator, unsigned)
 		-destination 'generic/platform=iOS Simulator' -derivedDataPath .build-xcode \
 		CODE_SIGNING_ALLOWED=NO -quiet
 
+# A staged launch opens where the variables say and keeps all of it in memory
+# (LaunchStage); the variables are listed at the top of Scripts/stage.sh.
+.PHONY: stage
+stage: build  ## Launch the last build staged for a screenshot (SCOPE=, GALLERY=, TAB=, CAMERA=, CALENDAR=, PHOTO=, PINS=, SELECT=, SHEET=, DEMO_LANG=)
+	@Scripts/stage.sh
+
+# App Store (Scripts/asc: listing.json and shots.json are the sources; asc-* are dry runs, -apply writes)
+.PHONY: shots
+shots: PhotoDiary.xcodeproj  ## Capture the store screenshots: [LANGS=en,ja] [OUT=shots] [PAUSE=1] [ONLY=a,b] [INSTANCE=<host>]
+	@Scripts/shoot.sh
+
+.PHONY: asc-listing
+asc-listing:  ## Show what the listing text in listing.json would change in ASC
+	@Scripts/asc/run.sh listing
+
+.PHONY: asc-listing-apply
+asc-listing-apply:  ## Write the listing text to ASC
+	@Scripts/asc/run.sh listing --apply
+
+.PHONY: asc-screenshots
+asc-screenshots:  ## Show the screenshot upload plan from shots/
+	@Scripts/asc/run.sh screens
+
+.PHONY: asc-screenshots-apply
+asc-screenshots-apply:  ## Replace the ASC screenshot sets with shots/
+	@Scripts/asc/run.sh screens --apply
+
 .PHONY: test
 test:  ## Run the package logic tests
 	@swift test --package-path Packages/PhotoDiaryCore
