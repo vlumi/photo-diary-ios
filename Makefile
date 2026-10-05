@@ -92,7 +92,7 @@ generate-client:  ## Regenerate the API client from the pinned spec (after editi
 # A staged launch opens where the variables say and keeps all of it in memory
 # (LaunchStage); the variables are listed at the top of Scripts/stage.sh.
 .PHONY: stage
-stage: build  ## Launch the last build staged for a shot (SCOPE=, GALLERY=, TAB=, CAMERA=, CALENDAR=, PHOTO=, PINS=, SELECT=, SHEET=, DEMO_LANG=)
+stage: build  ## Launch the last build staged for a shot, signed in to photos.misaki.fi as guest (SIGN_IN=, SCOPE=, GALLERY=, TAB=, CAMERA=, CALENDAR=, PHOTO=, PINS=, SELECT=, SHEET=, DEMO_LANG=)
 	@Scripts/stage.sh
 
 .PHONY: shots

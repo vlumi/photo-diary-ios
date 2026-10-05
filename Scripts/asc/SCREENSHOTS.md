@@ -27,19 +27,23 @@ asked for, reads its tab, map camera and calendar path from an in-memory
 store seeded from the variables, puts the given todo pins in an in-memory
 store, and opens the photo, selection or sheet asked for once its screen is
 up. Nothing it does is saved: the simulator's own scope, tabs and pins are
-as they were at the next ordinary launch. The paired instances are read, not
-written, so a staged launch can open any instance paired on that simulator.
+as they were at the next ordinary launch.
 
 ## Whose photos
 
+A staged launch signs in to photos.misaki.fi as the read-only guest account
+by default (`SIGN_IN`, `SIGN_IN_USER`, `SIGN_IN_PASSWORD` in `stage.sh`), in
+memory only: the front page holds the built-in demo and that instance, on any
+simulator, with nothing paired by hand and nothing saved. Only Debug builds
+can be staged, so the store build carries neither the sign-in nor any host.
+
 The values in `shots.json` stage the built-in demo, which draws gradient
-tiles, to prove the flow. For the real set, pair the account the shots come
-from on the simulator `stage.sh` picks (an iPhone 17 Pro Max, the booted one
-first; `make stage SCOPE=front` shows which), then set `instance` to its host
-(or `INSTANCE=<host> make shots`) and swap each shot's gallery, month, photo
-id, camera and selection to that account's photos. Map tags are
-`photo:<id>` or `cluster:<id>`; a photo inside a pile at the shot's zoom has
-no tag of its own, so pick a camera where it stands alone, or select the pile.
+tiles, to prove the flow. For the real set, set `instance` to
+`photos.misaki.fi` (or `INSTANCE=photos.misaki.fi make shots`) and swap each
+shot's gallery, month, photo id, camera and selection to its photos. Map tags
+are `photo:<id>` or `cluster:<id>`; a photo inside a pile at the shot's zoom
+has no tag of its own, so pick a camera where it stands alone, or select the
+pile. `SIGN_IN=` stages the simulator's own pairings instead.
 
 ## Size
 

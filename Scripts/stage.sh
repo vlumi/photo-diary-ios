@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
-# Launch the last simulator build staged for a screenshot (LaunchStage in
-# PhotoDiaryCore): where it opens and what is on screen, from the variables
-# below. A staged launch keeps its state in memory, so the simulator's own
-# saved scope, tabs and todo pins are left as they were.
-#   SCOPE=front|demo|<host>        the front page, or the instance to open (the
-#                                  instance must be paired on this simulator)
+# Launch the last simulator build (Debug: release builds are never staged)
+# staged for a screenshot (LaunchStage in PhotoDiaryCore): where it opens and
+# what is on screen, from the variables below. A staged launch keeps its state
+# in memory, so the simulator's own saved scope, tabs and todo pins are left as
+# they were.
+#   SIGN_IN=<host>                 sign in to that instance for the launch, in
+#                                  memory only: the front page then holds the
+#                                  demo and it (default photos.misaki.fi;
+#                                  SIGN_IN= for the simulator's own pairings)
+#   SIGN_IN_USER, SIGN_IN_PASSWORD its account (default guest / guest, the
+#                                  read-only account App Review is given too)
+#   SCOPE=front|demo|<host>        the front page, or the instance to open
 #   GALLERY=<id>                   that instance's gallery as the scope
 #   TAB=map|calendar
 #   CAMERA=lat,lng,span            the map camera (or lat,lng,latSpan,lngSpan)
@@ -23,6 +29,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BUNDLE="fi.misaki.photodiary"
+SIGN_IN="${SIGN_IN-photos.misaki.fi}"
 pat="${DEVICE:-iPhone 17 Pro Max}"
 
 devices=$(xcrun simctl list devices available | grep -E "$pat" || true)
@@ -47,6 +54,8 @@ xcrun simctl terminate "$udid" "$BUNDLE" >/dev/null 2>&1 || true
 # Installing over the app keeps its data: the paired instances stay.
 xcrun simctl install "$udid" "$app"
 xcrun simctl launch "$udid" "$BUNDLE" -photodiary-stage \
+    ${SIGN_IN:+-photodiary-sign-in "$SIGN_IN" -photodiary-user "${SIGN_IN_USER:-guest}" \
+        -photodiary-password "${SIGN_IN_PASSWORD:-guest}"} \
     ${SCOPE:+-photodiary-scope "$SCOPE"} ${GALLERY:+-photodiary-gallery "$GALLERY"} \
     ${TAB:+-photodiary-tab "$TAB"} ${CAMERA:+-photodiary-camera "$CAMERA"} \
     ${CALENDAR:+-photodiary-calendar "$CALENDAR"} ${PHOTO:+-photodiary-photo "$PHOTO"} \
