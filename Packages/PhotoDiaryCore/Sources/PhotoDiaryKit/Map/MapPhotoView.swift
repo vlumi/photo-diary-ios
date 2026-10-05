@@ -268,7 +268,9 @@ public struct MapPhotoView: View {
     func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         let region = MapRegion(region)
         let build = MapClustering.build(pins: pins, in: region)
-        clusters = build.clusters
+        // Each new set re-renders every annotation; a small pan mostly
+        // rebuilds the same one.
+        if build.clusters != clusters { clusters = build.clusters }
         clusteredRegion = region
         clusteredMargin = build.margin
     }

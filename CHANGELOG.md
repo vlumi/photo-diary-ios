@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Moving through a large gallery's years and months no longer pauses at each step, and the map loads an instance's galleries side by side instead of one after another.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
