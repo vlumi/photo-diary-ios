@@ -296,6 +296,18 @@
       },
       "extractionState" : "manual"
     },
+    "Couldn't save the pin" : {
+      "comment" : "Title of the alert when saving or deleting a todo pin fails; the editor stays open.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ピンを保存できませんでした"
+          }
+        }
+      }
+    },
     "Delete pin" : {
       "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only.",
       "localizations" : {
@@ -307,6 +319,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Delete this pin?" : {
+      "comment" : "Title of the confirmation before deleting a todo pin in its editor.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このピンを削除しますか？"
+          }
+        }
+      }
     },
     "Dismiss" : {
       "comment" : "Accessibility label of the close button on a map banner and on the front page's notice.",
@@ -380,6 +404,18 @@
       },
       "extractionState" : "manual"
     },
+    "Forget %@?" : {
+      "comment" : "Title of the confirmation before forgetting an instance. The argument is the instance name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@を削除しますか？"
+          }
+        }
+      }
+    },
     "Images load with Nuke" : {
       "comment" : "Acknowledgment link in the About section; Nuke is the name of an open-source image loading library.",
       "extractionState" : "manual",
@@ -388,6 +424,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "画像の読み込みにNukeを使用"
+          }
+        }
+      }
+    },
+    "Its note and photo go with it." : {
+      "comment" : "Message of the confirmation before deleting a todo pin.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモと写真も削除されます。"
           }
         }
       }
@@ -607,6 +655,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "OK" : {
+      "comment" : "Button that closes an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     },
     "Off" : {
       "comment" : "Accessibility value of the follow-my-location toggle while it is not.",
@@ -968,6 +1028,18 @@
       },
       "extractionState" : "manual"
     },
+    "Show the demo" : {
+      "comment" : "Button on the front page that adds the built-in demo back after it was forgotten.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デモを表示"
+          }
+        }
+      }
+    },
     "Shows a preview." : {
       "comment" : "Accessibility hint of a photo pin on the map: tapping shows its thumbnail callout.",
       "localizations" : {
@@ -1112,6 +1184,18 @@
       },
       "extractionState" : "manual"
     },
+    "The demo can be shown again from this page." : {
+      "comment" : "Message of the confirmation before forgetting the built-in demo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デモはこのページから再び表示できます。"
+          }
+        }
+      }
+    },
     "The gallery you were viewing on %@ is no longer there." : {
       "comment" : "Notice on the front page after the app left a gallery that the server no longer lists. The argument is the instance name.",
       "localizations" : {
@@ -1183,6 +1267,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "To see it again, pair this device with it again." : {
+      "comment" : "Message of the confirmation before forgetting a paired instance.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再び表示するには、このデバイスをもう一度ペアリングしてください。"
+          }
+        }
+      }
     },
     "Todo pin" : {
       "comment" : "Accessibility label of a todo pin on the map when it has no note.",
