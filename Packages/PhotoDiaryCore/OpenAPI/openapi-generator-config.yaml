@@ -13,6 +13,7 @@ filter:
   operations:
     - getMeta
     - getSession
+    - logOut
     - refreshSession
     - consumeTicket
     - listGalleries

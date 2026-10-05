@@ -12,6 +12,12 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Forgetting an instance asks first, and a forgotten demo can be shown again from the front page.
+- Swiping away the editor for a new todo pin no longer leaves the map unable to pan or zoom.
+- Deleting a todo pin asks first, an editor with unsaved changes can't be swiped away, and a pin that fails to save says so and keeps the editor open.
+- Forgetting an instance also signs this device out of it on the server, and a pairing link for a server that's already paired says it will replace that pairing.
+- Sessions stay on this device: a restored backup or a new phone pairs again instead of carrying them over.
+- A plain-http pairing link is accepted only for a server on the local network.
 - Moving through a large gallery's years and months no longer pauses at each step, and the map loads an instance's galleries side by side instead of one after another.
 
 ### build 12 — 2026-10-05

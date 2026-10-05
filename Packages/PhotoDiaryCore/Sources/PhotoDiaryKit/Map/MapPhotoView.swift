@@ -111,11 +111,10 @@ public struct MapPhotoView: View {
                     }
                 )
             }
-            .sheet(item: $editorPresentation) { presentation in
-                TodoPinEditor(mode: presentation.mode) {
-                    editorPresentation = nil
-                    placing = nil
-                }
+            // However the sheet closes, a swipe included, the pin being
+            // placed goes: while it's up, the map can't pan or zoom.
+            .sheet(item: $editorPresentation, onDismiss: { placing = nil }) { presentation in
+                TodoPinEditor(mode: presentation.mode) { editorPresentation = nil }
             }
             .fullScreenCover(item: $viewingPhoto) { pin in
                 if let photo = pin.photo {

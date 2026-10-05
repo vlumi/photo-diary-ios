@@ -54,6 +54,16 @@ public actor RemoteInstance: Instance {
         self.now = now
     }
 
+    /// Ends the session on the server too, once the app forgets the
+    /// instance or replaces its session. Saving stops first: the
+    /// server's answer clears the cookies, which must not reach the
+    /// Keychain, where a new session for this origin may already be.
+    /// Best effort; offline, the session simply runs out.
+    public func signOut() async {
+        await api.stopPersisting()
+        _ = try? await client.call { client in try await client.logOut() }
+    }
+
     public func listGalleries() async throws -> [Gallery] {
         let galleries = try await client.call { client in
             switch try await client.listGalleries() {
