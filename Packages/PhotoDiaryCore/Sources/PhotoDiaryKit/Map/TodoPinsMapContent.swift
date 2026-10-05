@@ -43,7 +43,7 @@ struct TodoPinsMapContent: MapContent {
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
-    let onTap: (String) -> Void
+    let onTap: (MapPinSelection) -> Void
     /// Moving without a drag, for VoiceOver.
     let onMoveToCenter: (TodoPin) -> Void
 
@@ -51,18 +51,18 @@ struct TodoPinsMapContent: MapContent {
         ForEach(pins) { pin in
             let lifted = draggedPin?.id == pin.id
             let coordinate = lifted ? draggedPin!.coordinate : pin.coordinate
-            let tag = "todo:\(pin.id.uuidString)"
+            let selection = MapPinSelection.todo(pin.id)
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
                     .highPriorityGesture(moveGesture(for: pin))
                     // Simultaneous, not plain: the high-priority long press
                     // claims the touch and starves an ordinary tap gesture.
-                    .simultaneousGesture(TapGesture().onEnded { onTap(tag) })
+                    .simultaneousGesture(TapGesture().onEnded { onTap(selection) })
                     .accessibilityAction(named: Text("Move to map center")) {
                         onMoveToCenter(pin)
                     }
             }
-            .tag(tag)
+            .tag(selection)
         }
         if let provisionalPin {
             Annotation("", coordinate: provisionalPin) {

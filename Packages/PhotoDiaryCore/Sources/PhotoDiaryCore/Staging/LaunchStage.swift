@@ -37,6 +37,13 @@ public struct LaunchStage: Equatable, Sendable {
         public let password: String
     }
 
+    /// What the map selects once it's up: a pin by name, or the first
+    /// todo pin, whose id a staged launch can't know in advance.
+    public enum Selection: Equatable, Sendable {
+        case firstTodo
+        case pin(MapPinSelection)
+    }
+
     public enum Sheet: String, Sendable {
         case settings
         case pins
@@ -49,7 +56,7 @@ public struct LaunchStage: Equatable, Sendable {
     public var calendar: CalendarStop?
     public var photoId: String?
     public var pins: [Pin] = []
-    public var selection: String?
+    public var selection: Selection?
     public var sheet: Sheet?
     public var signIn: SignIn?
 
@@ -74,7 +81,9 @@ public struct LaunchStage: Equatable, Sendable {
         calendar = value("calendar").flatMap(Self.calendarStop)
         photoId = value("photo")
         pins = value("pins").map(Self.pins) ?? []
-        selection = value("select")
+        selection = value("select").flatMap { name in
+            name == "todo" ? .firstTodo : MapPinSelection(name: name).map(Selection.pin)
+        }
         sheet = value("sheet").flatMap(Sheet.init(rawValue:))
         if let host = value("sign-in"), let user = value("user"), let password = value("password") {
             signIn = SignIn(

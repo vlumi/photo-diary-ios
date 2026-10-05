@@ -85,7 +85,7 @@ extension LaunchStage {
 /// back.
 final class StageCues: @unchecked Sendable {
     private var photoId: String?
-    private var selection: String?
+    private var selection: LaunchStage.Selection?
     private var sheet: LaunchStage.Sheet?
     /// Staged shots show the app as a regular user sees it, without
     /// first-run hints.
@@ -104,7 +104,7 @@ final class StageCues: @unchecked Sendable {
         return photoId
     }
 
-    func takeSelection() -> String? {
+    func takeSelection() -> LaunchStage.Selection? {
         defer { selection = nil }
         return selection
     }

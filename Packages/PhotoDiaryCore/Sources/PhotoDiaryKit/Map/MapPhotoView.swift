@@ -5,7 +5,7 @@ import SwiftUI
 
 /// A tap recognized on an annotation view, ahead of MapKit.
 struct OwnTap {
-    let tag: String
+    let selection: MapPinSelection
     let at: Date
     var handled: Bool
 }
@@ -35,11 +35,11 @@ public struct MapPhotoView: View {
     // shows a thin bar instead.
     @State private var isRefreshing = false
     @State private var notice: MapNotice?
-    @State var selection: String?
+    @State var selection: MapPinSelection?
     @State var cameraPosition: MapCameraPosition = .automatic
     @State private var presented: PhotoPagerSelection?
     // nil also when a selection zoomed in rather than opened a callout.
-    @State var calloutTag: String?
+    @State var calloutSelection: MapPinSelection?
     @State private var photosById: [String: Photo] = [:]
     @State var locator = UserLocationController()
     @State var follow = FollowState()
@@ -197,9 +197,9 @@ public struct MapPhotoView: View {
                 draggedPin = DraggedPin(id: pin.id, coordinate: coordinate)
             },
             onMoveEnded: finishMove,
-            onTapPin: { tag in
-                ownTap = OwnTap(tag: tag, at: Date(), handled: false)
-                selection = tag
+            onTapPin: { tapped in
+                ownTap = OwnTap(selection: tapped, at: Date(), handled: false)
+                selection = tapped
             },
             onMovePinToCenter: movePinToCenter,
             photoLabel: { id in
@@ -214,7 +214,7 @@ public struct MapPhotoView: View {
         calloutContentView(callout)
             .simultaneousGesture(
                 TapGesture().onEnded {
-                    ownTap = OwnTap(tag: callout.tag, at: Date(), handled: true)
+                    ownTap = OwnTap(selection: callout.selection, at: Date(), handled: true)
                 })
     }
 
@@ -237,7 +237,7 @@ public struct MapPhotoView: View {
 
     private var calloutContent: MapCalloutContent? {
         MapCalloutContent.resolve(
-            tag: calloutTag, clusters: clusters, photosById: photosById,
+            calloutSelection, clusters: clusters, photosById: photosById,
             todoPins: todoPins, draggedPin: draggedPin)
     }
 

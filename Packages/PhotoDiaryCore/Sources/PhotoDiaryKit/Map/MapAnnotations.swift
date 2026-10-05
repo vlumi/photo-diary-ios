@@ -9,9 +9,9 @@ import SwiftUI
 @MainActor
 enum MapAnnotations {
     static func photo(
-        _ pin: PhotoMapPin, label: String, onTap: @escaping (String) -> Void
+        _ pin: PhotoMapPin, label: String, onTap: @escaping (MapPinSelection) -> Void
     ) -> some MapContent {
-        let tag = "photo:\(pin.photoId)"
+        let selection = MapPinSelection.photo(pin.photoId)
         return Annotation("", coordinate: pin.coordinate) {
             Image(systemName: "camera.fill")
                 .font(.caption)
@@ -28,14 +28,15 @@ enum MapAnnotations {
                 // cover the same area or MapKit wins the edge taps.
                 .padding(10)
                 .contentShape(Circle())
-                .onTapGesture { onTap(tag) }
+                .onTapGesture { onTap(selection) }
         }
-        .tag(tag)
+        .tag(selection)
     }
 
-    static func cluster(_ cluster: MapCluster, onTap: @escaping (String) -> Void) -> some MapContent
-    {
-        let tag = "cluster:\(cluster.id)"
+    static func cluster(
+        _ cluster: MapCluster, onTap: @escaping (MapPinSelection) -> Void
+    ) -> some MapContent {
+        let selection = MapPinSelection.cluster(cluster.id)
         return Annotation("", coordinate: cluster.coordinate) {
             Text("\(cluster.count)")
                 .font(.caption.weight(.bold))
@@ -51,9 +52,9 @@ enum MapAnnotations {
                 .accessibilityAddTraits(.isButton)
                 .padding(8)
                 .contentShape(Capsule())
-                .onTapGesture { onTap(tag) }
+                .onTapGesture { onTap(selection) }
         }
-        .tag(tag)
+        .tag(selection)
     }
 
     /// `lifted` while being placed or dragged.

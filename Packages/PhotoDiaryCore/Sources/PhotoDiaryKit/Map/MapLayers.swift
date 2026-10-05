@@ -15,7 +15,7 @@ struct MapLayers<Callout: View>: MapContent {
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
-    let onTapPin: (String) -> Void
+    let onTapPin: (MapPinSelection) -> Void
     let onMovePinToCenter: (TodoPin) -> Void
     let photoLabel: (String) -> String
     @ViewBuilder let calloutView: (MapCalloutContent) -> Callout
@@ -47,7 +47,7 @@ struct MapLayers<Callout: View>: MapContent {
                 calloutView(callout).padding(.bottom, 24)
             }
             .annotationTitles(.hidden)
-            .tag("callout:\(callout.tag)")
+            .tag(MapPinSelection.callout(callout.selection))
         }
     }
 }
