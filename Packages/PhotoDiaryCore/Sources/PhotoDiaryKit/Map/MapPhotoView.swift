@@ -75,6 +75,10 @@ public struct MapPhotoView: View {
     @State private var viewingPhoto: TodoPin?
     @State var currentRegion: MKCoordinateRegion?
     @State var showingList = false
+    /// Where the list asked for a new pin; its editor opens once the
+    /// list has gone, since two sheets can't be up at once.
+    @State var addingAt: CLLocationCoordinate2D?
+    @AppStorage("map.pinHintSeen") var pinHintSeen = false
     @State var clusters: [MapCluster] = []
     /// The region `clusters` was built for and how far past it they
     /// reach; pins are rebuilt mid-pan once the camera nears that edge.
@@ -111,24 +115,27 @@ public struct MapPhotoView: View {
                     }
                 )
             }
-            .sheet(item: $editorPresentation) { presentation in
-                TodoPinEditor(mode: presentation.mode) {
-                    editorPresentation = nil
-                    placing = nil
-                }
+            // However the sheet closes, a swipe included, the pin being
+            // placed goes: while it's up, the map can't pan or zoom.
+            .sheet(item: $editorPresentation, onDismiss: { placing = nil }) { presentation in
+                TodoPinEditor(mode: presentation.mode) { editorPresentation = nil }
             }
             .fullScreenCover(item: $viewingPhoto) { pin in
                 if let photo = pin.photo {
                     TodoPinPhotoViewer(data: photo) { viewingPhoto = nil }
                 }
             }
-            .sheet(isPresented: $showingList) {
+            .sheet(isPresented: $showingList, onDismiss: openPendingAdd) {
                 TodoPinListSheet(
                     mapCenter: currentRegion?.center,
                     onDismiss: { showingList = false },
                     onSelect: { pin in
                         showingList = false
                         frame(pin.coordinate, meters: Self.closeUpMeters)
+                    },
+                    onAddAtCenter: {
+                        addingAt = currentRegion?.center
+                        showingList = false
                     }
                 )
             }
@@ -167,6 +174,10 @@ public struct MapPhotoView: View {
             layers(proxy: proxy)
         }
         .simultaneousGesture(placementGesture(proxy))
+        .sensoryFeedback(.impact(weight: .medium), trigger: placing != nil) { _, lifted in lifted }
+        .sensoryFeedback(.impact(weight: .medium), trigger: moving?.id) { before, now in
+            before == nil && now != nil
+        }
         .onMapCameraChange(frequency: .continuous) { context in
             cameraMoving(context.region, pins: pins)
         }
@@ -179,7 +190,8 @@ public struct MapPhotoView: View {
             MapTopBanners(
                 isRefreshing: isRefreshing, locationError: locator.lastError,
                 locationDenied: locator.isDenied, onDismissLocationError: locator.dismissError,
-                notice: notice, onDismissNotice: { notice = nil }
+                notice: notice, onDismissNotice: { notice = nil },
+                showsPinHint: showsPinHint, onDismissPinHint: { pinHintSeen = true }
             )
         }
         .onAppear { locator.startTracking() }
@@ -213,6 +225,10 @@ public struct MapPhotoView: View {
             onTapPin: { tag in
                 ownTap = OwnTap(tag: tag, at: Date(), handled: false)
                 selection = tag
+            },
+            onMovePinToCenter: movePinToCenter,
+            photoLabel: { id in
+                photosById[id]?.accessibilityDescription ?? String(localized: "Photo")
             },
             calloutView: calloutView
         )
@@ -269,7 +285,9 @@ public struct MapPhotoView: View {
     func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         let region = MapRegion(region)
         let build = MapClustering.build(pins: pins, in: region)
-        clusters = build.clusters
+        // Each new set re-renders every annotation; a small pan mostly
+        // rebuilds the same one.
+        if build.clusters != clusters { clusters = build.clusters }
         clusteredRegion = region
         clusteredMargin = build.margin
     }

@@ -116,6 +116,18 @@
       },
       "extractionState" : "manual"
     },
+    "Add pin at map center" : {
+      "comment" : "Button in the todo pin list that adds a pin where the map is centered.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップの中心にピンを追加"
+          }
+        }
+      }
+    },
     "Add this instance?" : {
       "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognized.",
       "localizations" : {
@@ -160,6 +172,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "コードをスキャンするには設定でカメラを許可するか、代わりにペアリングリンクを貼り付けてください。"
+          }
+        }
+      }
+    },
+    "Already paired with this device. Going on signs in as the code's account." : {
+      "comment" : "Pairing sheet warning when the code would replace an existing pairing's session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスとはペアリング済みです。続けると、このコードのアカウントでログインします。"
           }
         }
       }
@@ -320,6 +344,18 @@
       },
       "extractionState" : "manual"
     },
+    "Couldn't save the pin" : {
+      "comment" : "Title of the alert when saving or deleting a todo pin fails; the editor stays open.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ピンを保存できませんでした"
+          }
+        }
+      }
+    },
     "Delete pin" : {
       "comment" : "Destructive button at the bottom of the todo-pin editor, edit mode only.",
       "localizations" : {
@@ -331,6 +367,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Delete this pin?" : {
+      "comment" : "Title of the confirmation before deleting a todo pin in its editor.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このピンを削除しますか？"
+          }
+        }
+      }
     },
     "Dismiss" : {
       "comment" : "Accessibility label of the close button on a map banner and on the front page's notice.",
@@ -404,6 +452,18 @@
       },
       "extractionState" : "manual"
     },
+    "Forget %@?" : {
+      "comment" : "Title of the confirmation before forgetting an instance. The argument is the instance name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@を削除しますか？"
+          }
+        }
+      }
+    },
     "Images load with Nuke" : {
       "comment" : "Acknowledgment link in the About section; Nuke is the name of an open-source image loading library.",
       "extractionState" : "manual",
@@ -412,6 +472,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "画像の読み込みにNukeを使用"
+          }
+        }
+      }
+    },
+    "Its note and photo go with it." : {
+      "comment" : "Message of the confirmation before deleting a todo pin.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモと写真も削除されます。"
           }
         }
       }
@@ -487,6 +559,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Move to map center" : {
+      "comment" : "VoiceOver action on a todo pin that moves it to the map's center.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップの中心に移動"
+          }
+        }
+      }
     },
     "Nearest" : {
       "comment" : "Segment of the todo-pin list's sort control: closest to the map's center first.",
@@ -596,6 +680,18 @@
       },
       "extractionState" : "manual"
     },
+    "No photos with a location here yet. Touch and hold the map to drop a todo pin." : {
+      "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置情報のある写真がまだありません。マップを長押しするとToDoピンを置けます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
     "No todo pins yet" : {
       "comment" : "Title of the empty state in the todo-pin list.",
       "localizations" : {
@@ -631,6 +727,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "OK" : {
+      "comment" : "Button that closes an alert.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     },
     "Off" : {
       "comment" : "Accessibility value of the follow-my-location toggle while it is not.",
@@ -884,6 +992,30 @@
         }
       }
     },
+    "Replace pairing with %@" : {
+      "comment" : "Pairing button when the code replaces an existing pairing. The argument is the server's host.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@とのペアリングを置き換える"
+          }
+        }
+      }
+    },
+    "Replace this pairing?" : {
+      "comment" : "Pairing sheet heading when the code is for a server this device is already paired with.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このペアリングを置き換えますか？"
+          }
+        }
+      }
+    },
     "Restart the app to change the language." : {
       "comment" : "Footer under the language picker after choosing a language the app is not currently running in.",
       "extractionState" : "manual",
@@ -1004,6 +1136,18 @@
       },
       "extractionState" : "manual"
     },
+    "Show the demo" : {
+      "comment" : "Button on the front page that adds the built-in demo back after it was forgotten.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デモを表示"
+          }
+        }
+      }
+    },
     "Shows a preview." : {
       "comment" : "Accessibility hint of a photo pin on the map: tapping shows its thumbnail callout.",
       "localizations" : {
@@ -1039,6 +1183,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Shows the note. Touch and hold, then drag, to move it." : {
+      "comment" : "VoiceOver hint on a todo pin.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモを表示します。長押ししてドラッグすると移動できます。"
+          }
+        }
+      }
     },
     "Shows the photo full screen." : {
       "comment" : "Accessibility hint of the photo thumbnail on a todo pin's map banner.",
@@ -1160,6 +1316,18 @@
       },
       "extractionState" : "manual"
     },
+    "The demo can be shown again from this page." : {
+      "comment" : "Message of the confirmation before forgetting the built-in demo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デモはこのページから再び表示できます。"
+          }
+        }
+      }
+    },
     "The gallery you were viewing on %@ is no longer there." : {
       "comment" : "Notice on the front page after the app left a gallery that the server no longer lists. The argument is the instance name.",
       "localizations" : {
@@ -1232,6 +1400,18 @@
       },
       "extractionState" : "manual"
     },
+    "To see it again, pair this device with it again." : {
+      "comment" : "Message of the confirmation before forgetting a paired instance.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再び表示するには、このデバイスをもう一度ペアリングしてください。"
+          }
+        }
+      }
+    },
     "Todo pin" : {
       "comment" : "Accessibility label of a todo pin on the map when it has no note.",
       "localizations" : {
@@ -1267,6 +1447,30 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Touch and hold the map to drop one, or add one where the map is centered." : {
+      "comment" : "Empty todo pin list description.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しして置くか、マップの中心に追加できます。"
+          }
+        }
+      }
+    },
+    "Touch and hold the map to pin a place to come back to." : {
+      "comment" : "First-run hint on the map until dismissed or a todo pin exists.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しすると、また来たい場所にピンを置けます。"
+          }
+        }
+      }
     },
     "Unencrypted connection — only for a test instance on your own network." : {
       "comment" : "Warning in the pairing confirmation when the link points at a plain-http server.",

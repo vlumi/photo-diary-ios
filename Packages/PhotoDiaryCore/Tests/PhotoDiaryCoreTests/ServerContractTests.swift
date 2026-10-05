@@ -128,7 +128,7 @@ import Testing
     // MARK: - The oldest supported server
 
     @Test func theOldestServerHasEveryOperationTheAppCalls() throws {
-        #expect(operationIds.count == 7)
+        #expect(operationIds.count == 8)
         for id in operationIds {
             let located = try locate(id)
             #expect(operation(in: oldest, located) != nil, "\(located.method) \(located.path)")

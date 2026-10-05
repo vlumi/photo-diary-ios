@@ -12,11 +12,11 @@ struct CalloutCloseButton: View {
                 .font(.title3)
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(.white, .gray)
-                .padding(6)
+                .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .offset(x: 8, y: -8)
+        .offset(x: 14, y: -14)
         .accessibilityLabel("Close")
     }
 }

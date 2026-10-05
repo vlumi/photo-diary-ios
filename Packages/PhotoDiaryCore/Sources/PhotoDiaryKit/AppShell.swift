@@ -15,6 +15,7 @@ public struct AppShell: View {
     private let restoration: any RestorationStore
     private let todoPinContainer: ModelContainer
     private let stageCues: StageCues
+    private let stage: LaunchStage?
     @State private var pendingTicket: PairingTicket?
     @State private var selectedTab: AppTab = .map
     @State private var focus = PhotoFocusStore()
@@ -22,16 +23,25 @@ public struct AppShell: View {
 
     public init() {
         let stage = LaunchStage.current
-        let persistence = UserDefaultsInstancePersistence()
-        let registry = InstanceRegistry(
-            persistence: stage == nil ? persistence : UnsavedInstancePersistence(persistence),
-            sessionStore: KeychainSessionStore(),
-            cache: ResponseCache.inCaches()
-        )
+        let registry: InstanceRegistry
+        if stage?.signIn != nil {
+            // Only the demo and the instance signed in to, so neither the
+            // simulator's pairings nor its Keychain are touched.
+            registry = InstanceRegistry(seedingDemo: true)
+        } else {
+            let persistence = UserDefaultsInstancePersistence()
+            registry = InstanceRegistry(
+                persistence: stage == nil ? persistence : UnsavedInstancePersistence(persistence),
+                sessionStore: KeychainSessionStore(),
+                cache: ResponseCache.inCaches()
+            )
+        }
         stage?.open(in: registry)
         _registry = State(initialValue: registry)
+        self.stage = stage
         self.restoration =
-            stage?.restoration(for: registry.scope) ?? UserDefaultsRestorationStore()
+            stage?.restoration(for: stage?.scope ?? registry.scope)
+            ?? UserDefaultsRestorationStore()
         self.stageCues = StageCues(stage)
         self.imageLoader = SchemeRoutingImageLoader()
         do {
@@ -64,6 +74,7 @@ public struct AppShell: View {
         .environment(\.restoration, restoration)
         .environment(\.stageCues, stageCues)
         .modelContainer(todoPinContainer)
+        .task { await stage?.signIn(into: registry) }
         .onOpenURL { url in
             // Same-device pairing: the site's "Open in app" link.
             // Anything that isn't a pairing link is ignored.

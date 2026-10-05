@@ -127,6 +127,10 @@ public final class InstanceRegistry {
         // already registered, replace it rather than appending a
         // duplicate.
         if let idx = instances.firstIndex(where: { $0.id == instance.id }) {
+            if let replaced = instances[idx] as? RemoteInstance, replaced !== instance as AnyObject
+            {
+                Task { await replaced.signOut() }
+            }
             instances[idx] = instance
         } else {
             instances.append(instance)
@@ -139,6 +143,9 @@ public final class InstanceRegistry {
     public func remove(id: String) {
         guard let removed = instances.first(where: { $0.id == id }) else { return }
         instances.removeAll(where: { $0.id == id })
+        if let remote = removed as? RemoteInstance {
+            Task { await remote.signOut() }
+        }
         if !removed.isDemo {
             try? sessionStore.delete(host: id)
             remoteFactory.cache?.clear(origin: id)

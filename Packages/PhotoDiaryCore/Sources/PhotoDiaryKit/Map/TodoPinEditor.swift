@@ -4,7 +4,8 @@ import SwiftUI
 
 /// Sheet for editing a todo pin's note and photo. Create-mode drops a
 /// new pin; edit-mode edits an existing one. Delete only appears in
-/// edit mode. A new or removed photo waits for Save like the note.
+/// edit mode. A new or removed photo waits for Save like the note, and
+/// unsaved changes keep the sheet from being swiped away.
 struct TodoPinEditor: View {
     enum Mode {
         case create(latitude: Double, longitude: Double)
@@ -17,7 +18,10 @@ struct TodoPinEditor: View {
     @Environment(\.modelContext) private var context
     @State private var note: String = ""
     @State private var photo: Data?
+    @State private var photoChanged = false
     @State private var showingCamera = false
+    @State private var confirmingDelete = false
+    @State private var failure: String?
     @FocusState private var noteFocused: Bool
 
     var body: some View {
@@ -36,9 +40,15 @@ struct TodoPinEditor: View {
                 }
                 if case .edit(let pin) = mode {
                     Section {
-                        Button("Delete pin", role: .destructive) {
-                            deleteAndDismiss(pin)
-                        }
+                        Button("Delete pin", role: .destructive) { confirmingDelete = true }
+                    }
+                    .confirmationDialog(
+                        "Delete this pin?", isPresented: $confirmingDelete,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Delete pin", role: .destructive) { deleteAndDismiss(pin) }
+                    } message: {
+                        Text("Its note and photo go with it.")
                     }
                 }
             }
@@ -52,6 +62,15 @@ struct TodoPinEditor: View {
                     Button("Save") { saveAndDismiss() }
                 }
             }
+            .interactiveDismissDisabled(hasChanges)
+            .alert(
+                "Couldn't save the pin",
+                isPresented: Binding(get: { failure != nil }, set: { if !$0 { failure = nil } })
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(failure ?? "")
+            }
             .onAppear {
                 if case .edit(let pin) = mode {
                     note = pin.note
@@ -62,7 +81,10 @@ struct TodoPinEditor: View {
             .fullScreenCover(isPresented: $showingCamera) {
                 CameraPicker(
                     onCapture: { image in
-                        photo = TodoPinPhoto.jpeg(from: image) ?? photo
+                        if let jpeg = TodoPinPhoto.jpeg(from: image) {
+                            photo = jpeg
+                            photoChanged = true
+                        }
                         showingCamera = false
                     },
                     onCancel: { showingCamera = false }
@@ -93,9 +115,17 @@ struct TodoPinEditor: View {
                 if photo != nil {
                     Button("Remove photo", systemImage: "trash", role: .destructive) {
                         photo = nil
+                        photoChanged = true
                     }
                 }
             }
+        }
+    }
+
+    private var hasChanges: Bool {
+        switch mode {
+        case .create: return !note.isEmpty || photo != nil
+        case .edit(let pin): return note != pin.note || photoChanged
         }
     }
 
@@ -117,26 +147,31 @@ struct TodoPinEditor: View {
 
     private func saveAndDismiss() {
         let store = TodoPinStore(context: context)
-        do {
+        attempt {
             switch mode {
             case .create(let lat, let lng):
                 try store.create(latitude: lat, longitude: lng, note: note, photo: photo)
             case .edit(let pin):
                 try store.updateNote(pin, note: note)
-                if photo != pin.photo { try store.setPhoto(pin, photo) }
+                if photoChanged { try store.setPhoto(pin, photo) }
             }
-        } catch {
-            // Save errors are surfaced by SwiftData in the delegate
-            // logs; there's no productive UI recovery here — the
-            // user can retry from the same sheet next time.
         }
-        onDismiss()
     }
 
     private func deleteAndDismiss(_ pin: TodoPin) {
-        let store = TodoPinStore(context: context)
-        try? store.delete(pin)
-        onDismiss()
+        attempt { try TodoPinStore(context: context).delete(pin) }
+    }
+
+    /// A failed write is rolled back and leaves the sheet open, so the
+    /// note isn't lost.
+    private func attempt(_ write: () throws -> Void) {
+        do {
+            try write()
+            onDismiss()
+        } catch {
+            context.rollback()
+            failure = error.localizedDescription
+        }
     }
 }
 #endif

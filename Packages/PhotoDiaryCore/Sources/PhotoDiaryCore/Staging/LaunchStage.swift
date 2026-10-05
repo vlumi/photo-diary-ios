@@ -12,8 +12,11 @@ import Foundation
 /// (or `lat,lng,latSpan,lngSpan`), `-photodiary-calendar
 /// <gallery>[/<year>[/<month>]]`, `-photodiary-photo <id>` (opened once
 /// its month's grid loads), `-photodiary-pins "lat,lng,note|…"`,
-/// `-photodiary-select <map tag>` (`todo` for the first pin) and
-/// `-photodiary-sheet settings|pins`.
+/// `-photodiary-select <map tag>` (`todo` for the first pin),
+/// `-photodiary-sheet settings|pins`, and `-photodiary-sign-in <host>`
+/// with `-photodiary-user` and `-photodiary-password` to sign in to an
+/// instance for the launch. Debug builds only: a release build is never
+/// staged.
 public struct LaunchStage: Equatable, Sendable {
     public enum Opening: Equatable, Sendable {
         /// Whatever was open when the app was last left.
@@ -41,6 +44,13 @@ public struct LaunchStage: Equatable, Sendable {
         public let note: String
     }
 
+    /// An instance to sign in to with a password, for this launch only.
+    public struct SignIn: Equatable, Sendable {
+        public let origin: String
+        public let user: String
+        public let password: String
+    }
+
     public enum Sheet: String, Sendable {
         case settings
         case pins
@@ -55,6 +65,7 @@ public struct LaunchStage: Equatable, Sendable {
     public var pins: [Pin] = []
     public var selection: String?
     public var sheet: Sheet?
+    public var signIn: SignIn?
 
     static let flag = "-photodiary-stage"
 
@@ -80,10 +91,24 @@ public struct LaunchStage: Equatable, Sendable {
         pins = value("pins").map(Self.pins) ?? []
         selection = value("select")
         sheet = value("sheet").flatMap(Sheet.init(rawValue:))
+        if let host = value("sign-in"), let user = value("user"), let password = value("password") {
+            signIn = SignIn(
+                origin: RemoteInstanceFactory.canonicalOrigin(host), user: user, password: password)
+        }
     }
 
     public static var current: LaunchStage? {
+        #if DEBUG
         LaunchStage(arguments: ProcessInfo.processInfo.arguments)
+        #else
+        nil
+        #endif
+    }
+
+    /// The scope the stage opens, when it names one.
+    public var scope: Scope? {
+        if case .scope(let scope) = opening { return scope }
+        return nil
     }
 
     /// The demo keeps its sentinel; a host is the origin the registry

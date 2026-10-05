@@ -80,6 +80,26 @@ final class PairingServiceTests: XCTestCase {
         )
     }
 
+    func testUnprovenSessionIsNotSavedOverAWorkingOne() async {
+        StubProtocol.handler = { request in
+            if request.url!.path == "/api/v1/tokens/sso" {
+                return .init(
+                    status: 302,
+                    headers: ["Set-Cookie": "pd_access=new; Path=/, pd_refresh=new; Path=/"]
+                )
+            }
+            return .init(status: 500)
+        }
+        let store = InMemorySessionStore()
+        let working = SessionCookies(access: "old", refresh: "old")
+        try? store.save(working, host: "https://photos.example.test")
+        let service = PairingService(factory: factory(store: store))
+        _ = try? await service.pair(PairingTicket(host: "photos.example.test", token: "t"))
+        XCTAssertEqual(
+            try store.load(host: "https://photos.example.test"), working,
+            "a pairing that failed its session check leaves the stored session alone")
+    }
+
     func testHttpTicketTalksPlainHttp() async throws {
         StubProtocol.handler = { request in
             if request.url!.path == "/api/v1/tokens/sso" {

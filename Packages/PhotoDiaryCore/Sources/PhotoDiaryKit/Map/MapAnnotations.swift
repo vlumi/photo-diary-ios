@@ -10,7 +10,9 @@ import SwiftUI
 /// sits beneath them), with hit testing off so it never steals a tap.
 @MainActor
 enum MapAnnotations {
-    static func photo(_ pin: PhotoMapPin, onTap: @escaping (String) -> Void) -> some MapContent {
+    static func photo(
+        _ pin: PhotoMapPin, label: String, onTap: @escaping (String) -> Void
+    ) -> some MapContent {
         let tag = "photo:\(pin.photoId)"
         return Annotation("", coordinate: pin.coordinate) {
             Image(systemName: "camera.fill")
@@ -20,13 +22,13 @@ enum MapAnnotations {
                 .background(Color.accentColor)
                 .clipShape(Circle())
                 .shadow(radius: 2)
-                .accessibilityLabel("Photo")
+                .accessibilityLabel(label)
                 .accessibilityHint("Shows a preview.")
                 .accessibilityAddTraits(.isButton)
                 // A finger-sized target around the glyph; MapKit's own
                 // hit box is about this big, and the tap gesture must
                 // cover the same area or MapKit wins the edge taps.
-                .padding(8)
+                .padding(10)
                 .contentShape(Circle())
                 .onTapGesture { onTap(tag) }
         }
@@ -69,9 +71,9 @@ enum MapAnnotations {
             .shadow(radius: lifted ? 6 : 2, y: lifted ? 4 : 0)
             .animation(.easeOut(duration: 0.15), value: lifted)
             .accessibilityLabel(note.isEmpty ? "Todo pin" : "Todo: \(note)")
-            .accessibilityHint("Shows the note. Press and hold to move it.")
+            .accessibilityHint("Shows the note. Touch and hold, then drag, to move it.")
             .accessibilityAddTraits(.isButton)
-            .padding(8)
+            .padding(10)
             .contentShape(Circle())
     }
 

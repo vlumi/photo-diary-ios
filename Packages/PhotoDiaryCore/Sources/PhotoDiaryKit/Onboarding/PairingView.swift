@@ -83,13 +83,21 @@ public struct PairingView: View {
         }
     }
 
+    /// A code for a server already paired replaces its session, so the
+    /// app then sees whatever the code's account sees: said plainly, in
+    /// case the link came from someone else.
     private func confirmation(_ ticket: PairingTicket) -> some View {
-        Section("Add this instance?") {
+        let replacing = registry.instances.contains { $0.id == ticket.origin }
+        return Section(replacing ? "Replace this pairing?" : "Add this instance?") {
             Text(ticket.origin)
                 .font(.headline)
-            Text("The app will sign in to this server with the pairing code.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            Text(
+                replacing
+                    ? "Already paired with this device. Going on signs in as the code's account."
+                    : "The app will sign in to this server with the pairing code."
+            )
+            .font(.footnote)
+            .foregroundStyle(replacing ? .orange : .secondary)
             if ticket.scheme == "http" {
                 Label(
                     "Unencrypted connection — only for a test instance on your own network.",
@@ -102,7 +110,9 @@ public struct PairingView: View {
                 Task { await pair(ticket) }
             } label: {
                 HStack {
-                    Text("Add \(ticket.host)")
+                    Text(
+                        registry.instances.contains { $0.id == ticket.origin }
+                            ? "Replace pairing with \(ticket.host)" : "Add \(ticket.host)")
                     if isPairing {
                         Spacer()
                         ProgressView()
