@@ -5,6 +5,7 @@ import Foundation
 /// Bytes, not models: the reader decodes them through the same wire
 /// types as a live response. Lives under Caches, so the system may
 /// purge it, and everything degrades to a plain load when it does.
+/// Unreadable while the phone is locked, which only costs a miss.
 public struct ResponseCache: Sendable {
     private let root: URL
 
@@ -26,7 +27,11 @@ public struct ResponseCache: Sendable {
         let file = url(origin: origin, key: key)
         try? FileManager.default.createDirectory(
             at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        #if os(iOS)
+        try? data.write(to: file, options: [.atomic, .completeFileProtection])
+        #else
         try? data.write(to: file, options: .atomic)
+        #endif
     }
 
     /// Everything cached for one instance — on forget, or when its
