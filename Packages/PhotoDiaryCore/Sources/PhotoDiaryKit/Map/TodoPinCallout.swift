@@ -1,10 +1,12 @@
 import SwiftUI
 
-/// Banner above a selected todo pin: the note (or a placeholder) and a
-/// pencil to open the editor. Tapping elsewhere on the map deselects,
-/// which closes it.
+/// Banner above a selected todo pin: the photo's thumbnail when it has
+/// one, the note (or a placeholder) and a pencil to open the editor.
+/// Tapping elsewhere on the map deselects, which closes it.
 struct TodoPinCallout: View {
     let note: String
+    let photo: Data?
+    let onOpenPhoto: () -> Void
     let onEdit: () -> Void
     let onClose: () -> Void
 
@@ -12,6 +14,18 @@ struct TodoPinCallout: View {
 
     var body: some View {
         HStack(spacing: 10) {
+            #if canImport(UIKit)
+            if let photo {
+                Button(action: onOpenPhoto) {
+                    TodoPinPhotoImage(data: photo)
+                        .scaledToFill()
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Shows the photo full screen.")
+            }
+            #endif
             (note.isEmpty ? Text("No note yet") : Text(verbatim: note))
                 .font(.subheadline)
                 .foregroundStyle(note.isEmpty ? .secondary : .primary)

@@ -21,19 +21,19 @@
       }
     },
     "NSCameraUsageDescription" : {
-      "comment" : "Explanation iOS shows when the app first asks for the camera, to scan a pairing QR code.",
+      "comment" : "Explanation iOS shows when the app first asks for the camera, to scan a pairing QR code or to take a todo pin's snapshot.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Photo Diary uses the camera to scan a pairing QR code from another device. Nothing is recorded or sent."
+            "value" : "Photo Diary uses the camera to scan a pairing QR code from another device, and to take a snapshot for a todo pin on the map. Snapshots stay on this device; nothing is sent."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Photo Diaryは、別のデバイスに表示されたペアリング用QRコードを読み取るためにカメラを使用します。撮影内容が記録・送信されることはありません。"
+            "value" : "Photo Diaryは、別のデバイスに表示されたペアリング用QRコードの読み取りと、マップのToDoピンに添付する写真の撮影にカメラを使用します。写真はこのデバイスにのみ保存され、送信されることはありません。"
           }
         }
       }

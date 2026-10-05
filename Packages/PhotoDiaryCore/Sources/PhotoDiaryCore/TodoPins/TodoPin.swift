@@ -21,6 +21,10 @@ public final class TodoPin {
     /// pins are listed. A date rather than a Bool because SwiftData can
     /// only sort on Comparable attributes.
     public var starredAt: Date?
+    /// A camera snapshot of the place, JPEG, under a megapixel (see
+    /// TodoPinPhoto). Kept outside the database row so listing pins
+    /// doesn't read every image.
+    @Attribute(.externalStorage) public var photo: Data?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -30,6 +34,7 @@ public final class TodoPin {
         longitude: Double,
         note: String = "",
         starredAt: Date? = nil,
+        photo: Data? = nil,
         createdAt: Date = .now,
         updatedAt: Date = .now
     ) {
@@ -38,6 +43,7 @@ public final class TodoPin {
         self.longitude = longitude
         self.note = note
         self.starredAt = starredAt
+        self.photo = photo
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

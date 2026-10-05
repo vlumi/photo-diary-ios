@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
+
 ### build 11 — 2026-09-23
 
 - A photo opened from the map has a "Show in calendar" button that switches to the calendar with the photo's month open, its day at the top and the photo marked for a moment, so you can see it among the photos around that day.

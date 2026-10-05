@@ -36,6 +36,17 @@ final class TodoPinStoreTests: XCTestCase {
         XCTAssertGreaterThan(pin.updatedAt, originalUpdatedAt)
     }
 
+    func testSetPhotoAttachesAndRemoves() throws {
+        let pin = try store.create(latitude: 0, longitude: 0)
+        let originalUpdatedAt = pin.updatedAt
+        Thread.sleep(forTimeInterval: 0.01)
+        try store.setPhoto(pin, Data([0xFF, 0xD8]))
+        XCTAssertEqual(try store.all().first?.photo, Data([0xFF, 0xD8]))
+        XCTAssertGreaterThan(pin.updatedAt, originalUpdatedAt)
+        try store.setPhoto(pin, nil)
+        XCTAssertNil(try store.all().first?.photo)
+    }
+
     func testDeleteRemovesFromStore() throws {
         let a = try store.create(latitude: 1, longitude: 1)
         _ = try store.create(latitude: 2, longitude: 2)
