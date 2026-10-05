@@ -50,6 +50,28 @@ extension MapPhotoView {
     }
 }
 
+// MARK: - Adding and moving pins without a gesture
+
+extension MapPhotoView {
+    func openPendingAdd() {
+        guard let center = addingAt else { return }
+        addingAt = nil
+        placing = center
+        editorPresentation = .create(center)
+    }
+
+    func movePinToCenter(_ pin: TodoPin) {
+        guard let center = currentRegion?.center else { return }
+        try? TodoPinStore(context: modelContext).move(
+            pin, latitude: center.latitude, longitude: center.longitude)
+    }
+
+    /// Until dismissed, while there are no pins yet, outside staged shots.
+    var showsPinHint: Bool {
+        !pinHintSeen && todoPins.isEmpty && !stageCues.isStaged
+    }
+}
+
 // MARK: - Staged launch
 
 extension MapPhotoView {

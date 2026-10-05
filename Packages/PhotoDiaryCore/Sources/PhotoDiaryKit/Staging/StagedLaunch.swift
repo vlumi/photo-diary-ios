@@ -74,8 +74,12 @@ final class StageCues: @unchecked Sendable {
     private var photoId: String?
     private var selection: String?
     private var sheet: LaunchStage.Sheet?
+    /// Staged shots show the app as a regular user sees it, without
+    /// first-run hints.
+    let isStaged: Bool
 
     init(_ stage: LaunchStage? = nil) {
+        isStaged = stage != nil
         photoId = stage?.photoId
         selection = stage?.selection
         sheet = stage?.sheet

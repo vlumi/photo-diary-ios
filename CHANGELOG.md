@@ -12,6 +12,11 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The map says how to drop a todo pin until you dismiss the hint or drop one, and the pin list can add a pin where the map is centered.
+- VoiceOver reads each photo pin by its title and date, and can move a todo pin to the map's center without a drag.
+- Dropping or picking up a todo pin, and starring one, give a tap of haptic feedback.
+- Small buttons (dismiss, close, the callout's arrows, the list's star and pencil) have finger-sized targets.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
