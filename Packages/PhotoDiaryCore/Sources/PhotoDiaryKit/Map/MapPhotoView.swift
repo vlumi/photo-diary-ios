@@ -75,6 +75,10 @@ public struct MapPhotoView: View {
     @State private var viewingPhoto: TodoPin?
     @State var currentRegion: MKCoordinateRegion?
     @State var showingList = false
+    /// Where the list asked for a new pin; its editor opens once the
+    /// list has gone, since two sheets can't be up at once.
+    @State var addingAt: CLLocationCoordinate2D?
+    @AppStorage("map.pinHintSeen") var pinHintSeen = false
     @State var clusters: [MapCluster] = []
     /// The region `clusters` was built for and how far past it they
     /// reach; pins are rebuilt mid-pan once the camera nears that edge.
@@ -121,13 +125,17 @@ public struct MapPhotoView: View {
                     TodoPinPhotoViewer(data: photo) { viewingPhoto = nil }
                 }
             }
-            .sheet(isPresented: $showingList) {
+            .sheet(isPresented: $showingList, onDismiss: openPendingAdd) {
                 TodoPinListSheet(
                     mapCenter: currentRegion?.center,
                     onDismiss: { showingList = false },
                     onSelect: { pin in
                         showingList = false
                         frame(pin.coordinate, meters: Self.closeUpMeters)
+                    },
+                    onAddAtCenter: {
+                        addingAt = currentRegion?.center
+                        showingList = false
                     }
                 )
             }
@@ -166,6 +174,10 @@ public struct MapPhotoView: View {
             layers(proxy: proxy)
         }
         .simultaneousGesture(placementGesture(proxy))
+        .sensoryFeedback(.impact(weight: .medium), trigger: placing != nil) { _, lifted in lifted }
+        .sensoryFeedback(.impact(weight: .medium), trigger: moving?.id) { before, now in
+            before == nil && now != nil
+        }
         .onMapCameraChange(frequency: .continuous) { context in
             cameraMoving(context.region, pins: pins)
         }
@@ -177,7 +189,8 @@ public struct MapPhotoView: View {
         .overlay(alignment: .top) {
             MapTopBanners(
                 isRefreshing: isRefreshing, locationError: locator.lastError,
-                notice: notice, onDismissNotice: { notice = nil }
+                notice: notice, onDismissNotice: { notice = nil },
+                showsPinHint: showsPinHint, onDismissPinHint: { pinHintSeen = true }
             )
         }
         .onAppear { locator.startTracking() }
@@ -211,6 +224,10 @@ public struct MapPhotoView: View {
             onTapPin: { tag in
                 ownTap = OwnTap(tag: tag, at: Date(), handled: false)
                 selection = tag
+            },
+            onMovePinToCenter: movePinToCenter,
+            photoLabel: { id in
+                photosById[id]?.accessibilityDescription ?? String(localized: "Photo")
             },
             calloutView: calloutView
         )

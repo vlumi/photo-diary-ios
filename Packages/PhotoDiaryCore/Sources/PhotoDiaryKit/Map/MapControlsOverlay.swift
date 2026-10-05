@@ -73,6 +73,8 @@ struct MapTopBanners: View {
     let locationError: String?
     let notice: MapNotice?
     let onDismissNotice: () -> Void
+    var showsPinHint = false
+    var onDismissPinHint: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 6) {
@@ -83,21 +85,24 @@ struct MapTopBanners: View {
                 capsule { Text(locationError) }
             }
             if let notice {
-                capsule {
-                    HStack(spacing: 8) {
-                        Text(notice.text)
-                        Button(action: onDismissNotice) {
-                            Image(systemName: "xmark")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Dismiss")
-                    }
-                }
+                dismissible(Text(notice.text), action: onDismissNotice)
+            } else if showsPinHint {
+                dismissible(
+                    Text("Touch and hold the map to pin a place to come back to."),
+                    action: onDismissPinHint)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: notice)
+        .animation(.easeInOut(duration: 0.2), value: showsPinHint)
+    }
+
+    private func dismissible(_ text: Text, action: @escaping () -> Void) -> some View {
+        capsule {
+            HStack(spacing: 8) {
+                text
+                DismissButton(action: action)
+            }
+        }
     }
 
     private func capsule<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -122,7 +127,10 @@ enum MapNotice: Equatable {
     var text: String {
         switch self {
         case .noLocatedPhotos:
-            String(localized: "No photos with a location here yet. Long-press to drop a todo pin.")
+            String(
+                localized:
+                    "No photos with a location here yet. Touch and hold the map to drop a todo pin."
+            )
         case .refreshFailed(let detail):
             String(localized: "Couldn't refresh. \(detail)")
         }

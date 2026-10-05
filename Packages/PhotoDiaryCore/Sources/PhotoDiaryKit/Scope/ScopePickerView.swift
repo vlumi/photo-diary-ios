@@ -61,15 +61,7 @@ public struct ScopePickerView: View {
                                 .foregroundStyle(.orange)
                             message(for: eviction)
                             Spacer()
-                            Button {
-                                registry.dismissEviction()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.caption.weight(.bold))
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Dismiss")
+                            DismissButton { registry.dismissEviction() }
                         }
                         .font(.footnote)
                     }

@@ -24,6 +24,9 @@ struct TodoPinListSheet: View {
     let mapCenter: CLLocationCoordinate2D?
     let onDismiss: () -> Void
     let onSelect: (TodoPin) -> Void
+    /// A new pin where the map is centered: the way to add one without
+    /// a long-press, for VoiceOver among others.
+    let onAddAtCenter: () -> Void
 
     @Environment(\.modelContext) private var context
     @Query(sort: TodoPinStore.sortOrder) private var pins: [TodoPin]
@@ -39,6 +42,10 @@ struct TodoPinListSheet: View {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Done", action: onDismiss)
                     }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Add pin at map center", systemImage: "plus", action: onAddAtCenter)
+                            .disabled(mapCenter == nil)
+                    }
                 }
         }
         .sheet(item: $editing) { pin in
@@ -49,11 +56,15 @@ struct TodoPinListSheet: View {
     @ViewBuilder
     private var content: some View {
         if pins.isEmpty {
-            ContentUnavailableView(
-                "No todo pins yet",
-                systemImage: "mappin.slash",
-                description: Text("Long-press the map to drop one.")
-            )
+            ContentUnavailableView {
+                Label("No todo pins yet", systemImage: "mappin.slash")
+            } description: {
+                Text("Touch and hold the map to drop one, or add one where the map is centered.")
+            } actions: {
+                Button("Add pin at map center", action: onAddAtCenter)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(mapCenter == nil)
+            }
         } else {
             List {
                 if mapCenter != nil {
@@ -80,18 +91,19 @@ struct TodoPinListSheet: View {
                             Image(systemName: pin.isStarred ? "star.fill" : "star")
                                 .font(.body.weight(.semibold))
                                 .foregroundStyle(.yellow)
-                                .padding(8)
+                                .frame(minWidth: 44, minHeight: 44)
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .accessibilityLabel(pin.isStarred ? "Unstar" : "Star")
+                        .sensoryFeedback(.selection, trigger: pin.isStarred)
                         Button {
                             editing = pin
                         } label: {
                             Image(systemName: "pencil")
                                 .font(.body.weight(.semibold))
                                 .foregroundStyle(.orange)
-                                .padding(8)
+                                .frame(minWidth: 44, minHeight: 44)
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
@@ -132,7 +144,7 @@ struct TodoPinListSheet: View {
 
     private func rowText(for pin: TodoPin) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            (pin.note.isEmpty ? Text("(no note)") : Text(verbatim: pin.note))
+            (pin.note.isEmpty ? Text("No note yet") : Text(verbatim: pin.note))
                 .font(.body)
                 .foregroundStyle(pin.note.isEmpty ? .secondary : .primary)
                 .lineLimit(2)

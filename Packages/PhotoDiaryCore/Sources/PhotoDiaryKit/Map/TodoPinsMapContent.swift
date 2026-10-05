@@ -54,6 +54,8 @@ struct TodoPinsMapContent: MapContent {
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
     let onTap: (String) -> Void
+    /// Moving without a drag, for VoiceOver.
+    let onMoveToCenter: (TodoPin) -> Void
 
     var body: some MapContent {
         ForEach(pins) { pin in
@@ -66,6 +68,9 @@ struct TodoPinsMapContent: MapContent {
                     // Simultaneous, not plain: the high-priority long press
                     // claims the touch and starves an ordinary tap gesture.
                     .simultaneousGesture(TapGesture().onEnded { onTap(tag) })
+                    .accessibilityAction(named: Text("Move to map center")) {
+                        onMoveToCenter(pin)
+                    }
             }
             .tag(tag)
         }

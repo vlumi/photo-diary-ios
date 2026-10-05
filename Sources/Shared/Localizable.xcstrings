@@ -68,18 +68,6 @@
       },
       "extractionState" : "manual"
     },
-    "(no note)" : {
-      "comment" : "Placeholder title of a row in the todo-pin list when the pin has no note.",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "（メモなし）"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
     "About" : {
       "comment" : "Section header in Settings above the version, author and links.",
       "extractionState" : "manual",
@@ -115,6 +103,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Add pin at map center" : {
+      "comment" : "Button in the todo pin list that adds a pin where the map is centered.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップの中心にピンを追加"
+          }
+        }
+      }
     },
     "Add this instance?" : {
       "comment" : "Heading of the pairing confirmation section shown after a QR code or link is recognized.",
@@ -488,18 +488,6 @@
       },
       "extractionState" : "manual"
     },
-    "Long-press the map to drop one." : {
-      "comment" : "Hint under the empty state of the todo-pin list, telling how to create the first pin.",
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "マップを長押しするとピンを置けます。"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
     "Made by" : {
       "comment" : "Row label in the About section; the value is the author's name.",
       "extractionState" : "manual",
@@ -523,6 +511,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Move to map center" : {
+      "comment" : "VoiceOver action on a todo pin that moves it to the map's center.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップの中心に移動"
+          }
+        }
+      }
     },
     "Nearest" : {
       "comment" : "Segment of the todo-pin list's sort control: closest to the map's center first.",
@@ -620,13 +620,13 @@
       },
       "extractionState" : "manual"
     },
-    "No photos with a location here yet. Long-press to drop a todo pin." : {
+    "No photos with a location here yet. Touch and hold the map to drop a todo pin." : {
       "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins.",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "位置情報のある写真がまだありません。長押しでToDoピンを置けます。"
+            "value" : "位置情報のある写真がまだありません。マップを長押しするとToDoピンを置けます。"
           }
         }
       },
@@ -1100,17 +1100,17 @@
       },
       "extractionState" : "manual"
     },
-    "Shows the note. Press and hold to move it." : {
-      "comment" : "Accessibility hint of a todo pin on the map.",
+    "Shows the note. Touch and hold, then drag, to move it." : {
+      "comment" : "VoiceOver hint on a todo pin.",
+      "extractionState" : "manual",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "メモを表示します。長押しで移動できます。"
+            "value" : "メモを表示します。長押ししてドラッグすると移動できます。"
           }
         }
-      },
-      "extractionState" : "manual"
+      }
     },
     "Shows the photo full screen." : {
       "comment" : "Accessibility hint of the photo thumbnail on a todo pin's map banner.",
@@ -1351,6 +1351,30 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Touch and hold the map to drop one, or add one where the map is centered." : {
+      "comment" : "Empty todo pin list description.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しして置くか、マップの中心に追加できます。"
+          }
+        }
+      }
+    },
+    "Touch and hold the map to pin a place to come back to." : {
+      "comment" : "First-run hint on the map until dismissed or a todo pin exists.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しすると、また来たい場所にピンを置けます。"
+          }
+        }
+      }
     },
     "Unencrypted connection — only for a test instance on your own network." : {
       "comment" : "Warning in the pairing confirmation when the link points at a plain-http server.",
