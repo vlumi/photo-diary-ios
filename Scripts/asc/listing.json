@@ -8,7 +8,7 @@
     "en-US": {
       "name": "Photo Diary Companion",
       "subtitle": "Your photo journal, on the go",
-      "privacyPolicyUrl": "https://github.com/vlumi/photo-diary-ios/blob/main/PRIVACY.md"
+      "privacyPolicyUrl": "https://photodiary.misaki.fi/privacy/"
     }
   },
   "version": {
@@ -16,8 +16,8 @@
       "description": "Photo Diary Companion puts your self-hosted Photo Diary in your pocket: the photo journal you run on your own server, where photos are kept by the day they were taken and where they were taken. The site is where you upload and edit. This app is what you carry.\n\nEVERY PHOTO ON THE MAP\nEvery geotagged photo as a pin, piled up by zoom so a city's worth stays readable. Tap a pin for its thumbnails, tap again for the photo. Follow your location as you walk and see what you shot around the corner years ago.\n\nTHE DIARY BY DATE\nGallery, year, month, and the month's grid by day, the way the diary was written. From any photo, jump to its place on the map, or from the map to the photo's day in the calendar to see it among the others taken around it.\n\nPINS FOR PLACES TO GO BACK TO\nLong-press the map to drop a todo pin: a note, a star, and a quick snapshot of the place if you like. Move it by holding and dragging; list the pins nearest first. They stay on your phone and are never sent anywhere, not even to your own server.\n\nPAIRING, NOT PASSWORDS\nOn your Photo Diary site, Pair a device shows a QR code and a link. Scan it or tap it, and the app is in; it never asks for a username or password. Pair as many servers as you like and open one gallery or all of them at once.\n\nFAST, AND FINE OFFLINE\nThe last answer from each server is kept on the phone and shown at once, then refreshed. No signal on the trail still means a map full of photos.\n\nNeeds a Photo Diary server, version 1.0.7 or later, with an account on it. A built-in demo works without one, so you can look around first.\n\nEnglish and Japanese. Free and open source. No ads, no accounts of ours, no tracking.",
       "keywords": "photo,journal,diary,map,gallery,calendar,self-hosted,geotag,travel,companion,pins,places",
       "promotionalText": "Every photo from your self-hosted Photo Diary on the map and by date, in your pocket. Pin the places you want to go back to; they stay on your phone.",
-      "supportUrl": "https://github.com/vlumi/photo-diary-ios/issues",
-      "marketingUrl": "https://github.com/vlumi/photo-diary-ios"
+      "supportUrl": "https://photodiary.misaki.fi/support/",
+      "marketingUrl": "https://photodiary.misaki.fi/app/"
     }
   }
 }
