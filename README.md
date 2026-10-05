@@ -34,6 +34,8 @@ make ci       # everything CI runs: lint, tests, build
 make help     # the rest
 ```
 
+The App Store listing and screenshots come from the repo: `Scripts/asc/listing.json` and `Scripts/asc/shots.json`, synced with `make asc-listing` / `make shots` / `make asc-screenshots` (see [Scripts/asc/README.md](Scripts/asc/README.md)).
+
 [AGENTS.md](AGENTS.md) has the conventions and [ARCHITECTURE.md](ARCHITECTURE.md) how the app is put together.
 
 ## Releasing (TestFlight, internal)

@@ -37,6 +37,7 @@ public struct MapPhotoView: View {
     @Environment(PhotoFocusStore.self) private var focus
     @Environment(\.modelContext) var modelContext
     @Environment(\.restoration) private var restoration
+    @Environment(\.stageCues) var stageCues
 
     @State private var state: MapLoadState = .loading
     @State private var attempt = 0
@@ -73,7 +74,7 @@ public struct MapPhotoView: View {
     @State var editorPresentation: MapEditorPresentation?
     @State private var viewingPhoto: TodoPin?
     @State var currentRegion: MKCoordinateRegion?
-    @State private var showingList = false
+    @State var showingList = false
     @State var clusters: [MapCluster] = []
     /// The region `clusters` was built for and how far past it they
     /// reach; pins are rebuilt mid-pan once the camera nears that edge.
@@ -84,7 +85,7 @@ public struct MapPhotoView: View {
     @State var moving: MovingPin?
     @State var placing: CLLocationCoordinate2D?
     @State var pressPoint: CGPoint?
-    @Query(sort: TodoPinStore.sortOrder) private var todoPins: [TodoPin]
+    @Query(sort: TodoPinStore.sortOrder) var todoPins: [TodoPin]
 
     /// Initial zoom around the latest photo: roughly a country to a
     /// small continent, so the neighborhood is legible but the wider
@@ -261,6 +262,7 @@ public struct MapPhotoView: View {
         }
         recluster(pins: pins, region: region)
         if cameraPosition.positionedByUser { follow.stop() }
+        takeStagedCues()
     }
 
     func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {

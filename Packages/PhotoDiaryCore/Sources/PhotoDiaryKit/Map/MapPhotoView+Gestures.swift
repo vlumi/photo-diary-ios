@@ -50,6 +50,22 @@ extension MapPhotoView {
     }
 }
 
+// MARK: - Staged launch
+
+extension MapPhotoView {
+    /// A staged launch's selection (as a tap would make it; `todo` is
+    /// the first pin) and its pin list, once the camera first settles:
+    /// a selection made before the map is up is dropped by MapKit.
+    func takeStagedCues() {
+        if var tag = stageCues.takeSelection() {
+            if tag == "todo", let first = todoPins.first { tag = "todo:\(first.id.uuidString)" }
+            ownTap = OwnTap(tag: tag, at: Date(), handled: false)
+            selection = tag
+        }
+        if stageCues.takeSheet(.pins) { showingList = true }
+    }
+}
+
 // MARK: - Selection
 
 extension MapPhotoView {

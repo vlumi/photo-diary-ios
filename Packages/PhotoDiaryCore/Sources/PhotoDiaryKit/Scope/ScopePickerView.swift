@@ -8,6 +8,7 @@ public struct ScopePickerView: View {
     @Environment(InstanceRegistry.self) private var registry
     @State private var showPairing = false
     @State private var showSettings = false
+    @Environment(\.stageCues) private var stageCues
 
     public init() {}
 
@@ -35,6 +36,7 @@ public struct ScopePickerView: View {
                     PairingView().environment(registry)
                 }
                 .sheet(isPresented: $showSettings) { SettingsView() }
+                .onAppear { if stageCues.takeSheet(.settings) { showSettings = true } }
         }
     }
 

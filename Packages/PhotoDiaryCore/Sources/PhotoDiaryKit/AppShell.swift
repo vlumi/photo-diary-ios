@@ -6,27 +6,36 @@ import SwiftUI
 /// for the open scope. Also mounts the SwiftData ModelContainer for
 /// todo pins so any surface that wants @Query'd pins gets one, and
 /// catches `photodiary://` launches to route a pairing ticket into the
-/// onboarding sheet.
+/// onboarding sheet. A staged launch (LaunchStage, for the store
+/// screenshots) opens where its arguments say and keeps all of it in
+/// memory.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
-    private let restoration: any RestorationStore = UserDefaultsRestorationStore()
+    private let restoration: any RestorationStore
     private let todoPinContainer: ModelContainer
+    private let stageCues: StageCues
     @State private var pendingTicket: PairingTicket?
     @State private var selectedTab: AppTab = .map
     @State private var focus = PhotoFocusStore()
 
     public init() {
-        _registry = State(
-            initialValue: InstanceRegistry(
-                persistence: UserDefaultsInstancePersistence(),
-                sessionStore: KeychainSessionStore(),
-                cache: ResponseCache.inCaches()
-            )
+        let stage = LaunchStage.current
+        let persistence = UserDefaultsInstancePersistence()
+        let registry = InstanceRegistry(
+            persistence: stage == nil ? persistence : UnsavedInstancePersistence(persistence),
+            sessionStore: KeychainSessionStore(),
+            cache: ResponseCache.inCaches()
         )
+        stage?.open(in: registry)
+        _registry = State(initialValue: registry)
+        self.restoration =
+            stage?.restoration(for: registry.scope) ?? UserDefaultsRestorationStore()
+        self.stageCues = StageCues(stage)
         self.imageLoader = SchemeRoutingImageLoader()
         do {
-            self.todoPinContainer = try ModelContainer(for: TodoPin.self)
+            self.todoPinContainer =
+                try stage?.todoPinContainer() ?? ModelContainer(for: TodoPin.self)
         } catch {
             // A ModelContainer failure at launch is not recoverable
             // and indicates a genuine environmental problem
@@ -52,6 +61,7 @@ public struct AppShell: View {
         .environment(focus)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))
         .environment(\.restoration, restoration)
+        .environment(\.stageCues, stageCues)
         .modelContainer(todoPinContainer)
         .onOpenURL { url in
             // Same-device pairing: the site's "Open in app" link.

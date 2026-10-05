@@ -15,6 +15,10 @@ DerivedData/
 # SwiftPM per-user state (schemes, user data)
 .swiftpm/
 
+# Screenshot captures (make shots) and the ASC tooling's bytecode
+shots/
+__pycache__/
+
 # Release lane output + local ASC credentials
 dist/
 Scripts/.asc-config

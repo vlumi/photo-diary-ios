@@ -15,6 +15,7 @@ public struct PhotoGridView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
     @Environment(PhotoFocusStore.self) private var focus
+    @Environment(\.stageCues) private var stageCues
     @State private var state: LoadState<[PhotoCalendar.DaySection]> = .loading
     @State private var attempt = 0
     @State private var presented: PhotoPagerSelection?
@@ -72,7 +73,14 @@ public struct PhotoGridView: View {
             .scrollTargetLayout()
         }
         .scrollPosition(id: $topDay, anchor: .top)
-        .onAppear { spotlight(in: sections) }
+        .onAppear {
+            spotlight(in: sections)
+            if let id = stageCues.takePhoto(among: ordered.map(\.id)),
+                let i = ordered.firstIndex(where: { $0.id == id })
+            {
+                presented = PhotoPagerSelection(photos: ordered, index: i)
+            }
+        }
     }
 
     private func daySection(_ section: PhotoCalendar.DaySection, ordered: [Photo]) -> some View {
