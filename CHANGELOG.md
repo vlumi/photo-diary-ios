@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Tapping a todo pin on the map now shows its note in a callout.
+
 ### build 11 — 2026-09-23
 
 - A photo opened from the map has a "Show in calendar" button that switches to the calendar with the photo's month open, its day at the top and the photo marked for a moment, so you can see it among the photos around that day.
