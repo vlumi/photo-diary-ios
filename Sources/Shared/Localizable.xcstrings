@@ -152,6 +152,18 @@
       },
       "extractionState" : "manual"
     },
+    "Already paired with this device. Going on signs in as the code's account." : {
+      "comment" : "Pairing sheet warning when the code would replace an existing pairing's session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスとはペアリング済みです。続けると、このコードのアカウントでログインします。"
+          }
+        }
+      }
+    },
     "Built-in demo data" : {
       "comment" : "Caption under the demo instance in Settings, distinguishing it from paired servers.",
       "localizations" : {
@@ -844,6 +856,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写真を削除"
+          }
+        }
+      }
+    },
+    "Replace pairing with %@" : {
+      "comment" : "Pairing button when the code replaces an existing pairing. The argument is the server's host.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@とのペアリングを置き換える"
+          }
+        }
+      }
+    },
+    "Replace this pairing?" : {
+      "comment" : "Pairing sheet heading when the code is for a server this device is already paired with.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このペアリングを置き換えますか？"
           }
         }
       }

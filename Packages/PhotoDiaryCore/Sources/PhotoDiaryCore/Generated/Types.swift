@@ -22,6 +22,11 @@ internal protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/tokens`.
     /// - Remark: Generated from `#/paths//api/v1/tokens/get(getSession)`.
     func getSession(_ input: Operations.GetSession.Input) async throws -> Operations.GetSession.Output
+    /// Log out (revoke this session, clear auth cookies)
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/tokens/delete(logOut)`.
+    func logOut(_ input: Operations.LogOut.Input) async throws -> Operations.LogOut.Output
     /// Rotate refresh token, mint a new access token (cookie-only)
     ///
     /// - Remark: HTTP `POST /api/v1/tokens/refresh`.
@@ -64,6 +69,13 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/tokens/get(getSession)`.
     internal func getSession(headers: Operations.GetSession.Input.Headers = .init()) async throws -> Operations.GetSession.Output {
         try await getSession(Operations.GetSession.Input(headers: headers))
+    }
+    /// Log out (revoke this session, clear auth cookies)
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/tokens/delete(logOut)`.
+    internal func logOut() async throws -> Operations.LogOut.Output {
+        try await logOut(Operations.LogOut.Input())
     }
     /// Rotate refresh token, mint a new access token (cookie-only)
     ///

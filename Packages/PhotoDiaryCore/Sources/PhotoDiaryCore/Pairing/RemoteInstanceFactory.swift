@@ -26,7 +26,9 @@ public struct RemoteInstanceFactory: Sendable {
         id.contains("://") ? id : "https://" + id
     }
 
-    public func makeAPI(origin: String, cookies: SessionCookies) -> PhotoDiaryAPI {
+    public func makeAPI(
+        origin: String, cookies: SessionCookies, persisting: Bool = true
+    ) -> PhotoDiaryAPI {
         let store = sessionStore
         return PhotoDiaryAPI(
             origin: origin,
@@ -36,6 +38,7 @@ public struct RemoteInstanceFactory: Sendable {
                 // shouldn't fail the request that rotated the cookie.
                 try? store.save(updated, host: origin)
             },
+            persisting: persisting,
             configuration: configuration()
         )
     }

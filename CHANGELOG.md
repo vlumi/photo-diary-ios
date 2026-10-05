@@ -12,6 +12,10 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Forgetting an instance also signs this device out of it on the server, and a pairing link for a server that's already paired says it will replace that pairing.
+- Sessions stay on this device: a restored backup or a new phone pairs again instead of carrying them over.
+- A plain-http pairing link is accepted only for a server on the local network.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
