@@ -2,7 +2,7 @@
 
 _Last updated: 2026-10-05._
 
-**Photo Diary does not collect any personal data. Nothing is sent to us.**
+**Photo Diary Companion does not collect any personal data. Nothing is sent to us.**
 
 The app is a companion for a Photo Diary server that you, or someone you trust, runs. It talks to that server and to nothing else of ours:
 
@@ -16,7 +16,7 @@ The app is a companion for a Photo Diary server that you, or someone you trust, 
 
 ## Verifying any of this
 
-Photo Diary is open source. Every claim on this page can be checked in the code at <https://github.com/vlumi/photo-diary-ios>: `project.yml` lists the permissions the app asks for and why, and the server it talks to is the one at <https://github.com/vlumi/photo-diary>.
+Photo Diary Companion is open source. Every claim on this page can be checked in the code at <https://github.com/vlumi/photo-diary-ios>: `project.yml` lists the permissions the app asks for and why, and the server it talks to is the one at <https://github.com/vlumi/photo-diary>.
 
 ## Contact
 

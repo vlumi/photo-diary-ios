@@ -9,11 +9,11 @@ staged for each shot and captures it.
 ## One command
 
 ```sh
-make shots                     # LANGS=en,ja by default; OUT=shots
+make shots                     # LANGS=en by default; OUT=shots
 make stage TAB=map SCOPE=demo  # one staged launch, to look before shooting
 ```
 
-For each language and each shot: launch the app with the shot's variables
+For each shot: launch the app with the shot's variables
 (`Scripts/stage.sh`), wait `SETTLE` seconds (8), capture to
 `shots/iphone/<lang>/<shot>-iphone.png`. `PAUSE=1` stops before every
 capture (⏎ capture · r retake · s skip) for a look; `ONLY=map,todo` redoes
@@ -60,8 +60,8 @@ prints it). In **store order**:
 5. **todo-list**: the pins as a list, with how far each one is.
 6. **front**: the paired instances and their galleries.
 
-Every language gets the same set in that language; the todo pins carry
-Japanese notes in the Japanese set (`stage_ja`). Dark mode is not in the set.
+The store listing is English only, so the set is too (the app itself also
+runs in Japanese). Dark mode is not in the set.
 
 ## When the pictures are retaken
 

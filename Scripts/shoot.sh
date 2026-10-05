@@ -4,7 +4,7 @@
 # waits for it to settle, and captures. Output lands canonically named at
 #   <OUT>/iphone/<lang>/<shot>-iphone.png
 # ready for `make asc-screenshots`.
-#   LANGS=en,ja                (default en,ja)
+#   LANGS=en                   (default en; the store listing is English only)
 #   OUT=shots                  (default ./shots)
 #   SETTLE=<seconds>           wait after launch before the capture (default 8;
 #                              a live instance loads over the network)
@@ -14,7 +14,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-LANGS="${LANGS:-en,ja}"
+LANGS="${LANGS:-en}"
 OUT="${OUT:-shots}"
 SETTLE="${SETTLE:-8}"
 BUNDLE="fi.misaki.photodiary"
