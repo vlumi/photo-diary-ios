@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 12 — 2026-10-05
+
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.
 - Tapping a todo pin on the map now shows its note in a callout.
 
