@@ -12,6 +12,10 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- Forgetting an instance asks first, and a forgotten demo can be shown again from the front page.
+- Swiping away the editor for a new todo pin no longer leaves the map unable to pan or zoom.
+- Deleting a todo pin asks first, an editor with unsaved changes can't be swiped away, and a pin that fails to save says so and keeps the editor open.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.

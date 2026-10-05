@@ -50,6 +50,7 @@ public struct ScopePickerView: View {
             } actions: {
                 Button("Add instance") { showPairing = true }
                     .buttonStyle(.borderedProminent)
+                Button("Show the demo") { registry.add(DemoInstance()) }
             }
         } else {
             List {
@@ -76,6 +77,11 @@ public struct ScopePickerView: View {
                 ForEach(registry.instances, id: \.id) { instance in
                     InstanceSection(instance: instance)
                 }
+                if !registry.instances.contains(where: \.isDemo) {
+                    Section {
+                        Button("Show the demo") { registry.add(DemoInstance()) }
+                    }
+                }
             }
         }
     }
@@ -100,6 +106,7 @@ private struct InstanceSection: View {
 
     @Environment(InstanceRegistry.self) private var registry
     @State private var state: LoadState<[Gallery]> = .loading
+    @State private var confirmingForget = false
 
     var body: some View {
         Section {
@@ -117,9 +124,20 @@ private struct InstanceSection: View {
             }
             .buttonStyle(.plain)
             .swipeActions(edge: .trailing) {
-                Button("Forget", role: .destructive) { registry.remove(id: instance.id) }
+                Button("Forget", role: .destructive) { confirmingForget = true }
             }
             galleryRows
+        }
+        .confirmationDialog(
+            Text("Forget \(instance.displayName)?"), isPresented: $confirmingForget,
+            titleVisibility: .visible
+        ) {
+            Button("Forget", role: .destructive) { registry.remove(id: instance.id) }
+        } message: {
+            Text(
+                instance.isDemo
+                    ? "The demo can be shown again from this page."
+                    : "To see it again, pair this device with it again.")
         }
         .task(id: instance.id) { await load() }
     }
