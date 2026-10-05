@@ -18,6 +18,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 - Forgetting an instance also signs this device out of it on the server, and a pairing link for a server that's already paired says it will replace that pairing.
 - Sessions stay on this device: a restored backup or a new phone pairs again instead of carrying them over.
 - A plain-http pairing link is accepted only for a server on the local network.
+- Moving through a large gallery's years and months no longer pauses at each step, and the map loads an instance's galleries side by side instead of one after another.
 
 ### build 12 — 2026-10-05
 

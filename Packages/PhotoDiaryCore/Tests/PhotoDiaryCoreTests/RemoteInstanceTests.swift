@@ -65,6 +65,44 @@ final class RemoteInstanceTests: XCTestCase {
         XCTAssertEqual(metaCalls.count, 1)
     }
 
+    func testOneGalleryAskedForTwiceAtOnceIsFetchedOnce() async throws {
+        StubProtocol.handler = { request in
+            switch request.url!.path {
+            case "/api/v1/meta": return .init(status: 200, body: "{}")
+            case "/api/v1/gallery-photos/g1/query": return .init(status: 200, body: "[]")
+            default: return .init(status: 404)
+            }
+        }
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
+        async let first = instance.listPhotos(inGallery: "g1")
+        async let second = instance.listPhotos(inGallery: "g1")
+        _ = try await (first, second)
+        let queries = StubProtocol.requests.filter { $0.url!.path.hasSuffix("/query") }
+        XCTAssertEqual(queries.count, 1)
+    }
+
+    func testCachedPhotosComeFromMemoryBeforeDisk() async throws {
+        StubProtocol.handler = { request in
+            switch request.url!.path {
+            case "/api/v1/meta": return .init(status: 200, body: "{}")
+            case "/api/v1/gallery-photos/g1/query":
+                return .init(
+                    status: 200,
+                    body: """
+                        [{"id":"a.jpg","index":0,
+                          "taken":{"instant":{"year":2024,"month":6,"day":1}},
+                          "dimensions":{"original":{"width":1,"height":1},
+                                        "thumbnail":{"width":1,"height":1}}}]
+                        """)
+            default: return .init(status: 404)
+            }
+        }
+        let instance = RemoteInstance(origin: "https://photos.example.test", api: stubbedAPI())
+        _ = try await instance.listPhotos(inGallery: "g1")
+        let cached = await instance.cachedPhotos(inGallery: "g1")
+        XCTAssertEqual(cached?.map(\.id), ["a.jpg"], "no disk cache at all, so this is memory")
+    }
+
     func testCachedAnswersOutliveTheInstance() async throws {
         StubProtocol.handler = { request in
             switch request.url!.path {
