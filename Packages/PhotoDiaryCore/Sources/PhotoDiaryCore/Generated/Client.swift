@@ -205,6 +205,47 @@ internal struct Client: APIProtocol {
             }
         )
     }
+    /// Log out (revoke this session, clear auth cookies)
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/tokens/delete(logOut)`.
+    internal func logOut(_ input: Operations.LogOut.Input) async throws -> Operations.LogOut.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.LogOut.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/tokens",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .delete
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    let headers: Operations.LogOut.Output.NoContent.Headers = .init(setCookie: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Set-Cookie",
+                        as: Swift.String.self
+                    ))
+                    return .noContent(.init(headers: headers))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Rotate refresh token, mint a new access token (cookie-only)
     ///
     /// - Remark: HTTP `POST /api/v1/tokens/refresh`.
