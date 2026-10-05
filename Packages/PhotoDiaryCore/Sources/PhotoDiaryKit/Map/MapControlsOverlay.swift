@@ -71,6 +71,8 @@ struct MapRoundButton: View {
 struct MapTopBanners: View {
     let isRefreshing: Bool
     let locationError: String?
+    var locationDenied = false
+    var onDismissLocationError: () -> Void = {}
     let notice: MapNotice?
     let onDismissNotice: () -> Void
 
@@ -80,7 +82,22 @@ struct MapTopBanners: View {
                 ProgressView().progressViewStyle(.linear).padding(.horizontal)
             }
             if let locationError {
-                capsule { Text(locationError) }
+                capsule {
+                    HStack(spacing: 8) {
+                        Text(locationError)
+                        if locationDenied { OpenSettingsButton().bold() }
+                        Button(action: onDismissLocationError) {
+                            Image(systemName: "xmark")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.secondary)
+                                .padding(14)
+                                .contentShape(Rectangle())
+                                .padding(-14)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss")
+                    }
+                }
             }
             if let notice {
                 capsule {

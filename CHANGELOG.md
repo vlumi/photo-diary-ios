@@ -12,6 +12,10 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- With location or the camera turned off for the app, the map and the QR scanner say so and offer to open Settings, and the location button no longer turns on with nothing to follow.
+- Pairing again from inside a gallery stays in that gallery, Return in the pairing-link field continues, and the button back to the front page is called Switch gallery.
+- Moving between the front page and a gallery respects Reduce Motion.
+
 ### build 12 — 2026-10-05
 
 - A todo pin can carry a photo: take a snapshot from the pin's editor, stored on the device scaled down to under a megapixel, shown as a thumbnail on the map banner and in the list and full screen with a tap.

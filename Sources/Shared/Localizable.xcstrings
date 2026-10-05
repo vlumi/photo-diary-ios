@@ -152,6 +152,18 @@
       },
       "extractionState" : "manual"
     },
+    "Allow the camera in Settings to scan the code, or paste the link instead." : {
+      "comment" : "Scanner sheet description when the camera permission was refused.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードをスキャンするには設定でカメラを許可するか、代わりにペアリングリンクを貼り付けてください。"
+          }
+        }
+      }
+    },
     "Built-in demo data" : {
       "comment" : "Caption under the demo instance in Settings, distinguishing it from paired servers.",
       "localizations" : {
@@ -175,6 +187,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Camera access is off" : {
+      "comment" : "Scanner sheet title when the camera permission was refused.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カメラへのアクセスがオフです"
+          }
+        }
+      }
     },
     "Camera scanning isn't available here" : {
       "comment" : "Title shown in place of the QR scanner when the device has no usable camera, e.g. in the simulator.",
@@ -644,6 +668,18 @@
       },
       "extractionState" : "manual"
     },
+    "Open Settings" : {
+      "comment" : "Button that opens the app's page in Settings, where a refused permission can be allowed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定を開く"
+          }
+        }
+      }
+    },
     "Open the site to sign in" : {
       "comment" : "Link under \"Session expired\" that opens the instance's site in the browser, where the user signs in and picks \"Pair a device\".",
       "localizations" : {
@@ -1051,6 +1087,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Switch gallery" : {
+      "comment" : "Button on the map and calendar that goes back to the front page to choose another instance or gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリーを切り替え"
+          }
+        }
+      }
     },
     "System" : {
       "comment" : "Option in the language picker that follows the device's language. The other options are language names in their own language and are not translated.",
