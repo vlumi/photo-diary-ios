@@ -17,6 +17,24 @@ extension LaunchStage {
         }
     }
 
+    /// Signs in to the stage's instance, then opens the stage again: the
+    /// scope it names can only be entered once the instance is there.
+    @MainActor
+    func signIn(into registry: InstanceRegistry) async {
+        #if DEBUG
+        guard let signIn else { return }
+        do {
+            let cookies = try await signIn.cookies()
+            let factory = registry.remoteFactory
+            let api = factory.makeAPI(origin: signIn.origin, cookies: cookies)
+            registry.add(factory.make(origin: signIn.origin, api: api))
+            open(in: registry)
+        } catch {
+            print("Staged sign-in to \(signIn.origin) failed: \(error)")
+        }
+        #endif
+    }
+
     func restoration(for scope: Scope?) -> any RestorationStore {
         let store = InMemoryRestorationStore()
         guard let scope else { return store }
