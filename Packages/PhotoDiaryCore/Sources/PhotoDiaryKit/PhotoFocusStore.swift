@@ -24,13 +24,11 @@ public final class PhotoFocusStore {
         pendingInCalendar = photo
     }
 
-    public func consumeForMap() -> Photo? {
-        defer { pendingOnMap = nil }
-        return pendingOnMap
+    public func settledOnMap() {
+        pendingOnMap = nil
     }
 
-    public func consumeForCalendar() -> Photo? {
-        defer { pendingInCalendar = nil }
-        return pendingInCalendar
+    public func settledInCalendar() {
+        pendingInCalendar = nil
     }
 }

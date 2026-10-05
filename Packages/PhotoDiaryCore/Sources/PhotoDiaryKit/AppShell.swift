@@ -61,7 +61,7 @@ public struct AppShell: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
         .environment(focus)
-        .environment(\.imageLoader, ImageLoaderBox(imageLoader))
+        .environment(\.imageLoader, imageLoader)
         .environment(\.restoration, restoration)
         .environment(\.stageCues, stageCues)
         .modelContainer(todoPinContainer)
@@ -107,15 +107,8 @@ public struct AppShell: View {
 
 // MARK: - Environment
 
-// The loader is chosen once, at AppShell init.
-
-struct ImageLoaderBox {
-    let loader: any ImageLoader
-    init(_ loader: any ImageLoader) { self.loader = loader }
-}
-
 private struct ImageLoaderKey: EnvironmentKey {
-    static let defaultValue = ImageLoaderBox(SchemeRoutingImageLoader())
+    static let defaultValue: any ImageLoader = SchemeRoutingImageLoader()
 }
 
 private struct RestorationKey: EnvironmentKey {
@@ -123,7 +116,7 @@ private struct RestorationKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    var imageLoader: ImageLoaderBox {
+    var imageLoader: any ImageLoader {
         get { self[ImageLoaderKey.self] }
         set { self[ImageLoaderKey.self] = newValue }
     }

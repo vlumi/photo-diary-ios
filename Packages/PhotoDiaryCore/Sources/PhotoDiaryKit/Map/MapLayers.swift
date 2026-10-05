@@ -8,8 +8,8 @@ import SwiftUI
 struct MapLayers<Callout: View>: MapContent {
     let clusters: [MapCluster]
     let todoPins: [TodoPin]
-    let moving: MovingPin?
-    let placing: CLLocationCoordinate2D?
+    let draggedPin: DraggedPin?
+    let provisionalPin: CLLocationCoordinate2D?
     let userLocation: CLLocationCoordinate2D?
     let callout: MapCalloutContent?
     let proxy: MapProxy
@@ -32,7 +32,7 @@ struct MapLayers<Callout: View>: MapContent {
             }
         }
         TodoPinsMapContent(
-            pins: todoPins, moving: moving, placing: placing, proxy: proxy,
+            pins: todoPins, draggedPin: draggedPin, provisionalPin: provisionalPin, proxy: proxy,
             onMoveChanged: onMoveChanged, onMoveEnded: onMoveEnded, onTap: onTapPin,
             onMoveToCenter: onMovePinToCenter
         )

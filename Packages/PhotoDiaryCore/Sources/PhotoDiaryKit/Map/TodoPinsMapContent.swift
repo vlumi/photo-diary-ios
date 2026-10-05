@@ -22,11 +22,11 @@ enum MapEditorPresentation: Identifiable {
     }
 }
 
-struct MovingPin: Equatable {
+struct DraggedPin: Equatable {
     let id: UUID
     let coordinate: CLLocationCoordinate2D
 
-    static func == (lhs: MovingPin, rhs: MovingPin) -> Bool {
+    static func == (lhs: DraggedPin, rhs: DraggedPin) -> Bool {
         lhs.id == rhs.id
             && lhs.coordinate.latitude == rhs.coordinate.latitude
             && lhs.coordinate.longitude == rhs.coordinate.longitude
@@ -38,8 +38,8 @@ struct MovingPin: Equatable {
 /// that starts on a pin moves it instead of dropping a new one under it.
 struct TodoPinsMapContent: MapContent {
     let pins: [TodoPin]
-    let moving: MovingPin?
-    let placing: CLLocationCoordinate2D?
+    let draggedPin: DraggedPin?
+    let provisionalPin: CLLocationCoordinate2D?
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
@@ -49,8 +49,8 @@ struct TodoPinsMapContent: MapContent {
 
     var body: some MapContent {
         ForEach(pins) { pin in
-            let lifted = moving?.id == pin.id
-            let coordinate = lifted ? moving!.coordinate : pin.coordinate
+            let lifted = draggedPin?.id == pin.id
+            let coordinate = lifted ? draggedPin!.coordinate : pin.coordinate
             let tag = "todo:\(pin.id.uuidString)"
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
@@ -64,8 +64,8 @@ struct TodoPinsMapContent: MapContent {
             }
             .tag(tag)
         }
-        if let placing {
-            Annotation("", coordinate: placing) {
+        if let provisionalPin {
+            Annotation("", coordinate: provisionalPin) {
                 MapAnnotations.todoMarker(lifted: true, note: "")
             }
             .annotationTitles(.hidden)

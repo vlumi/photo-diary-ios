@@ -15,7 +15,7 @@ struct MapCalloutContent {
     /// clusters; nil once reclustering has moved it out of view.
     static func resolve(
         tag: String?, clusters: [MapCluster], photosById: [String: Photo],
-        todoPins: [TodoPin], moving: MovingPin?
+        todoPins: [TodoPin], draggedPin: DraggedPin?
     ) -> MapCalloutContent? {
         guard let tag else { return nil }
         let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
@@ -36,7 +36,7 @@ struct MapCalloutContent {
             guard let pin = todoPins.first(where: { $0.id.uuidString == parts[1] }) else {
                 return nil
             }
-            let coordinate = moving?.id == pin.id ? moving!.coordinate : pin.coordinate
+            let coordinate = draggedPin?.id == pin.id ? draggedPin!.coordinate : pin.coordinate
             return MapCalloutContent(tag: tag, coordinate: coordinate, kind: .todo(pin))
         default:
             return nil

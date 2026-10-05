@@ -6,7 +6,7 @@ public struct PhotoGridView: View {
     private let month: Int?
 
     @Environment(InstanceRegistry.self) private var registry
-    @Environment(\.imageLoader) private var loaderBox
+    @Environment(\.imageLoader) private var imageLoader
     @Environment(PhotoFocusStore.self) private var focus
     @Environment(\.stageCues) private var stageCues
     @State private var state: LoadState<[PhotoCalendar.DaySection]> = .loading
@@ -28,7 +28,7 @@ public struct PhotoGridView: View {
             .navigationTitle(navTitle)
             .navigationBarTitleDisplayModeInline()
             .task(id: reloadKey) { await load() }
-            .photoViewerCover(item: $presented, loader: loaderBox.loader) { photo in
+            .photoViewerSheet(item: $presented, loader: imageLoader) { photo in
                 presented = nil
                 focus.showOnMap(photo)
             }
@@ -83,7 +83,7 @@ public struct PhotoGridView: View {
                             presented = PhotoPagerSelection(photos: ordered, index: i)
                         }
                     } label: {
-                        PhotoThumbnail(url: photo.thumbnailURL, loader: loaderBox.loader)
+                        PhotoThumbnail(url: photo.thumbnailURL, loader: imageLoader)
                             .overlay {
                                 if spotlit == photo.id {
                                     Rectangle().strokeBorder(Color.accentColor, lineWidth: 4)
@@ -112,7 +112,7 @@ public struct PhotoGridView: View {
         guard let photo = focus.pendingInCalendar,
             let day = sections.first(where: { $0.photos.contains { $0.id == photo.id } })
         else { return }
-        _ = focus.consumeForCalendar()
+        focus.settledInCalendar()
         topDay = day.id
         spotlit = photo.id
         Task { @MainActor in
@@ -181,7 +181,7 @@ extension View {
     }
 
     /// A sheet, not a cover: a swipe down closes it, as everywhere else.
-    fileprivate func photoViewerCover(
+    fileprivate func photoViewerSheet(
         item: Binding<PhotoPagerSelection?>,
         loader: any ImageLoader,
         onShowOnMap: @escaping (Photo) -> Void

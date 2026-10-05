@@ -58,7 +58,7 @@ extension MapPhotoView {
     func openPendingAdd() {
         guard let center = addingAt else { return }
         addingAt = nil
-        placing = center
+        provisionalPin = center
         editorPresentation = .create(center)
     }
 
@@ -91,9 +91,15 @@ extension MapPhotoView {
 // MARK: - Selection
 
 extension MapPhotoView {
+    // MapKit reports a tap as a selection again ~0.6 s later, after its
+    // double-tap wait: within `selectionEcho` the echo is dropped, and the
+    // map's own tap stands down for `ownTapClaim` after a pin took it.
+    static let selectionEcho: TimeInterval = 0.7
+    static let ownTapClaim: TimeInterval = 0.3
+
     func selectionChanged(_ selected: String?, pins: [PhotoMapPin]) {
         if let selected, let closed = ownDeselect, selected == closed.tag,
-            Date().timeIntervalSince(closed.at) < 0.7,
+            Date().timeIntervalSince(closed.at) < Self.selectionEcho,
             (ownTap.map { $0.at < closed.at } ?? true)
         {
             selection = nil
@@ -101,7 +107,7 @@ extension MapPhotoView {
         }
         if let selected, var tap = ownTap, selected == tap.tag {
             if tap.handled, selected.hasPrefix("cluster:"),
-                Date().timeIntervalSince(tap.at) < 0.7
+                Date().timeIntervalSince(tap.at) < Self.selectionEcho
             {
                 // MapKit's echo of a cluster tap that already zoomed:
                 // don't zoom twice. A photo or todo echo is harmless.
@@ -112,30 +118,30 @@ extension MapPhotoView {
             ownTap = tap
         }
         guard let selected else {
-            calloutFor = nil
+            calloutTag = nil
             return
         }
-        if !handleSelection(selected, pins: pins) { selection = nil }
+        if !showsCallout(for: selected, pins: pins) { selection = nil }
     }
 
     /// Tags are "kind:id" so one selection binding covers every layer.
     /// Returns whether the selection should stay (a callout is showing).
-    func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
+    func showsCallout(for tag: String, pins: [PhotoMapPin]) -> Bool {
         let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return false }
         switch parts[0] {
         case "photo":
-            calloutFor = tag
+            calloutTag = tag
             return true
         case "cluster":
             guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return false }
             switch MapClustering.tapAction(for: cluster, pins: pins) {
             case .zoom(let region):
-                calloutFor = nil
+                calloutTag = nil
                 cameraPosition = .region(MKCoordinateRegion(region))
                 return false
             case .list:
-                calloutFor = tag
+                calloutTag = tag
                 return true
             }
         case "callout":
@@ -145,7 +151,7 @@ extension MapPhotoView {
             selection = parts[1]
             return true
         case "todo":
-            calloutFor = tag
+            calloutTag = tag
             return true
         default:
             return false
@@ -157,10 +163,10 @@ extension MapPhotoView {
 // MARK: - Todo pin gestures
 
 extension MapPhotoView {
-    func placementGesture(_ proxy: MapProxy) -> some Gesture {
+    func touchGestures(_ proxy: MapProxy) -> some Gesture {
         MapTouchGestures(
-            proxy: proxy, isMovingPin: { moving != nil },
-            pressPoint: $pressPoint, placing: $placing,
+            proxy: proxy, isDraggingPin: { draggedPin != nil },
+            pressPoint: $pressPoint, provisionalPin: $provisionalPin,
             onPlaced: { editorPresentation = .create($0) },
             onTap: {
                 // A tap on empty map closes the callout; one a pin or the
@@ -168,7 +174,7 @@ extension MapPhotoView {
                 // before theirs does, so look again a moment later.
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(60))
-                    if let ownTap, Date().timeIntervalSince(ownTap.at) < 0.3 { return }
+                    if let ownTap, Date().timeIntervalSince(ownTap.at) < Self.ownTapClaim { return }
                     if let current = selection {
                         ownDeselect = OwnTap(tag: current, at: Date(), handled: true)
                     }
@@ -179,11 +185,12 @@ extension MapPhotoView {
     }
 
     func finishMove(_ pin: TodoPin) {
-        if let moving, moving.id == pin.id {
+        if let draggedPin, draggedPin.id == pin.id {
             try? TodoPinStore(context: modelContext).move(
-                pin, latitude: moving.coordinate.latitude, longitude: moving.coordinate.longitude)
+                pin, latitude: draggedPin.coordinate.latitude,
+                longitude: draggedPin.coordinate.longitude)
         }
-        moving = nil
+        draggedPin = nil
     }
 }
 #endif

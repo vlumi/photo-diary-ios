@@ -9,9 +9,9 @@ import SwiftUI
 @MainActor
 struct MapTouchGestures {
     let proxy: MapProxy
-    let isMovingPin: () -> Bool
+    let isDraggingPin: () -> Bool
     let pressPoint: Binding<CGPoint?>
-    let placing: Binding<CLLocationCoordinate2D?>
+    let provisionalPin: Binding<CLLocationCoordinate2D?>
     let onPlaced: (CLLocationCoordinate2D) -> Void
     let onTap: () -> Void
 
@@ -25,13 +25,13 @@ struct MapTouchGestures {
                 with: LongPressGesture(minimumDuration: 0.5)
                     .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
                     .onChanged { value in
-                        guard !isMovingPin(), case .second(true, let drag) = value,
+                        guard !isDraggingPin(), case .second(true, let drag) = value,
                             let point = drag?.location ?? pressPoint.wrappedValue
                         else { return }
-                        placing.wrappedValue = proxy.convert(point, from: .local)
+                        provisionalPin.wrappedValue = proxy.convert(point, from: .local)
                     }
                     .onEnded { _ in
-                        if let coordinate = placing.wrappedValue { onPlaced(coordinate) }
+                        if let coordinate = provisionalPin.wrappedValue { onPlaced(coordinate) }
                     }
             )
     }

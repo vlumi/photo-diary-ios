@@ -22,7 +22,7 @@ private enum MapLoadState {
 /// its bounds on tap; a pile at one exact spot shows a callout instead.
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
-    @Environment(\.imageLoader) private var loaderBox
+    @Environment(\.imageLoader) private var imageLoader
     @Environment(PhotoFocusStore.self) private var focus
     @Environment(\.modelContext) var modelContext
     @Environment(\.restoration) private var restoration
@@ -38,15 +38,12 @@ public struct MapPhotoView: View {
     @State var selection: String?
     @State var cameraPosition: MapCameraPosition = .automatic
     @State private var presented: PhotoPagerSelection?
-    // The tag whose callout is showing (a single photo or a pile); nil
-    // when nothing is selected or the selection zoomed instead.
-    @State var calloutFor: String?
-    // Resolves a pin's photoId to its Photo without a re-fetch.
+    // nil also when a selection zoomed in rather than opened a callout.
+    @State var calloutTag: String?
     @State private var photosById: [String: Photo] = [:]
     @State var locator = UserLocationController()
     @State var follow = FollowState()
-    // MapKit reports a tap as a selection again ~0.6 s later, after its
-    // double-tap wait; within that window the echo is dropped.
+    // See `selectionEcho`.
     @State var ownTap: OwnTap?
     @State var ownDeselect: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
@@ -63,10 +60,8 @@ public struct MapPhotoView: View {
     /// reach; pins are rebuilt mid-pan once the camera nears that edge.
     @State var clusteredRegion: MapRegion?
     @State var clusteredMargin = MapClustering.defaultMargin
-    // Todo-pin gestures: the pin being dragged (live position) and the
-    // provisional pin while long-pressing to place a new one.
-    @State var moving: MovingPin?
-    @State var placing: CLLocationCoordinate2D?
+    @State var draggedPin: DraggedPin?
+    @State var provisionalPin: CLLocationCoordinate2D?
     @State var pressPoint: CGPoint?
     @Query(sort: TodoPinStore.sortOrder) var todoPins: [TodoPin]
 
@@ -86,7 +81,7 @@ public struct MapPhotoView: View {
             .sheet(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
-                    loader: loaderBox.loader,
+                    loader: imageLoader,
                     onDismiss: { presented = nil },
                     onShowInCalendar: { photo in
                         presented = nil
@@ -96,7 +91,7 @@ public struct MapPhotoView: View {
             }
             // However the sheet closes, a swipe included, the pin being
             // placed goes: while it's up, the map can't pan or zoom.
-            .sheet(item: $editorPresentation, onDismiss: { placing = nil }) { presentation in
+            .sheet(item: $editorPresentation, onDismiss: { provisionalPin = nil }) { presentation in
                 TodoPinEditor(mode: presentation.mode) { editorPresentation = nil }
             }
             .fullScreenCover(item: $viewingPhoto) { pin in
@@ -145,14 +140,16 @@ public struct MapPhotoView: View {
         // A lifted pin owns the finger: no map pan/zoom underneath it.
         Map(
             position: $cameraPosition,
-            interactionModes: moving == nil && placing == nil ? .all : [],
+            interactionModes: draggedPin == nil && provisionalPin == nil ? .all : [],
             selection: $selection
         ) {
             layers(proxy: proxy)
         }
-        .simultaneousGesture(placementGesture(proxy))
-        .sensoryFeedback(.impact(weight: .medium), trigger: placing != nil) { _, lifted in lifted }
-        .sensoryFeedback(.impact(weight: .medium), trigger: moving?.id) { before, now in
+        .simultaneousGesture(touchGestures(proxy))
+        .sensoryFeedback(.impact(weight: .medium), trigger: provisionalPin != nil) { _, lifted in
+            lifted
+        }
+        .sensoryFeedback(.impact(weight: .medium), trigger: draggedPin?.id) { before, now in
             before == nil && now != nil
         }
         .onMapCameraChange(frequency: .continuous) { context in
@@ -193,10 +190,11 @@ public struct MapPhotoView: View {
 
     private func layers(proxy: MapProxy) -> some MapContent {
         MapLayers(
-            clusters: clusters, todoPins: todoPins, moving: moving, placing: placing,
+            clusters: clusters, todoPins: todoPins, draggedPin: draggedPin,
+            provisionalPin: provisionalPin,
             userLocation: locator.lastLocation, callout: calloutContent, proxy: proxy,
             onMoveChanged: { pin, coordinate in
-                moving = MovingPin(id: pin.id, coordinate: coordinate)
+                draggedPin = DraggedPin(id: pin.id, coordinate: coordinate)
             },
             onMoveEnded: finishMove,
             onTapPin: { tag in
@@ -225,7 +223,7 @@ public struct MapPhotoView: View {
         switch callout.kind {
         case .photos(let photos):
             MapPhotoCallout(
-                photos: photos, loader: loaderBox.loader,
+                photos: photos, loader: imageLoader,
                 onOpen: { index in presented = PhotoPagerSelection(photos: photos, index: index) },
                 onClose: { selection = nil }
             )
@@ -239,8 +237,8 @@ public struct MapPhotoView: View {
 
     private var calloutContent: MapCalloutContent? {
         MapCalloutContent.resolve(
-            tag: calloutFor, clusters: clusters, photosById: photosById,
-            todoPins: todoPins, moving: moving)
+            tag: calloutTag, clusters: clusters, photosById: photosById,
+            todoPins: todoPins, draggedPin: draggedPin)
     }
 
     private func cameraSettled(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
@@ -363,7 +361,7 @@ public struct MapPhotoView: View {
         guard case .loaded = state, let photo = focus.pendingOnMap,
             let coord = photo.location.coordinates
         else { return }
-        _ = focus.consumeForMap()
+        focus.settledOnMap()
         frame(coord, meters: Self.closeUpMeters)
     }
 
