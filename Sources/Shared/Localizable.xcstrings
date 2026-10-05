@@ -68,6 +68,18 @@
       },
       "extractionState" : "manual"
     },
+    "(no note)" : {
+      "comment" : "Placeholder title of a row in the todo-pin list when the pin has no note.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "（メモなし）"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
     "About" : {
       "comment" : "Section header in Settings above the version, author and links.",
       "extractionState" : "manual",
@@ -152,6 +164,18 @@
       },
       "extractionState" : "manual"
     },
+    "Allow the camera in Settings to scan the code, or paste the link instead." : {
+      "comment" : "Scanner sheet description when the camera permission was refused.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コードをスキャンするには設定でカメラを許可するか、代わりにペアリングリンクを貼り付けてください。"
+          }
+        }
+      }
+    },
     "Already paired with this device. Going on signs in as the code's account." : {
       "comment" : "Pairing sheet warning when the code would replace an existing pairing's session.",
       "extractionState" : "manual",
@@ -187,6 +211,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Camera access is off" : {
+      "comment" : "Scanner sheet title when the camera permission was refused.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カメラへのアクセスがオフです"
+          }
+        }
+      }
     },
     "Camera scanning isn't available here" : {
       "comment" : "Title shown in place of the QR scanner when the device has no usable camera, e.g. in the simulator.",
@@ -488,6 +524,18 @@
       },
       "extractionState" : "manual"
     },
+    "Long-press the map to drop one." : {
+      "comment" : "Hint under the empty state of the todo-pin list, telling how to create the first pin.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを長押しするとピンを置けます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
     "Made by" : {
       "comment" : "Row label in the About section; the value is the author's name.",
       "extractionState" : "manual",
@@ -620,6 +668,18 @@
       },
       "extractionState" : "manual"
     },
+    "No photos with a location here yet. Long-press to drop a todo pin." : {
+      "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置情報のある写真がまだありません。長押しでToDoピンを置けます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
     "No photos with a location here yet. Touch and hold the map to drop a todo pin." : {
       "comment" : "Banner at the top of the map when the active instance has no geotagged photos; the map stays usable for todo pins.",
       "localizations" : {
@@ -715,6 +775,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Open Settings" : {
+      "comment" : "Button that opens the app's page in Settings, where a refused permission can be allowed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定を開く"
+          }
+        }
+      }
     },
     "Open the site to sign in" : {
       "comment" : "Link under \"Session expired\" that opens the instance's site in the browser, where the user signs in and picks \"Pair a device\".",
@@ -1100,6 +1172,18 @@
       },
       "extractionState" : "manual"
     },
+    "Shows the note. Press and hold to move it." : {
+      "comment" : "Accessibility hint of a todo pin on the map.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモを表示します。長押しで移動できます。"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
     "Shows the note. Touch and hold, then drag, to move it." : {
       "comment" : "VoiceOver hint on a todo pin.",
       "extractionState" : "manual",
@@ -1159,6 +1243,18 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Switch gallery" : {
+      "comment" : "Button on the map and calendar that goes back to the front page to choose another instance or gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリーを切り替え"
+          }
+        }
+      }
     },
     "System" : {
       "comment" : "Option in the language picker that follows the device's language. The other options are language names in their own language and are not translated.",

@@ -19,6 +19,7 @@ public struct AppShell: View {
     @State private var pendingTicket: PairingTicket?
     @State private var selectedTab: AppTab = .map
     @State private var focus = PhotoFocusStore()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init() {
         let stage = LaunchStage.current
@@ -66,7 +67,7 @@ public struct AppShell: View {
                     .transition(.move(edge: .trailing))
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: registry.scope == nil)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
         .environment(focus)
         .environment(\.imageLoader, ImageLoaderBox(imageLoader))

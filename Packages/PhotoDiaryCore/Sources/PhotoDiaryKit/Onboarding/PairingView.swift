@@ -1,5 +1,9 @@
 import SwiftUI
 
+#if canImport(AVFoundation)
+import AVFoundation
+#endif
+
 /// Adds a real instance. Three ways in — QR scan, pasted link, or a
 /// ticket handed over from a `photodiary://` launch — all converge on
 /// the same "Add <host>?" confirmation before anything is consumed,
@@ -65,6 +69,8 @@ public struct PairingView: View {
         Section("Or paste the pairing link") {
             TextField("photodiary://sso?host=…&token=…", text: $pasted)
                 .pairingInputStyle()
+                .submitLabel(.continue)
+                .onSubmit { accept(pasted) }
             HStack {
                 PasteButton(payloadType: String.self) { strings in
                     if let first = strings.first { pasted = first }
@@ -127,7 +133,9 @@ public struct PairingView: View {
         NavigationStack {
             Group {
                 #if canImport(VisionKit) && os(iOS)
-                if QRScannerView.isAvailable {
+                if Self.cameraRefused {
+                    cameraRefusedView
+                } else if QRScannerView.isAvailable {
                     QRScannerView { payload in
                         showScanner = false
                         accept(payload)
@@ -146,6 +154,25 @@ public struct PairingView: View {
                     Button("Cancel") { showScanner = false }
                 }
             }
+        }
+    }
+
+    private static var cameraRefused: Bool {
+        #if canImport(AVFoundation)
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        return status == .denied || status == .restricted
+        #else
+        false
+        #endif
+    }
+
+    private var cameraRefusedView: some View {
+        ContentUnavailableView {
+            Label("Camera access is off", systemImage: "camera.badge.ellipsis")
+        } description: {
+            Text("Allow the camera in Settings to scan the code, or paste the link instead.")
+        } actions: {
+            OpenSettingsButton()
         }
     }
 
@@ -173,7 +200,10 @@ public struct PairingView: View {
         do {
             let instance = try await PairingService(factory: registry.remoteFactory).pair(ticket)
             registry.add(instance)
-            registry.enter(Scope(instanceId: instance.id))
+            // Pairing again from inside a gallery stays in that gallery.
+            if registry.scope?.instanceId != instance.id {
+                registry.enter(Scope(instanceId: instance.id))
+            }
             dismiss()
         } catch let error as PairingError {
             failure = error.errorDescription

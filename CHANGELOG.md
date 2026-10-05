@@ -23,6 +23,9 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 - VoiceOver reads each photo pin by its title and date, and can move a todo pin to the map's center without a drag.
 - Dropping or picking up a todo pin, and starring one, give a tap of haptic feedback.
 - Small buttons (dismiss, close, the callout's arrows, the list's star and pencil) have finger-sized targets.
+- With location or the camera turned off for the app, the map and the QR scanner say so and offer to open Settings, and the location button no longer turns on with nothing to follow.
+- Pairing again from inside a gallery stays in that gallery, Return in the pairing-link field continues, and the button back to the front page is called Switch gallery.
+- Moving between the front page and a gallery respects Reduce Motion.
 
 ### build 12 — 2026-10-05
 

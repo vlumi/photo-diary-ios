@@ -15,6 +15,11 @@ extension MapPhotoView {
             follow.stop()
             return
         }
+        // Following nothing would leave the button on with no position.
+        guard !locator.isDenied else {
+            locator.locate()
+            return
+        }
         follow.start()
         if let here = locator.lastLocation {
             let meters = FollowState.locateMeters(

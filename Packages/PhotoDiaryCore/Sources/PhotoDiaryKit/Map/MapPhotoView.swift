@@ -189,6 +189,7 @@ public struct MapPhotoView: View {
         .overlay(alignment: .top) {
             MapTopBanners(
                 isRefreshing: isRefreshing, locationError: locator.lastError,
+                locationDenied: locator.isDenied, onDismissLocationError: locator.dismissError,
                 notice: notice, onDismissNotice: { notice = nil },
                 showsPinHint: showsPinHint, onDismissPinHint: { pinHintSeen = true }
             )
@@ -416,7 +417,7 @@ public struct MapPhotoView: View {
 extension MapPhotoView {
     fileprivate var frontPageButton: some View {
         MapRoundButton("square.grid.2x2", tint: .secondary) { registry.leaveScope() }
-            .accessibilityLabel("Photo Diary")
+            .accessibilityLabel("Switch gallery")
             .padding(.leading, 16)
             .padding(.top, 8)
     }

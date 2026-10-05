@@ -19,7 +19,7 @@ public struct CalendarView: View {
                         Button {
                             registry.leaveScope()
                         } label: {
-                            Label("Photo Diary", systemImage: "square.grid.2x2")
+                            Label("Switch gallery", systemImage: "square.grid.2x2")
                         }
                     }
                 }
