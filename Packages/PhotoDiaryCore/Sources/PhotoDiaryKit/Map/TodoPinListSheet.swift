@@ -119,6 +119,18 @@ struct TodoPinListSheet: View {
     }
 
     private func row(for pin: TodoPin) -> some View {
+        HStack(spacing: 10) {
+            if let photo = pin.photo {
+                TodoPinPhotoImage(data: photo)
+                    .scaledToFill()
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+            rowText(for: pin)
+        }
+    }
+
+    private func rowText(for pin: TodoPin) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             (pin.note.isEmpty ? Text("(no note)") : Text(verbatim: pin.note))
                 .font(.body)

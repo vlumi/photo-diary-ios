@@ -764,6 +764,18 @@
         }
       }
     },
+    "Photo of the place" : {
+      "comment" : "Accessibility label of a todo pin's snapshot, in the editor, the map banner, the list and full screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その場所の写真"
+          }
+        }
+      }
+    },
     "Photo, %@" : {
       "comment" : "Accessibility description of a photo without a title, read in the grid, callout and viewer. The argument is the photo's date and time.",
       "localizations" : {
@@ -824,6 +836,18 @@
       },
       "extractionState" : "manual"
     },
+    "Remove photo" : {
+      "comment" : "Button in the todo-pin editor that removes the pin's snapshot.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を削除"
+          }
+        }
+      }
+    },
     "Restart the app to change the language." : {
       "comment" : "Footer under the language picker after choosing a language the app is not currently running in.",
       "extractionState" : "manual",
@@ -832,6 +856,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "言語を変更するにはアプリを再起動してください。"
+          }
+        }
+      }
+    },
+    "Retake photo" : {
+      "comment" : "Button in the todo-pin editor that opens the camera to replace the pin's snapshot.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を撮り直す"
           }
         }
       }
@@ -968,6 +1004,18 @@
       },
       "extractionState" : "manual"
     },
+    "Shows the photo full screen." : {
+      "comment" : "Accessibility hint of the photo thumbnail on a todo pin's map banner.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を全画面で表示します。"
+          }
+        }
+      }
+    },
     "Sort" : {
       "comment" : "Label of the Recent / Nearest segmented control at the top of the todo-pin list; read by VoiceOver, not shown.",
       "localizations" : {
@@ -1012,6 +1060,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "システム"
+          }
+        }
+      }
+    },
+    "Take photo" : {
+      "comment" : "Button in the todo-pin editor that opens the camera to attach a snapshot of the place.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を撮る"
           }
         }
       }

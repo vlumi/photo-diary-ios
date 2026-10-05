@@ -50,7 +50,8 @@ targets:
           server or stored beyond the map view.
         NSCameraUsageDescription:
           Photo Diary uses the camera to scan a pairing QR code from
-          another device. Nothing is recorded or sent.
+          another device, and to take a snapshot for a todo pin on the
+          map. Snapshots stay on this device; nothing is sent.
         # Custom URL scheme for the same-device SSO pairing flow — the
         # server's "Open in app" button links to
         # `photodiary://sso?host=<host>&token=<ticket>`.

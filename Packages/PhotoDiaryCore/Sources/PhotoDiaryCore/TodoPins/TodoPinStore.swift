@@ -17,17 +17,26 @@ public struct TodoPinStore {
     /// Persist a new pin at the given coordinate. Returns the saved
     /// entity so the caller can immediately show it in the UI.
     @discardableResult
-    public func create(latitude: Double, longitude: Double, note: String = "") throws -> TodoPin {
-        let pin = TodoPin(latitude: latitude, longitude: longitude, note: note)
+    public func create(
+        latitude: Double, longitude: Double, note: String = "", photo: Data? = nil
+    ) throws -> TodoPin {
+        let pin = TodoPin(latitude: latitude, longitude: longitude, note: note, photo: photo)
         context.insert(pin)
         try context.save()
         return pin
     }
 
-    /// Update a pin's note (the only mutable field on the current
-    /// shape). Bumps updatedAt.
+    /// Update a pin's note. Bumps updatedAt.
     public func updateNote(_ pin: TodoPin, note: String) throws {
         pin.note = note
+        pin.updatedAt = .now
+        try context.save()
+    }
+
+    /// Attach, replace or (with nil) remove the pin's photo. Bumps
+    /// updatedAt.
+    public func setPhoto(_ pin: TodoPin, _ photo: Data?) throws {
+        pin.photo = photo
         pin.updatedAt = .now
         try context.save()
     }

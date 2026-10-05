@@ -2,8 +2,9 @@
 import SwiftData
 import SwiftUI
 
-/// Sheet for editing a todo pin's note. Create-mode drops a new pin;
-/// edit-mode edits an existing one. Delete only appears in edit mode.
+/// Sheet for editing a todo pin's note and photo. Create-mode drops a
+/// new pin; edit-mode edits an existing one. Delete only appears in
+/// edit mode. A new or removed photo waits for Save like the note.
 struct TodoPinEditor: View {
     enum Mode {
         case create(latitude: Double, longitude: Double)
@@ -15,6 +16,8 @@ struct TodoPinEditor: View {
 
     @Environment(\.modelContext) private var context
     @State private var note: String = ""
+    @State private var photo: Data?
+    @State private var showingCamera = false
     @FocusState private var noteFocused: Bool
 
     var body: some View {
@@ -25,6 +28,7 @@ struct TodoPinEditor: View {
                         .lineLimit(3...8)
                         .focused($noteFocused)
                 }
+                photoSection
                 Section {
                     Text(coordinateLabel)
                         .font(.footnote.monospaced())
@@ -49,8 +53,48 @@ struct TodoPinEditor: View {
                 }
             }
             .onAppear {
-                if case .edit(let pin) = mode { note = pin.note }
+                if case .edit(let pin) = mode {
+                    note = pin.note
+                    photo = pin.photo
+                }
                 noteFocused = true
+            }
+            .fullScreenCover(isPresented: $showingCamera) {
+                CameraPicker(
+                    onCapture: { image in
+                        photo = TodoPinPhoto.jpeg(from: image) ?? photo
+                        showingCamera = false
+                    },
+                    onCancel: { showingCamera = false }
+                )
+                .ignoresSafeArea()
+            }
+        }
+    }
+
+    // Without a camera (the simulator) and no photo yet, there's
+    // nothing to show or do here.
+    @ViewBuilder
+    private var photoSection: some View {
+        if photo != nil || CameraPicker.isAvailable {
+            Section("Photo") {
+                if let photo {
+                    TodoPinPhotoImage(data: photo)
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: 240)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                if CameraPicker.isAvailable {
+                    Button(photo == nil ? "Take photo" : "Retake photo", systemImage: "camera") {
+                        noteFocused = false
+                        showingCamera = true
+                    }
+                }
+                if photo != nil {
+                    Button("Remove photo", systemImage: "trash", role: .destructive) {
+                        photo = nil
+                    }
+                }
             }
         }
     }
@@ -76,9 +120,10 @@ struct TodoPinEditor: View {
         do {
             switch mode {
             case .create(let lat, let lng):
-                try store.create(latitude: lat, longitude: lng, note: note)
+                try store.create(latitude: lat, longitude: lng, note: note, photo: photo)
             case .edit(let pin):
                 try store.updateNote(pin, note: note)
+                if photo != pin.photo { try store.setPhoto(pin, photo) }
             }
         } catch {
             // Save errors are surfaced by SwiftData in the delegate

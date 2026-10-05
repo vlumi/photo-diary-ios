@@ -71,6 +71,7 @@ public struct MapPhotoView: View {
     @State var ownDeselect: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
     @State var editorPresentation: MapEditorPresentation?
+    @State private var viewingPhoto: TodoPin?
     @State var currentRegion: MKCoordinateRegion?
     @State private var showingList = false
     @State var clusters: [MapCluster] = []
@@ -113,6 +114,11 @@ public struct MapPhotoView: View {
                 TodoPinEditor(mode: presentation.mode) {
                     editorPresentation = nil
                     placing = nil
+                }
+            }
+            .fullScreenCover(item: $viewingPhoto) { pin in
+                if let photo = pin.photo {
+                    TodoPinPhotoViewer(data: photo) { viewingPhoto = nil }
                 }
             }
             .sheet(isPresented: $showingList) {
@@ -232,7 +238,8 @@ public struct MapPhotoView: View {
             )
         case .todo(let pin):
             TodoPinCallout(
-                note: pin.note, onEdit: { editorPresentation = .edit(pin) },
+                note: pin.note, photo: pin.photo, onOpenPhoto: { viewingPhoto = pin },
+                onEdit: { editorPresentation = .edit(pin) },
                 onClose: { selection = nil })
         }
     }
