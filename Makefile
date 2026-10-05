@@ -19,7 +19,7 @@ help:  ## List the available commands
 ##@ Dev — build, run, test
 
 # Inputs xcodegen reads — regenerate the project when any of these change.
-# Info.plist is not in this list: xcodegen synthesises it under
+# Info.plist is not in this list: xcodegen synthesizes it under
 # .build-xcode/generated/ from project.yml properties, so project.yml
 # alone captures every plist-affecting change.
 PROJECT_INPUTS := project.yml \

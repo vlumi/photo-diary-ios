@@ -26,6 +26,7 @@ Packages/PhotoDiaryCore/
 │   ├── Calendar/                   Slicing photos by year, month and day
 │   ├── TodoPins/                   Local SwiftData store for map notes
 │   ├── Settings/                   The app language override
+│   ├── Staging/                    Launch arguments that stage a screenshot
 │   └── Resources/                  String Catalog for Core's error messages
 ├── Sources/PhotoDiaryKit/          SwiftUI views + MapKit — depends on Core.
 │   ├── AppShell.swift              Root: front page, or the tab bar for the open scope
@@ -34,8 +35,14 @@ Packages/PhotoDiaryCore/
 │   ├── Calendar/                   Gallery, year and month lists; the photo grid
 │   ├── PhotoPagerSheet.swift, …    The shared photo viewer
 │   ├── Onboarding/                 Pairing: QR scanner, link, paste
-│   └── Settings/                   Settings and About
-└── Sources/PhotoDiaryIcon/         Command-line tool that renders the app icon
+│   ├── Settings/                   Settings and About
+│   ├── Staging/                    What a staged launch sets up before the first frame
+│   ├── LoadState.swift, …          Loading, empty and failure states shared by screens
+│   └── AppIconScene.swift          The icon's drawing, rendered by PhotoDiaryIcon
+├── Sources/PhotoDiaryIcon/         Command-line tool that renders the app icon
+└── OpenAPI/                        The server's pinned OpenAPI document and the list
+                                    of operations the client is generated for
+Tools/OpenAPIGenerator/             The client generator, outside the app's dependencies
 Sources/Shared/                     The view layer's String Catalog (en + ja)
 Sources/iOS/                        App entry point, assets, Info.plist strings
 ```
@@ -64,7 +71,7 @@ Views only ever depend on the protocol, never on either concrete implementation.
 The demo instance is seeded into the registry on first launch, so the app has something to show before any pairing. It can be forgotten from the front page like any other instance. Purposes:
 
 - **Development without a server.** The entire UI was built and is tested against `DemoInstance`.
-- **App Store review and screenshots.** Reviewers can explore the app without credentials, and screenshots leak no personal photos. (Review also gets a test account for the pairing flow; see [ROADMAP.md](ROADMAP.md).)
+- **App Store review.** Reviewers can explore the app without credentials. (Review also gets a test account for the pairing flow; see [Scripts/asc/README.md](Scripts/asc/README.md).)
 - **Working offline.** A subway-tunnel session still has something to browse.
 
 Demo mode is read-only like the rest of the app; todo pins added while in demo mode live in the same SwiftData store as any other pins (they're local-only regardless).
@@ -109,17 +116,17 @@ One component, used from both surfaces. A tap on a map callout or a calendar cel
 - The cached thumbnail shows at once and the full image replaces it, so the tap responds before anything loads.
 - Pinch, pan and double-tap zoom are SwiftUI gestures (`PhotoViewer`). Horizontal paging is a scroll view underneath; it is switched off while zoomed so a pan doesn't turn the page.
 - Swipe down closes the sheet. Because a SwiftUI drag gesture inside a horizontal scroll view never receives vertical drags, a UIKit pan recognizer attached to the enclosing scroll view does this (`PullDownRecognizer`); while zoomed, the same pan moves the photo instead.
-- The caption shows the position in the set and the date in the photo's own local time. *Show on map* switches to the map centered on the photo. There is no EXIF panel.
+- The caption shows the position in the set and the date in the photo's own local time. *Show on map* switches to the map centered on the photo; *Show in calendar* opens the calendar at the photo's month with its day at the top and the photo marked for a moment. There is no EXIF panel.
 
 ## Todo pins (map-only)
 
 Local-only. Never leaves the device.
 
-- **Schema:** `{id, latitude, longitude, note, starredAt, createdAt, updatedAt}`. No categories, no due dates, no attached photos — deliberately minimal.
+- **Schema:** `{id, latitude, longitude, note, starredAt, photo, createdAt, updatedAt}`. No categories, no due dates — deliberately minimal. `photo` is an optional camera snapshot of the place, scaled to under a megapixel and kept outside the row (external storage).
 - **Storage:** SwiftData. Survives reinstall via iCloud backup if the user has that on; otherwise a device-local store.
 - **UI:**
-  - Long-press the map to drop a new pin there; press and hold an existing pin to move it.
-  - Tap a pin for a callout with the note and an edit button; the editor also deletes.
+  - Touch and hold the map to drop a new pin there; touch and hold an existing pin, then drag, to move it.
+  - Tap a pin for a callout with the note, the snapshot's thumbnail and an edit button; the editor takes, replaces and removes the snapshot, and deletes the pin.
   - Distinct visual from photo pins.
   - A list sheet from the map, sorted by most recent or by nearest to the map's center, with starred pins first. Tap a row → the map centers on the pin.
 
@@ -136,8 +143,9 @@ Settings can force a language for the app alone. It writes `AppleLanguages` into
 - **Offline mode beyond the response cache.** The last answers per endpoint are kept (see Instance registry); there is no download-for-later, no image cache promise beyond Nuke's, and nothing queued for a reconnect.
 - **EXIF and the site's statistics.** The viewer shows the photo and its date.
 - **Push notifications.**
-- **Third-party analytics or crash reporting.** iOS's built-in TestFlight crash logs are enough.
+- **Third-party analytics or crash reporting.** The crash reports Xcode's Organizer collects from TestFlight and App Store users are enough.
 - **iPad, macOS, Watch.** Focus.
+- **Cloud sync of todo pins.** They're deliberately local-only.
 
 ## Planned
 
@@ -154,5 +162,5 @@ Both can coexist: `hide_map` per gallery for content sensitivity, plus a client-
 
 ### Universal Links vs custom scheme
 
-Custom scheme for v1, Universal Links for v1.1 (needs the `.well-known/apple-app-site-association` file served from every instance's host). Decide based on how often the "open pairing link from email" case comes up in practice.
+Custom scheme for v1, Universal Links for v1.1. A custom scheme is first come, first served: another app claiming `photodiary://` could catch a pairing ticket from "Open in app". An app can only claim the domains its build lists, and instances are self-hosted anywhere, so the link has to go through a domain of the app's own (`https://<site>/pair#host=…&token=…`, the ticket in the fragment so it never reaches that site's logs), served with an `apple-app-site-association` file, and the server's pairing dialog has to emit it. The app keeps accepting `photodiary://` from older servers.
 

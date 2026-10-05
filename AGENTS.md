@@ -1,6 +1,6 @@
 # photo-diary-ios — agent & contributor guide
 
-Read-only iPhone companion for a self-hosted Photo Diary instance. This file is how to *work on* the repo — for humans and AI agents alike.
+Read-only iPhone companion for a self-hosted Photo Diary instance, listed on the App Store as *Photo Diary Companion* (home-screen name *Photo Diary*). This file is how to *work on* the repo — for humans and AI agents alike.
 
 Fully independent of the [server repo](https://github.com/vlumi/photo-diary). The server exposes `/api/v1/*`; this app is a consumer, nothing more, and needs server 1.0.7 or later (device pairing).
 
@@ -15,6 +15,8 @@ One place per concern — don't duplicate, link:
 | **How to work on it** | this file — conventions, toolchain, PR process |
 | **What's next, and when** | [ROADMAP.md](ROADMAP.md) |
 | **What shipped** | [CHANGELOG.md](CHANGELOG.md) |
+| **The App Store listing and screenshots** | [Scripts/asc/README.md](Scripts/asc/README.md), [Scripts/asc/SCREENSHOTS.md](Scripts/asc/SCREENSHOTS.md) |
+| **What the app does with data** | [PRIVACY.md](PRIVACY.md) — the policy the store listing links to |
 
 When something ships, move it out of ARCHITECTURE.md's *Planned* chapter and into the prose above it.
 
@@ -43,7 +45,11 @@ Packages/PhotoDiaryCore/            SPM package
 Sources/Shared/                     Localizable.xcstrings (the view layer's strings, en + ja)
 Sources/iOS/                        PhotoDiaryApp.swift, assets, entitlements, InfoPlist.xcstrings,
                                     privacy manifest
-Scripts/                            generate, run-ios, release-*, distribute, sync-schema
+Packages/PhotoDiaryCore/OpenAPI/    the server's pinned OpenAPI document + the generator's operation list
+Tools/OpenAPIGenerator/             the client generator, outside the app's dependency graph
+Scripts/                            generate, run-ios, generate-client, sync-schema, stage, shoot,
+                                    release-*, distribute
+Scripts/asc/                        App Store listing and screenshot sync (Python)
 project.yml                         XcodeGen source of truth (Info.plist values live here)
 ```
 

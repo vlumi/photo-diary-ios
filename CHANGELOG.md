@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to the Photo Diary companion app are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to the Photo Diary companion app are documented here. The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Grouped by **marketing version**, then by **build number** within it — the version stays steady while the build climbs with each TestFlight upload (see [RELEASING.md](RELEASING.md)). A build's section lists only what changed since the **previous build**, whether or not that build was the same version. The build heading is `### build N — <date>`; the version comes from the `## vX.Y.Z` above it.
+Grouped by **marketing version**, then by **build number** within it — the version stays steady while the build climbs with each upload (see [RELEASING.md](RELEASING.md)). A build's section lists only what changed since the **previous build**, whether or not that build was the same version. The build heading is `### build N — <date>`; the version comes from the `## vX.Y.Z` above it.
 
 Each version's top section, **Unreleased (next build)**, collects entries merged to `main` but not yet in a TestFlight build; cutting a release renames it to that build's heading and opens a fresh empty one. Keep that heading immediately followed by its list items (no prose between), so the release script can promote it. A user-facing PR writes its own bullet here.
 

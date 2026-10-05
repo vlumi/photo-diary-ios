@@ -11,11 +11,11 @@ Everything but the submission has shipped to TestFlight; [CHANGELOG.md](CHANGELO
 
 What is left:
 
-- **App Store submission.** Screenshots, the store description in English and Japanese, and the review. **Reviewers get two paths:** the demo instance, which is there out of the box and needs no server, and a test account on a live instance with the pairing steps in the review notes, so the real sign-in flow can be exercised. If review insists on signing in inside the app, a username and password form is the fallback; it is deliberately not built otherwise (see [ARCHITECTURE.md](ARCHITECTURE.md#onboarding--sso-pairing)).
+- **App Store submission.** The English store listing and the screenshot flow are set up in [`Scripts/asc/`](Scripts/asc/README.md); what's left is taking the screenshots and the review. **Reviewers get two paths:** the demo instance, which is there out of the box and needs no server, and a test account on a live instance with the pairing steps in the review notes, so the real sign-in flow can be exercised. If review insists on signing in inside the app, a username and password form is the fallback; it is deliberately not built otherwise (see [ARCHITECTURE.md](ARCHITECTURE.md#onboarding--sso-pairing)).
 
 ## v1.1 — post-launch polish
 
-- **Universal Links** for the pairing "Open in app" button. Needs `.well-known/apple-app-site-association` served from every instance's host and the App ID registered with Apple.
+- **Universal Links** for the pairing "Open in app" button, closing the custom scheme's weakness that another app can claim `photodiary://` and catch the ticket. The app can only claim domains it lists, so the link has to point at a site of the app's own (e.g. `photodiary.misaki.fi/pair`, the ticket in the fragment), with the server's pairing dialog emitting it.
 - **Stats surface.** Reduced version — KPIs and category cards, skip charts initially. ~1-2 days.
 - **Real demo photos.** The demo instance draws a gradient tile per photo; licensed photos bundled with the app would make the screenshots and the first impression better.
 
@@ -29,8 +29,4 @@ Speculative shape for what would come after the site's own 2.0 vision (thin serv
 
 ## Deliberately not on the roadmap
 
-- Filters (redo the site's filter widget in SwiftUI — huge surface, low pay-off).
-- iPad / macOS / Watch app.
-- Push notifications.
-- Third-party analytics.
-- Cloud sync of todo pins (they're deliberately local-only).
+See [ARCHITECTURE.md](ARCHITECTURE.md#deliberately-out-of-scope).
