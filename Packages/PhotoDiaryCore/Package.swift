@@ -7,8 +7,7 @@ let package = Package(
     // English is the base language.
     defaultLocalization: "en",
     platforms: [
-        // Match the app's iOS-latest-only stance. When iOS 26 goes GA and
-        // we've tested on the release, bump both this and project.yml.
+        // The app's iOS-latest-only stance: moves with project.yml.
         .iOS(.v26),
         // macOS floor exists solely so `swift test` on CI (which builds
         // for the host, not iOS) can see modern availability like

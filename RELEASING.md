@@ -1,6 +1,6 @@
 # Releasing
 
-How the Photo Diary companion app versions, builds, and ships to TestFlight. Mechanical steps only. The lane mirrors the sibling apps' — this app is iOS-only, so there is no platform argument and tags carry no platform prefix.
+How the Photo Diary companion app versions, builds, and ships to TestFlight and the App Store. Mechanical steps only. The lane mirrors the sibling apps' — this app is iOS-only, so there is no platform argument and tags carry no platform prefix.
 
 ## Branching
 
@@ -41,6 +41,14 @@ make release-build        # alias for UPLOAD=0
 
 Every tag is exactly `vMAJOR.MINOR.PATCH-BUILD` — plain SemVer plus the **build number**, never a `-beta.N` / `-rc.N` label: the lane orders tags with `--sort=-v:refname` and parses `(version, build)` to find the previous release for the notes, and a pre-release suffix would mis-sort. The git tags are the source of truth; GitHub releases are a presentation layer. Never delete an immutable GitHub release — GitHub reserves the tag name permanently; *edit* to revise notes.
 
+## Submitting to the App Store
+
+A build for the store is cut like any other, at the version App Store Connect's version page carries: `MARKETING_VERSION` has to match it (bump it at the publish step's prompt). Then:
+
+1. `make asc-listing-apply` brings the listing text in line with `Scripts/asc/listing.json`, and `make asc-screenshots-apply` the screenshots with `shots/` after a `make shots`. Without `-apply`, both only show what would change.
+2. In App Store Connect, pick the build on the version, check the review notes, and submit. What stays by hand there is listed in [Scripts/asc/README.md](Scripts/asc/README.md).
+3. From the second release on, add `whatsNew` per locale to `listing.json` before step 1.
+
 ## Recovering from a failed release
 
 The steps are idempotent against the real artifacts (tags, merge state). Re-enter the chain at the right point:
@@ -56,6 +64,6 @@ The steps are idempotent against the real artifacts (tags, merge state). Re-ente
 
 ## One-time setup
 
-- **App Store Connect app record** for `fi.misaki.photodiary`, with an internal TestFlight group (automatic distribution on) containing the testers.
+- **App Store Connect app record** for `fi.misaki.photodiary` (listed as *Photo Diary Companion*), with an internal TestFlight group (automatic distribution on) containing the testers.
 - **ASC API key**: App Store Connect → Users and Access → Integrations → App Store Connect API → generate (App Manager role). Put the `.p8` at `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`, then copy `Scripts/.asc-config.example` → `Scripts/.asc-config` (gitignored) and fill in the Key ID + Issuer ID.
 - **Signing** is automatic (`-allowProvisioningUpdates`) against `DEVELOPMENT_TEAM` in `project.yml`; no manual certs. It goes through Xcode's signed-in Apple ID, so if an export fails with "No Accounts", restart Xcode and sign in again under Settings → Accounts. The API key is for the upload only; xcodebuild cannot use it for signing, because an App Manager key has no access to the cloud-managed distribution certificate.
