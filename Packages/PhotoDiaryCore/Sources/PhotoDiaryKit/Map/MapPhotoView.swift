@@ -77,7 +77,7 @@ public struct MapPhotoView: View {
 
     public var body: some View {
         content
-            .task(id: "\(scopeKey):\(attempt)") { await load() }
+            .task(id: "\(registry.scope?.key ?? ""):\(attempt)") { await load() }
             .sheet(item: $presented) { selection in
                 PhotoPagerSheet(
                     selection: selection,
@@ -244,7 +244,7 @@ public struct MapPhotoView: View {
     private func cameraSettled(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
         currentRegion = region
         if let scope = registry.scope {
-            restoration.save(MapCamera(region), forKey: "camera." + scope.key)
+            restoration.save(MapRegion(region), .camera, in: scope)
         }
         recluster(pins: pins, region: region)
         if cameraPosition.positionedByUser { follow.stop() }
@@ -259,11 +259,6 @@ public struct MapPhotoView: View {
         if build.clusters != clusters { clusters = build.clusters }
         clusteredRegion = region
         clusteredMargin = build.margin
-    }
-
-    private var scopeKey: String {
-        guard let scope = registry.scope else { return "" }
-        return "\(scope.instanceId)/\(scope.galleryId ?? "*")"
     }
 
     private var controls: some View {
@@ -285,10 +280,11 @@ public struct MapPhotoView: View {
         // first load reclusters under it instead of framing the latest
         // photo.
         if currentRegion == nil, let scope = registry.scope,
-            let saved = restoration.load(MapCamera.self, forKey: "camera." + scope.key)
+            let saved = restoration.load(MapRegion.self, .camera, in: scope)
         {
-            currentRegion = saved.region
-            cameraPosition = .region(saved.region)
+            let region = MKCoordinateRegion(saved)
+            currentRegion = region
+            cameraPosition = .region(region)
         }
         guard let instance = registry.activeInstance else {
             state = .failed(LoadFailure(message: String(localized: "No active instance.")))

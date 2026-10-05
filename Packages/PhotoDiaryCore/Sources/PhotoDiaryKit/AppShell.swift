@@ -96,11 +96,11 @@ public struct AppShell: View {
         }
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }
-            selectedTab = restoration.load(AppTab.self, forKey: "tab." + scope.key) ?? .map
+            selectedTab = restoration.load(AppTab.self, .tab, in: scope) ?? .map
         }
         .onChange(of: selectedTab) {
             guard let scope = registry.scope else { return }
-            restoration.save(selectedTab, forKey: "tab." + scope.key)
+            restoration.save(selectedTab, .tab, in: scope)
         }
     }
 }

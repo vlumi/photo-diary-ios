@@ -36,11 +36,11 @@ public struct CalendarView: View {
         // The path belongs to its scope.
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }
-            path = restoration.load([CalendarRoute].self, forKey: "calendar." + scope.key) ?? []
+            path = restoration.load([CalendarRoute].self, .calendar, in: scope) ?? []
         }
         .onChange(of: path) {
             guard let scope = registry.scope else { return }
-            restoration.save(path, forKey: "calendar." + scope.key)
+            restoration.save(path, .calendar, in: scope)
         }
         .onChange(of: focus.pendingInCalendar?.id, initial: true) {
             // The grid then scrolls to the photo and takes the request.

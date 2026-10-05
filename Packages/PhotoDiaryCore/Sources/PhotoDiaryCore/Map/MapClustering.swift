@@ -3,7 +3,7 @@ import Foundation
 
 /// A map viewport in plain degrees — MKCoordinateRegion without the
 /// MapKit dependency, so clustering stays testable from Core.
-public struct MapRegion: Hashable, Sendable {
+public struct MapRegion: Hashable, Sendable, Codable {
     public var centerLatitude: Double
     public var centerLongitude: Double
     public var latitudeDelta: Double
@@ -19,6 +19,13 @@ public struct MapRegion: Hashable, Sendable {
         self.centerLongitude = centerLongitude
         self.latitudeDelta = latitudeDelta
         self.longitudeDelta = longitudeDelta
+    }
+
+    // The names a saved map camera has always had on disk.
+    private enum CodingKeys: String, CodingKey {
+        case centerLatitude = "latitude"
+        case centerLongitude = "longitude"
+        case latitudeDelta, longitudeDelta
     }
 
     /// The zoom as a distance: the shorter of the two spans, in meters.

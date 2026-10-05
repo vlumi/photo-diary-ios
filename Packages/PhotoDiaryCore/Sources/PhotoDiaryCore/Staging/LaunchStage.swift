@@ -11,13 +11,6 @@ public struct LaunchStage: Equatable, Sendable {
         case scope(Scope)
     }
 
-    public struct Camera: Equatable, Sendable {
-        public let latitude: Double
-        public let longitude: Double
-        public let latitudeDelta: Double
-        public let longitudeDelta: Double
-    }
-
     public struct CalendarStop: Equatable, Sendable {
         public let galleryId: String
         public let year: Int?
@@ -52,7 +45,7 @@ public struct LaunchStage: Equatable, Sendable {
     public var opening: Opening = .unchanged
     /// `map` or `calendar`; kept as text so Core needn't know the tabs.
     public var tab: String?
-    public var camera: Camera?
+    public var camera: MapRegion?
     public var calendar: CalendarStop?
     public var photoId: String?
     public var pins: [Pin] = []
@@ -110,18 +103,18 @@ public struct LaunchStage: Equatable, Sendable {
         value == DemoInstance.instanceId ? value : RemoteInstanceFactory.canonicalOrigin(value)
     }
 
-    private static func camera(_ value: String) -> Camera? {
+    private static func camera(_ value: String) -> MapRegion? {
         let numbers = value.split(separator: ",").compactMap {
             Double($0.trimmingCharacters(in: .whitespaces))
         }
         switch numbers.count {
         case 3:
-            return Camera(
-                latitude: numbers[0], longitude: numbers[1],
+            return MapRegion(
+                centerLatitude: numbers[0], centerLongitude: numbers[1],
                 latitudeDelta: numbers[2], longitudeDelta: numbers[2])
         case 4:
-            return Camera(
-                latitude: numbers[0], longitude: numbers[1],
+            return MapRegion(
+                centerLatitude: numbers[0], centerLongitude: numbers[1],
                 latitudeDelta: numbers[2], longitudeDelta: numbers[3])
         default:
             return nil

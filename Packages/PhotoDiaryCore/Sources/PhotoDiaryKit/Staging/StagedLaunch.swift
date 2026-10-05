@@ -1,5 +1,4 @@
 import Foundation
-import MapKit
 import SwiftData
 import SwiftUI
 
@@ -36,22 +35,13 @@ extension LaunchStage {
         let store = InMemoryRestorationStore()
         guard let scope else { return store }
         if let tab = tab.flatMap(AppTab.init(rawValue:)) {
-            store.save(tab, forKey: "tab." + scope.key)
+            store.save(tab, .tab, in: scope)
         }
-        if let camera {
-            store.save(
-                MapCamera(
-                    MKCoordinateRegion(
-                        MapRegion(
-                            centerLatitude: camera.latitude, centerLongitude: camera.longitude,
-                            latitudeDelta: camera.latitudeDelta,
-                            longitudeDelta: camera.longitudeDelta))),
-                forKey: "camera." + scope.key)
-        }
+        store.save(camera, .camera, in: scope)
         if let calendar {
             store.save(
                 Self.calendarPath(to: calendar, inGalleryScope: scope.galleryId != nil),
-                forKey: "calendar." + scope.key)
+                .calendar, in: scope)
         }
         return store
     }

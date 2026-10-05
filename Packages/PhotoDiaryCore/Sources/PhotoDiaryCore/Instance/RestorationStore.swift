@@ -9,6 +9,30 @@ public protocol RestorationStore: Sendable {
     func save<T: Encodable & Sendable>(_ value: T?, forKey key: String)
 }
 
+/// What a screen keeps per scope.
+public enum RestorationSlot: String, Sendable {
+    case tab
+    case camera
+    case calendar
+}
+
+extension RestorationStore {
+    public func load<T: Decodable & Sendable>(
+        _ type: T.Type, _ slot: RestorationSlot, in scope: Scope
+    ) -> T? {
+        load(type, forKey: Self.key(slot, scope))
+    }
+
+    public func save<T: Encodable & Sendable>(_ value: T?, _ slot: RestorationSlot, in scope: Scope)
+    {
+        save(value, forKey: Self.key(slot, scope))
+    }
+
+    static func key(_ slot: RestorationSlot, _ scope: Scope) -> String {
+        slot.rawValue + "." + scope.key
+    }
+}
+
 public final class InMemoryRestorationStore: RestorationStore, @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: Data] = [:]

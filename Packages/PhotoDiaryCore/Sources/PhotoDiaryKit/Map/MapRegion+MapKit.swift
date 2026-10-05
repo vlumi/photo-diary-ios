@@ -22,24 +22,4 @@ extension MapRegion {
         )
     }
 }
-
-struct MapCamera: Codable, Sendable {
-    let latitude: Double
-    let longitude: Double
-    let latitudeDelta: Double
-    let longitudeDelta: Double
-
-    init(_ region: MKCoordinateRegion) {
-        latitude = region.center.latitude
-        longitude = region.center.longitude
-        latitudeDelta = region.span.latitudeDelta
-        longitudeDelta = region.span.longitudeDelta
-    }
-
-    var region: MKCoordinateRegion {
-        MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-            span: MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta))
-    }
-}
 #endif
