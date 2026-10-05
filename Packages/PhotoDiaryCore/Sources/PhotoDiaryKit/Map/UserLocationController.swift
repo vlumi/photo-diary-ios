@@ -69,6 +69,14 @@ public final class UserLocationController: NSObject {
         }
     }
 
+    public var isDenied: Bool {
+        authorization == .denied || authorization == .restricted
+    }
+
+    public func dismissError() {
+        lastError = nil
+    }
+
     private var isAuthorized: Bool {
         authorization == .authorizedWhenInUse || authorization == .authorizedAlways
     }
@@ -78,6 +86,7 @@ extension UserLocationController: @preconcurrency CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorization = manager.authorizationStatus
         guard isAuthorized else { return }
+        lastError = nil
         if tracking { manager.startUpdatingLocation() }
         if fixRequested { manager.requestLocation() }
     }

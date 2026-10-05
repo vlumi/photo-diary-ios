@@ -28,7 +28,8 @@ public enum PairingError: Error, Sendable, LocalizedError {
 /// Turns a pairing ticket into a working RemoteInstance: consumes the
 /// one-shot SSO ticket (the 302's Set-Cookie is the session), then
 /// proves the session with GET /tokens before handing the instance
-/// back. Cookies persist through the factory's hook as they arrive.
+/// back. Only a proven session is saved, so a failed pairing leaves
+/// nothing behind and can't overwrite one that works.
 public struct PairingService: Sendable {
     private let factory: RemoteInstanceFactory
 
@@ -37,7 +38,8 @@ public struct PairingService: Sendable {
     }
 
     public func pair(_ ticket: PairingTicket) async throws -> RemoteInstance {
-        let api = factory.makeAPI(origin: ticket.origin, cookies: SessionCookies())
+        let api = factory.makeAPI(
+            origin: ticket.origin, cookies: SessionCookies(), persisting: false)
         let client = PhotoDiaryClient(api: api)
         // The server answers with a redirect into the site, carrying the
         // session cookies; the transport doesn't follow it.
@@ -61,6 +63,7 @@ public struct PairingService: Sendable {
             case .undocumented(let status, _): throw unexpected(status: status)
             }
         }
+        await api.startPersisting()
         return factory.make(origin: ticket.origin, api: api)
     }
 }

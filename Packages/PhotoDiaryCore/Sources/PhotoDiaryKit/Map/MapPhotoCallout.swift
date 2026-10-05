@@ -73,7 +73,10 @@ struct MapPhotoCallout: View {
             Image(systemName: systemName)
                 .font(.body.weight(.semibold))
                 .frame(width: 28, height: thumbSize)
+                // A finger-wide target without widening the callout.
+                .padding(.horizontal, 8)
                 .contentShape(Rectangle())
+                .padding(.horizontal, -8)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
