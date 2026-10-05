@@ -32,8 +32,10 @@ public struct KeychainError: Error, Sendable {
 }
 
 /// Generic-password Keychain items: service = app, account = host,
-/// value = JSON-encoded SessionCookies. AfterFirstUnlock so a
-/// background refresh after reboot can read the refresh token.
+/// value = JSON-encoded SessionCookies. Kept to this device: a restore
+/// or a new phone pairs again rather than carrying the session over.
+/// After first unlock rather than while unlocked, so a launch iOS
+/// prewarms before the unlock still finds the session.
 public struct KeychainSessionStore: SessionStore {
     private let service: String
 
@@ -58,7 +60,7 @@ public struct KeychainSessionStore: SessionStore {
         let data = try JSONEncoder().encode(cookies)
         let attributes: [String: Any] = [
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
         let query = baseQuery(host: host)
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)

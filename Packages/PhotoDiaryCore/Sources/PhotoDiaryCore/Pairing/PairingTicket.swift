@@ -39,8 +39,27 @@ public struct PairingTicket: Hashable, Sendable, Identifiable {
             rawHost.wholeMatch(of: hostPattern) != nil
         else { return nil }
         let scheme = items.first(where: { $0.name == "scheme" })?.value?.lowercased() ?? "https"
-        guard scheme == "https" || scheme == "http" else { return nil }
+        guard scheme == "https" || (scheme == "http" && isLocalNetwork(rawHost)) else {
+            return nil
+        }
         return PairingTicket(host: rawHost, token: token, scheme: scheme)
+    }
+
+    /// Where plain http may go: a name only the local network resolves,
+    /// or a private, loopback or link-local IPv4 address. ATS would let
+    /// an IP literal anywhere through.
+    static func isLocalNetwork(_ hostWithPort: String) -> Bool {
+        let host = String(hostWithPort.split(separator: ":").first ?? "")
+        if host == "localhost" || host.hasSuffix(".local") { return true }
+        let octets = host.split(separator: ".").map { Int($0) }
+        guard octets.count == 4, octets.allSatisfy({ $0 != nil && $0! <= 255 }) else {
+            return !host.contains(".")
+        }
+        switch (octets[0]!, octets[1]!) {
+        case (10, _), (127, _), (192, 168), (169, 254): return true
+        case (172, 16...31): return true
+        default: return false
+        }
     }
 
     /// Pasted text: trimmed, then parsed as a URL.

@@ -61,4 +61,14 @@ struct LaunchStageTests {
         #expect(try stage("-photodiary-sheet", "nope").sheet == nil)
         #expect(try stage("-photodiary-sheet", "pins").sheet == .pins)
     }
+
+    @Test func aSignInNeedsHostUserAndPassword() throws {
+        let full = try stage(
+            "-photodiary-sign-in", "photos.example", "-photodiary-user", "guest",
+            "-photodiary-password", "secret")
+        #expect(
+            full.signIn
+                == .init(origin: "https://photos.example", user: "guest", password: "secret"))
+        #expect(try stage("-photodiary-sign-in", "photos.example").signIn == nil)
+    }
 }

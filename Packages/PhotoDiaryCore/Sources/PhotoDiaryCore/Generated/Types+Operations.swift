@@ -653,6 +653,71 @@ internal enum Operations {
             }
         }
     }
+    /// Log out (revoke this session, clear auth cookies)
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/tokens/delete(logOut)`.
+    internal enum LogOut {
+        internal static let id: Swift.String = "logOut"
+        internal struct Input: Sendable, Hashable {
+            /// Creates a new `Input`.
+            internal init() {}
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct NoContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/tokens/DELETE/responses/204/headers`.
+                internal struct Headers: Sendable, Hashable {
+                    /// Two headers clearing `pd_access` and `pd_refresh`.
+                    ///
+                    /// - Remark: Generated from `#/paths/api/v1/tokens/DELETE/responses/204/headers/Set-Cookie`.
+                    internal var setCookie: Swift.String?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - setCookie: Two headers clearing `pd_access` and `pd_refresh`.
+                    internal init(setCookie: Swift.String? = nil) {
+                        self.setCookie = setCookie
+                    }
+                }
+                /// Received HTTP response headers
+                internal var headers: Operations.LogOut.Output.NoContent.Headers
+                /// Creates a new `NoContent`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                internal init(headers: Operations.LogOut.Output.NoContent.Headers = .init()) {
+                    self.headers = headers
+                }
+            }
+            /// Logged out, whether or not a session existed.
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/tokens/delete(logOut)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.LogOut.Output.NoContent)
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            internal var noContent: Operations.LogOut.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
     /// Rotate refresh token, mint a new access token (cookie-only)
     ///
     /// - Remark: HTTP `POST /api/v1/tokens/refresh`.

@@ -33,6 +33,9 @@ public actor RemoteInstance: Instance {
         let fetchedAt: Date
     }
     private var photoCache: [String: CachedPhotos] = [:]
+    /// The map and a calendar screen often ask for one gallery at once;
+    /// they share a download.
+    private var loading: [String: Task<[Photo], any Error>] = [:]
 
     public init(
         origin: String,
@@ -51,6 +54,16 @@ public actor RemoteInstance: Instance {
         self.now = now
     }
 
+    /// Ends the session on the server too, once the app forgets the
+    /// instance or replaces its session. Saving stops first: the
+    /// server's answer clears the cookies, which must not reach the
+    /// Keychain, where a new session for this origin may already be.
+    /// Best effort; offline, the session simply runs out.
+    public func signOut() async {
+        await api.stopPersisting()
+        _ = try? await client.call { client in try await client.logOut() }
+    }
+
     public func listGalleries() async throws -> [Gallery] {
         let galleries = try await client.call { client in
             switch try await client.listGalleries() {
@@ -60,12 +73,20 @@ public actor RemoteInstance: Instance {
             case .undocumented(let status, _): throw unexpected(status: status)
             }
         }
-        cache?.save(Self.encoded(galleries), origin: id, key: "galleries")
+        save(galleries, key: "galleries")
         return galleries.map { $0.toDomain() }
     }
 
     public func listPhotos(inGallery galleryId: String) async throws -> [Photo] {
         if let cached = freshCache(for: galleryId) { return cached }
+        if let pending = loading[galleryId] { return try await pending.value }
+        let task = Task { try await fetchPhotos(inGallery: galleryId) }
+        loading[galleryId] = task
+        defer { loading[galleryId] = nil }
+        return try await task.value
+    }
+
+    private func fetchPhotos(inGallery galleryId: String) async throws -> [Photo] {
         let root = try await resolvePhotoRoot()
         let lang = lang
         let wire = try await client.call { client in
@@ -79,7 +100,7 @@ public actor RemoteInstance: Instance {
             case .undocumented(let status, _): throw unexpected(status: status)
             }
         }
-        cache?.save(Self.encoded(wire), origin: id, key: "photos/" + galleryId)
+        save(wire, key: "photos/" + galleryId)
         let photos = Self.photos(from: wire, galleryId: galleryId, photoRoot: root)
         photoCache[galleryId] = CachedPhotos(photos: photos, fetchedAt: now())
         return photos
@@ -90,8 +111,12 @@ public actor RemoteInstance: Instance {
         return wire?.map { $0.toDomain() }
     }
 
-    /// Needs the photo root too: resolved already, or the cached meta.
+    /// What's in memory, however old, before what's on disk: decoding a
+    /// large gallery's file again costs a noticeable moment at every
+    /// step of the calendar. The disk needs the photo root too:
+    /// resolved already, or the cached meta.
     public func cachedPhotos(inGallery galleryId: String) async -> [Photo]? {
+        if let entry = photoCache[galleryId] { return entry.photos }
         guard let wire: [Components.Schemas.Photo] = cached("photos/" + galleryId),
             let root = photoRoot ?? cachedPhotoRoot()
         else { return nil }
@@ -144,7 +169,7 @@ public actor RemoteInstance: Instance {
             case .undocumented(let status, _): throw unexpected(status: status)
             }
         }
-        cache?.save(Self.encoded(meta), origin: id, key: "meta")
+        save(meta, key: "meta")
         let root = Self.photoRoot(from: meta, apiBase: api.baseURL)
         photoRoot = root
         return root
@@ -166,8 +191,11 @@ public actor RemoteInstance: Instance {
 
     // The disk cache keeps each answer as the JSON the server sent, so
     // an entry written before the generated client reads the same way.
-    private static func encoded<T: Encodable>(_ value: T) -> Data {
-        (try? JSONEncoder().encode(value)) ?? Data()
+    // Written before returning: a write landing later could undo a
+    // forget or an eviction that cleared the cache in between.
+    private func save<T: Encodable>(_ value: T, key: String) {
+        guard let data = try? JSONEncoder().encode(value) else { return }
+        cache?.save(data, origin: id, key: key)
     }
 
     private func cached<T: Decodable>(_ key: String) -> T? {

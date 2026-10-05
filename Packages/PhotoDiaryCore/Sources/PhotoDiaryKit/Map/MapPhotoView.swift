@@ -115,11 +115,10 @@ public struct MapPhotoView: View {
                     }
                 )
             }
-            .sheet(item: $editorPresentation) { presentation in
-                TodoPinEditor(mode: presentation.mode) {
-                    editorPresentation = nil
-                    placing = nil
-                }
+            // However the sheet closes, a swipe included, the pin being
+            // placed goes: while it's up, the map can't pan or zoom.
+            .sheet(item: $editorPresentation, onDismiss: { placing = nil }) { presentation in
+                TodoPinEditor(mode: presentation.mode) { editorPresentation = nil }
             }
             .fullScreenCover(item: $viewingPhoto) { pin in
                 if let photo = pin.photo {
@@ -285,7 +284,9 @@ public struct MapPhotoView: View {
     func recluster(pins: [PhotoMapPin], region: MKCoordinateRegion) {
         let region = MapRegion(region)
         let build = MapClustering.build(pins: pins, in: region)
-        clusters = build.clusters
+        // Each new set re-renders every annotation; a small pan mostly
+        // rebuilds the same one.
+        if build.clusters != clusters { clusters = build.clusters }
         clusteredRegion = region
         clusteredMargin = build.margin
     }
