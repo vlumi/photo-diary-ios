@@ -16,7 +16,7 @@ externally-managed), so the Make targets are one step.
 
 ```sh
 make asc-listing              # dry run: what differs from ASC
-make asc-listing-apply        # write the listing text (every locale)
+make asc-listing-apply        # write the listing text (English, the only store locale)
 
 make shots                    # capture the screenshots (see SCREENSHOTS.md)
 make asc-screenshots          # dry run: the upload plan from shots/

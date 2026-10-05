@@ -1,5 +1,5 @@
 {
-  "_comment": "The App Store screenshots, one entry each: what it shows and the stage.sh variables that stage it (SCOPE/GALLERY/TAB/CAMERA/CALENDAR/PHOTO/PINS/SELECT/SHEET). `stage_<lang>` overrides per language (the pins' notes); `{instance}` is the instance below, or INSTANCE= from the environment. `store` is the carousel order; shoot.sh walks `capture` order and stages each shot by relaunching the app, so nothing is set up by hand. A `by_hand` note pauses the capture for something that still is. The values here stage the built-in demo; for the real set, point `instance` at the account the shots come from and swap the galleries, dates, photo ids and camera to its photos. See SCREENSHOTS.md.",
+  "_comment": "The App Store screenshots, one entry each: what it shows and the stage.sh variables that stage it (SCOPE/GALLERY/TAB/CAMERA/CALENDAR/PHOTO/PINS/SELECT/SHEET). `stage_<lang>` would override per language; `{instance}` is the instance below, or INSTANCE= from the environment. `store` is the carousel order; shoot.sh walks `capture` order and stages each shot by relaunching the app, so nothing is set up by hand. A `by_hand` note pauses the capture for something that still is. The values here stage the built-in demo; for the real set, point `instance` at the account the shots come from and swap the galleries, dates, photo ids and camera to its photos. See SCREENSHOTS.md.",
   "instance": "demo",
   "capture": [
     "map",
@@ -58,9 +58,6 @@
         "CAMERA": "35.69,139.77,0.12",
         "PINS": "35.7148,139.7735,Yanaka cemetery at dusk, cats on the wall|35.6650,139.7708,Ginza crossing in the rain|35.7100,139.8107,Skytree from the river",
         "SELECT": "todo"
-      },
-      "stage_ja": {
-        "PINS": "35.7148,139.7735,夕暮れの谷中霊園、塀の上の猫|35.6650,139.7708,雨の銀座の交差点|35.7100,139.8107,川から見るスカイツリー"
       }
     },
     "todo-list": {
@@ -72,9 +69,6 @@
         "CAMERA": "35.69,139.77,0.12",
         "PINS": "35.7148,139.7735,Yanaka cemetery at dusk, cats on the wall|35.6650,139.7708,Ginza crossing in the rain|35.7100,139.8107,Skytree from the river",
         "SHEET": "pins"
-      },
-      "stage_ja": {
-        "PINS": "35.7148,139.7735,夕暮れの谷中霊園、塀の上の猫|35.6650,139.7708,雨の銀座の交差点|35.7100,139.8107,川から見るスカイツリー"
       }
     },
     "front": {

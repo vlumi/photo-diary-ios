@@ -42,7 +42,7 @@ stage: build  ## Launch the last build staged for a screenshot (SCOPE=, GALLERY=
 
 # App Store (Scripts/asc: listing.json and shots.json are the sources; asc-* are dry runs, -apply writes)
 .PHONY: shots
-shots: PhotoDiary.xcodeproj  ## Capture the store screenshots: [LANGS=en,ja] [OUT=shots] [PAUSE=1] [ONLY=a,b] [INSTANCE=<host>]
+shots: PhotoDiary.xcodeproj  ## Capture the store screenshots: [LANGS=en] [OUT=shots] [PAUSE=1] [ONLY=a,b] [INSTANCE=<host>]
 	@Scripts/shoot.sh
 
 .PHONY: asc-listing
