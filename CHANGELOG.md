@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+### build 13 — 2026-10-05
+
 - A todo pin that fails to move, star or delete says so and goes back to how it was, instead of looking changed until the next launch.
 - Forgetting an instance asks first, and a forgotten demo can be shown again from the front page.
 - Swiping away the editor for a new todo pin no longer leaves the map unable to pan or zoom.
