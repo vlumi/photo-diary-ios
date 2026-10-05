@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Callout shown above a selected pin: one photo's thumbnail, or for a
-/// pile a mini pager with chevrons and a counter. Tapping the thumbnail
-/// opens the full viewer at that photo. Sized to sit over the map
-/// without hiding much of it.
 struct MapPhotoCallout: View {
     let photos: [Photo]
     let loader: any ImageLoader

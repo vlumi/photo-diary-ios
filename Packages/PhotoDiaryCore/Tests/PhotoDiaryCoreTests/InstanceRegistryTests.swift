@@ -103,8 +103,6 @@ final class InstanceRegistryTests: XCTestCase {
     }
 }
 
-/// Bare-bones test double. Not a full Instance implementation — the
-/// registry only touches id / displayName here.
 private struct StubInstance: Instance {
     let id: String
     let displayName: String

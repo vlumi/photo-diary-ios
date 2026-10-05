@@ -2,28 +2,18 @@
 import Foundation
 import SwiftData
 
-/// A user-authored location note. Local-only: never leaves the
-/// device, never syncs to a Photo Diary instance. Stored via
-/// SwiftData so the shape can grow (attachments, reminders) without
-/// hand-rolling migrations.
-///
-/// Coordinates are stored as raw Double pairs rather than
-/// CLLocationCoordinate2D so the schema is portable and inspectable
-/// with any SQLite tool if we ever need to.
+/// Local-only: never leaves the device.
 @Model
 public final class TodoPin {
-    /// Stable identifier — generated on creation, immutable.
     @Attribute(.unique) public var id: UUID
     public var latitude: Double
     public var longitude: Double
     public var note: String
-    /// Set while starred; starred pins sort ahead of the rest wherever
-    /// pins are listed. A date rather than a Bool because SwiftData can
-    /// only sort on Comparable attributes.
+    /// A date rather than a Bool because SwiftData can only sort on
+    /// Comparable attributes.
     public var starredAt: Date?
-    /// A camera snapshot of the place, JPEG, under a megapixel (see
-    /// TodoPinPhoto). Kept outside the database row so listing pins
-    /// doesn't read every image.
+    /// Kept outside the database row so listing pins doesn't read every
+    /// image.
     @Attribute(.externalStorage) public var photo: Data?
     public var createdAt: Date
     public var updatedAt: Date

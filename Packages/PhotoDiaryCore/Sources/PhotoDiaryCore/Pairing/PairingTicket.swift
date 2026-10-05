@@ -2,9 +2,8 @@ import Foundation
 
 /// A parsed pairing link: `photodiary://sso?host=<host>&token=<ticket>`,
 /// optionally `&scheme=http` for a local plain-http instance.
-/// All three transports (QR scan, URL-scheme launch, paste) produce
-/// the same string, so this is the single entry point that decides
-/// whether input is a pairing link at all.
+/// Scan, launch and paste all produce this string, so this alone decides
+/// whether input is a pairing link.
 public struct PairingTicket: Hashable, Sendable, Identifiable {
     public let host: String
     public let token: String
@@ -62,7 +61,6 @@ public struct PairingTicket: Hashable, Sendable, Identifiable {
         }
     }
 
-    /// Pasted text: trimmed, then parsed as a URL.
     public static func parse(_ text: String) -> PairingTicket? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: trimmed) else { return nil }

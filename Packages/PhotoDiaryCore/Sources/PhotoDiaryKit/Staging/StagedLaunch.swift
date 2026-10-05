@@ -3,10 +3,7 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// What a staged launch (LaunchStage) sets up before the first frame:
-/// the scope, the restoration store the screens read their tab, camera
-/// and calendar path from, and the todo pins on the map. All of it in
-/// memory.
+/// Everything a staged launch sets up stays in memory.
 extension LaunchStage {
     @MainActor
     func open(in registry: InstanceRegistry) {
@@ -17,8 +14,8 @@ extension LaunchStage {
         }
     }
 
-    /// Signs in to the stage's instance, then opens the stage again: the
-    /// scope it names can only be entered once the instance is there.
+    /// Opens the stage again after: the scope it names can only be
+    /// entered once the instance is there.
     @MainActor
     func signIn(into registry: InstanceRegistry) async {
         #if DEBUG
@@ -59,8 +56,7 @@ extension LaunchStage {
         return store
     }
 
-    /// The stack a user would have tapped down to the stop; a gallery
-    /// scope's root is already its year list.
+    /// A gallery scope's root is already its year list.
     static func calendarPath(to stop: CalendarStop, inGalleryScope: Bool) -> [CalendarRoute] {
         var path: [CalendarRoute] = inGalleryScope ? [] : [.years(galleryId: stop.galleryId)]
         if let year = stop.year {
@@ -85,9 +81,8 @@ extension LaunchStage {
     }
 }
 
-/// The parts of a stage that happen once a screen is up: the photo the
-/// calendar opens, the pin the map selects, the sheet that opens. Each
-/// is taken once, so closing it doesn't bring it back.
+/// Each cue is taken once, so closing what it opened doesn't bring it
+/// back.
 final class StageCues: @unchecked Sendable {
     private var photoId: String?
     private var selection: String?

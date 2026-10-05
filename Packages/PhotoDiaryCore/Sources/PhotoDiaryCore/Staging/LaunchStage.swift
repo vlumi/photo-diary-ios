@@ -1,22 +1,8 @@
 import Foundation
 
-/// A launch staged for the store screenshots: where the app opens and
-/// what is on screen, from launch arguments, so `make shots` can set up
-/// every shot without a hand on the simulator. Only a launch carrying
-/// `-photodiary-stage` is staged; the app then keeps the stage's state
-/// in memory and leaves what it has saved alone.
-///
-/// Arguments, each a flag followed by its value:
-/// `-photodiary-scope front|<instance>` and `-photodiary-gallery <id>`,
-/// `-photodiary-tab map|calendar`, `-photodiary-camera lat,lng,span`
-/// (or `lat,lng,latSpan,lngSpan`), `-photodiary-calendar
-/// <gallery>[/<year>[/<month>]]`, `-photodiary-photo <id>` (opened once
-/// its month's grid loads), `-photodiary-pins "lat,lng,note|…"`,
-/// `-photodiary-select <map tag>` (`todo` for the first pin),
-/// `-photodiary-sheet settings|pins`, and `-photodiary-sign-in <host>`
-/// with `-photodiary-user` and `-photodiary-password` to sign in to an
-/// instance for the launch. Debug builds only: a release build is never
-/// staged.
+/// A launch set up from arguments for the store screenshots, so
+/// `make shots` needs no hand on the simulator; Scripts/stage.sh lists
+/// them. Debug builds only.
 public struct LaunchStage: Equatable, Sendable {
     public enum Opening: Equatable, Sendable {
         /// Whatever was open when the app was last left.
@@ -69,7 +55,6 @@ public struct LaunchStage: Equatable, Sendable {
 
     static let flag = "-photodiary-stage"
 
-    /// The stage these arguments describe, or nil for an ordinary launch.
     public init?(arguments: [String]) {
         guard arguments.contains(Self.flag) else { return nil }
         func value(_ name: String) -> String? {
@@ -105,7 +90,6 @@ public struct LaunchStage: Equatable, Sendable {
         #endif
     }
 
-    /// The scope the stage opens, when it names one.
     public var scope: Scope? {
         if case .scope(let scope) = opening { return scope }
         return nil

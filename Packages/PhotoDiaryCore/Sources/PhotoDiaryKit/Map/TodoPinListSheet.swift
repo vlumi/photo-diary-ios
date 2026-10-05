@@ -3,10 +3,6 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// Sheet listing every saved todo pin, starred first, then by last edit
-/// or by distance from the map's center (the toggle is remembered).
-/// Tap a row to center the map on that pin; the star pins it to the
-/// top; the pencil opens its editor; swipe-to-delete for cleanup.
 struct TodoPinListSheet: View {
     enum Sort: String, CaseIterable {
         // Raw values are what the user's choice is stored under.
@@ -115,8 +111,6 @@ struct TodoPinListSheet: View {
         }
     }
 
-    /// Starred pins stay on top in either mode; "nearest" reorders each
-    /// group by distance from the map's center.
     private var ordered: [TodoPin] {
         guard sort == .nearest, let mapCenter else { return pins }
         let origin = CLLocation(latitude: mapCenter.latitude, longitude: mapCenter.longitude)

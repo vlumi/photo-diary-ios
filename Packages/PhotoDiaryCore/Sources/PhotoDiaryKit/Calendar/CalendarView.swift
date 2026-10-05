@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Root of the calendar surface. Owns the navigation stack; each row
-/// pushes a typed CalendarRoute so back-navigation and deep links can
-/// both target the same destinations.
+/// Rows push typed CalendarRoutes, so a restored path and "Show in
+/// calendar" reach the same destinations as taps.
 public struct CalendarView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.restoration) private var restoration
@@ -34,8 +33,7 @@ public struct CalendarView: View {
                     }
                 }
         }
-        // The path belongs to its scope: restored when one opens
-        // (including at launch), saved as it changes.
+        // The path belongs to its scope.
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }
             path = restoration.load([CalendarRoute].self, forKey: "calendar." + scope.key) ?? []
@@ -45,14 +43,12 @@ public struct CalendarView: View {
             restoration.save(path, forKey: "calendar." + scope.key)
         }
         .onChange(of: focus.pendingInCalendar?.id, initial: true) {
-            // "Show in calendar" from the map: open the photo's month.
             // The grid then scrolls to the photo and takes the request.
             guard let photo = focus.pendingInCalendar else { return }
             path = CalendarRoute.path(to: photo, inGalleryScope: registry.scope?.galleryId != nil)
         }
     }
 
-    /// A gallery in scope skips the gallery list.
     @ViewBuilder
     private var root: some View {
         if let galleryId = registry.scope?.galleryId {
@@ -68,10 +64,8 @@ public enum CalendarRoute: Hashable, Codable, Sendable {
     case months(galleryId: String, year: Int)
     case grid(galleryId: String, year: Int, month: Int?)
 
-    /// The stack a user would have built by tapping down to the
-    /// photo's month, so the back button walks up the same way. In a
-    /// gallery scope the year list is the root, so the path starts
-    /// below it.
+    /// The stack tapping down would have built, so the back button walks
+    /// up the same way.
     static func path(to photo: Photo, inGalleryScope: Bool) -> [CalendarRoute] {
         let gallery = photo.galleryId
         let year = photo.timestamp.year
@@ -223,8 +217,6 @@ struct MonthListView: View {
             LoadFailureView(title: "Couldn't load photos", failure: failure) { attempt += 1 }
         case .loaded(let months):
             List {
-                // Year-wide grid entry so the user can browse the whole
-                // year without picking a month.
                 NavigationLink(
                     value: CalendarRoute.grid(galleryId: galleryId, year: year, month: nil)
                 ) {

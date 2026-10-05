@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// The × in a callout's corner: closing by a plain button, for when a
-/// tap on the map is not at hand (VoiceOver, a crowded screen) or does
-/// not land where MapKit expects it.
+/// For when a tap on the map isn't at hand (VoiceOver) or doesn't land
+/// where MapKit expects it.
 struct CalloutCloseButton: View {
     let action: () -> Void
 

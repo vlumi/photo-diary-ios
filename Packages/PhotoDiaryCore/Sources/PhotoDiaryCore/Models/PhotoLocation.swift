@@ -1,8 +1,6 @@
 import CoreLocation
 
-/// Where a photo was taken. `country` is an ISO 3166-1 alpha-2 code
-/// (matching the server's `taken.location.country` shape). `coordinates`
-/// is optional — many photos have no GPS. When both are absent the
+/// `country` is an ISO 3166-1 alpha-2 code. Without `coordinates` the
 /// photo isn't map-plottable.
 public struct PhotoLocation: Hashable, Sendable {
     public let country: String?
@@ -20,9 +18,7 @@ public struct PhotoLocation: Hashable, Sendable {
     }
 }
 
-// CLLocationCoordinate2D isn't Hashable/Sendable out of the box; give
-// PhotoLocation an explicit conformance that treats the coord as its
-// lat/lng pair.
+// CLLocationCoordinate2D isn't Hashable.
 extension PhotoLocation {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(country)

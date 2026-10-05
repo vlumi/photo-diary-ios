@@ -1,6 +1,3 @@
-// Renders AppIconScene to a 1024×1024 PNG. Run via `make icon`;
-// macOS-only tooling.
-//
 // App Store Connect rejects app icons that carry an alpha channel — a
 // transparent icon silently never shows up. ImageRenderer.cgImage is
 // always RGBA, even for a scene that fills its frame, so the image is

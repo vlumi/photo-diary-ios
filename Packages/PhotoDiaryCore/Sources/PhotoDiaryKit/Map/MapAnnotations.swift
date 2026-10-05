@@ -3,11 +3,9 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// The map's annotation views. Plain views, no Buttons: MapKit's
-/// selection binding handles taps (tags are "kind:id"), so a pinch that
-/// lands on a pin isn't claimed as a tap first. The user marker is drawn
-/// last by the caller so it paints above pins and clusters (UserAnnotation
-/// sits beneath them), with hit testing off so it never steals a tap.
+/// No Buttons: a pinch that lands on a pin isn't claimed as a tap. The
+/// caller draws the user marker last so it paints above pins and clusters
+/// (UserAnnotation sits beneath them).
 @MainActor
 enum MapAnnotations {
     static func photo(
@@ -58,7 +56,7 @@ enum MapAnnotations {
         .tag(tag)
     }
 
-    /// The todo marker. `lifted` while being placed or dragged.
+    /// `lifted` while being placed or dragged.
     static func todoMarker(lifted: Bool, note: String) -> some View {
         Image(systemName: "checklist")
             .font(.caption)

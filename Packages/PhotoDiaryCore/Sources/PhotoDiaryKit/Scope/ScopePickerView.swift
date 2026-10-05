@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// The front page: every paired instance with its galleries beneath.
-/// Tapping the instance opens the Map and Calendar on all of its
-/// galleries; tapping a gallery opens them on that one. Add and forget
-/// instances here too.
 public struct ScopePickerView: View {
     @Environment(InstanceRegistry.self) private var registry
     @State private var showPairing = false
@@ -91,8 +87,8 @@ public struct ScopePickerView: View {
     }
 }
 
-/// One instance and its galleries. The galleries load on appear;
-/// until then, or on failure, the instance row alone still works.
+/// Until the galleries load, or if they fail, the instance row alone
+/// still works.
 private struct InstanceSection: View {
     let instance: any Instance
 

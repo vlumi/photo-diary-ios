@@ -1,13 +1,7 @@
 import Foundation
 
-/// HTTP client for one photo-diary host. Owns that host's session
-/// cookies, attaches them to every request, folds Set-Cookie back in,
-/// and runs the refresh loop: a 401 triggers one POST /tokens/refresh
-/// and a single retry; a refused refresh surfaces as
-/// `InstanceError.sessionExpired` so the UI can ask for a re-pair.
-///
-/// The system cookie jar is disabled on the session so hosts can't
-/// share state and the cookie values stay ours to persist.
+/// A 401 gets one refresh and a single retry; a refused refresh surfaces
+/// as `InstanceError.sessionExpired`, so the UI can ask for a re-pair.
 public actor PhotoDiaryAPI {
     public let baseURL: URL
     private let session: URLSession
@@ -15,15 +9,8 @@ public actor PhotoDiaryAPI {
     private let onCookiesChanged: (@Sendable (SessionCookies) -> Void)?
     private var persisting: Bool
 
-    /// - Parameters:
-    ///   - origin: scheme + host (+ port) of the instance, e.g.
-    ///     `https://photos.example.com` or `http://localhost:3000`.
-    ///   - cookies: a previously persisted session, if any.
-    ///   - onCookiesChanged: called whenever the server rotates or
-    ///     clears a cookie — the persistence hook.
-    ///   - persisting: false holds the hook back until
-    ///     `startPersisting()`.
-    ///   - configuration: overridable for tests (URLProtocol stubs).
+    /// `persisting: false` holds `onCookiesChanged` back until
+    /// `startPersisting()`.
     public init(
         origin: String,
         cookies: SessionCookies = SessionCookies(),
@@ -64,9 +51,6 @@ public actor PhotoDiaryAPI {
         if persisting { onCookiesChanged?(cookies) }
     }
 
-    /// One request through the session: cookies attached and captured,
-    /// and one refresh and retry on a 401. The generated client's
-    /// transport (PhotoDiaryAPI+Transport.swift) goes through here.
     public func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await perform(request)
         guard response.statusCode == 401, cookies.refresh != nil else {

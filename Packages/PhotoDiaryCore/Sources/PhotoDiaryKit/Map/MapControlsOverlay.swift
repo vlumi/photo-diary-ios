@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The map's bottom-right button stack: todo list (with count badge)
-/// and the follow-my-location toggle (filled while on).
 struct MapControlsOverlay: View {
     let todoCount: Int
     let isFollowing: Bool
@@ -38,7 +36,6 @@ struct MapControlsOverlay: View {
     }
 }
 
-/// The map's floating round buttons: one glyph on a tinted disc.
 struct MapRoundButton: View {
     let systemName: String
     let tint: Color
@@ -64,10 +61,6 @@ struct MapRoundButton: View {
     }
 }
 
-/// Top-of-map status: a thin bar while pins refresh, the location
-/// error (permission denied, no fix) when there is one, and a notice
-/// the user can dismiss — an instance with nothing to pin, or a
-/// refresh that failed behind pins already on screen.
 struct MapTopBanners: View {
     let isRefreshing: Bool
     let locationError: String?
@@ -126,8 +119,6 @@ struct MapTopBanners: View {
     }
 }
 
-/// What the map's dismissible banner can say. Reset on every load;
-/// dismissed by the user until then.
 enum MapNotice: Equatable {
     case noLocatedPhotos
     case refreshFailed(String)

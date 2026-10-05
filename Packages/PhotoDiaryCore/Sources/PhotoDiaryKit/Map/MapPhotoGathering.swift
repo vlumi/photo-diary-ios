@@ -1,7 +1,5 @@
-/// The scope's photos across its galleries, from the cache (nil when
-/// any part is missing) or the network. A photo linked into two
-/// galleries arrives twice; one is kept. In an all-galleries scope a
-/// gallery the server no longer shows is skipped.
+/// Cached, nil when any gallery is missing. A photo linked into two
+/// galleries arrives twice; one is kept.
 enum MapPhotoGathering {
     static func photos(of scope: Scope, from instance: any Instance, cached: Bool) async throws
         -> [Photo]?
@@ -32,7 +30,6 @@ enum MapPhotoGathering {
             return results
         }
         if cached, perGallery.contains(where: { $0 == nil }) { return nil }
-        // A photo linked into two galleries arrives twice; keep one.
         var seen = Set<String>()
         return perGallery.flatMap { $0 ?? [] }.filter { seen.insert($0.id).inserted }
     }

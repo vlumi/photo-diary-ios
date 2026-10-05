@@ -6,10 +6,8 @@ import SwiftUI
 // MARK: - Location following
 
 extension MapPhotoView {
-    /// Switching on centers on the fix already in hand so the button
-    /// responds at once — zooming in to street level from far out,
-    /// never out — and asks for a fresh one. Switching off just stops
-    /// following.
+    /// Centers on the fix already in hand so the button responds at
+    /// once, then asks for a fresh one.
     func toggleFollow() {
         if follow.isOn {
             follow.stop()
@@ -29,7 +27,6 @@ extension MapPhotoView {
         locator.locate()
     }
 
-    /// Following: move to the position at the zoom the user has.
     func keepUp(with coord: CLLocationCoordinate2D) {
         withAnimation { frame(coord, meters: currentMeters) }
         follow.recentered()
@@ -71,7 +68,6 @@ extension MapPhotoView {
             pin, latitude: center.latitude, longitude: center.longitude)
     }
 
-    /// Until dismissed, while there are no pins yet, outside staged shots.
     var showsPinHint: Bool {
         !pinHintSeen && todoPins.isEmpty && !stageCues.isStaged
     }
@@ -80,9 +76,8 @@ extension MapPhotoView {
 // MARK: - Staged launch
 
 extension MapPhotoView {
-    /// A staged launch's selection (as a tap would make it; `todo` is
-    /// the first pin) and its pin list, once the camera first settles:
-    /// a selection made before the map is up is dropped by MapKit.
+    /// Run once the camera first settles: MapKit drops a selection made
+    /// before the map is up.
     func takeStagedCues() {
         if var tag = stageCues.takeSelection() {
             if tag == "todo", let first = todoPins.first { tag = "todo:\(first.id.uuidString)" }
@@ -96,9 +91,6 @@ extension MapPhotoView {
 // MARK: - Selection
 
 extension MapPhotoView {
-    /// The selection binding changed — from a pin's own tap gesture, or
-    /// from MapKit, which reports the same tap again about half a
-    /// second later after its double-tap wait.
     func selectionChanged(_ selected: String?, pins: [PhotoMapPin]) {
         if let selected, let closed = ownDeselect, selected == closed.tag,
             Date().timeIntervalSince(closed.at) < 0.7,
@@ -126,6 +118,8 @@ extension MapPhotoView {
         if !handleSelection(selected, pins: pins) { selection = nil }
     }
 
+    /// Tags are "kind:id" so one selection binding covers every layer.
+    /// Returns whether the selection should stay (a callout is showing).
     func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
         let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return false }

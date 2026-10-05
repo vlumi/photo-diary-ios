@@ -39,8 +39,6 @@ final class PhotoMappingTests: XCTestCase {
         XCTAssertNil(PhotoMapping.boundingBox(of: []))
     }
 
-    // MARK: - Fixture
-
     func testLatestGeotaggedPicksNewestPhotoWithCoordinates() {
         let photos = [
             fixture(id: "old", lat: 35, lng: 139, day: 1),
@@ -50,6 +48,8 @@ final class PhotoMappingTests: XCTestCase {
         XCTAssertEqual(PhotoMapping.latestGeotagged(in: photos)?.id, "newest-tagged")
         XCTAssertNil(PhotoMapping.latestGeotagged(in: [fixture(id: "x", lat: nil, lng: nil)]))
     }
+
+    // MARK: - Fixture
 
     private func fixture(id: String, lat: Double?, lng: Double?, day: Int = 1) -> Photo {
         let coords: CLLocationCoordinate2D? = {

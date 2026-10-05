@@ -1,10 +1,8 @@
 import SwiftUI
 
-/// The app icon, drawn: a lens framing a sunrise over a navy horizon.
-/// Rendered to the 1024 px PNG in the asset catalog by `make icon`
-/// (the photodiary-icon tool); kept in code so it can be regenerated
-/// and reused, for the site's favicon among other things. Geometry is
-/// in a 1024-unit space and scales to whatever frame it is given.
+/// Rendered to the asset catalog's PNG by `make icon`; kept in code so it
+/// can be regenerated and reused, for the site's favicon among others.
+/// Geometry is in a 1024-unit space.
 public struct AppIconScene: View {
     public static let navy = Color(red: 0x0A / 255, green: 0x1A / 255, blue: 0x4F / 255)
     public static let sky = Color(red: 0xBF / 255, green: 0xD7 / 255, blue: 0xFF / 255)

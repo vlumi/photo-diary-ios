@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// What a surface asks the pager to show: an ordered set of photos and
-/// the one to open on. The calendar passes its whole grid so swiping
-/// walks the month; the map passes a pile, or a single photo.
 public struct PhotoPagerSelection: Identifiable, Hashable, Sendable {
     public let photos: [Photo]
     public let index: Int
@@ -19,31 +16,20 @@ public struct PhotoPagerSelection: Identifiable, Hashable, Sendable {
     }
 }
 
-/// The viewer, presented as a sheet, over an ordered set of photos:
-/// swipe (or use the chevrons) to move between them, pinch-zoom the
-/// current one, swipe down to put it away. Chrome — close, counter,
-/// chevrons, Show on map — is owned here; PhotoViewer is just the
-/// image + gestures.
-///
-/// Pages live in a paging ScrollView rather than a page-style TabView:
-/// the viewer's own drag gesture on each page made the TabView overshoot
-/// by a page, and a ScrollView can be told to stop paging while zoomed.
+/// A paging ScrollView, not a page-style TabView: each page's drag gesture
+/// made the TabView overshoot by a page, and a ScrollView can stop paging
+/// while zoomed.
 public struct PhotoPagerSheet: View {
     private let photos: [Photo]
     private let loader: any ImageLoader
     private let onDismiss: () -> Void
-    /// Offered when set and the current photo has coordinates; the map
-    /// itself passes nil since it is already there.
     private let onShowOnMap: ((Photo) -> Void)?
     private let onShowInCalendar: ((Photo) -> Void)?
 
     @State private var currentId: String?
     @State private var zoomed = false
-    // A downward drag on the photo pulls the page along and, past the
-    // threshold or with a flick, puts the viewer away. The sheet's own
-    // dismiss only takes drags from its top edge; the pager's scroll
-    // view claims the rest, so PullDownRecognizer is what makes "swipe
-    // down" work where the finger naturally is.
+    // The sheet's own dismiss only takes drags from its top edge; the
+    // scroll view claims the rest, hence PullDownRecognizer.
     @State private var pullDown: CGFloat = 0
 
     public init(
@@ -188,7 +174,6 @@ public struct PhotoPagerSheet: View {
         return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
-    /// A jump to the other surface, over the photo's bottom corner.
     private func jumpButton(
         _ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void
     ) -> some View {
@@ -222,8 +207,6 @@ public struct PhotoPagerSheet: View {
     }
 }
 
-/// One page: loads the display image through the ImageLoader and hands
-/// it to PhotoViewer; loading and failure states in place.
 private struct PhotoPage: View {
     let photo: Photo
     let loader: any ImageLoader
@@ -231,10 +214,8 @@ private struct PhotoPage: View {
 
     @State private var state: LoadState = .loading
     @State private var attempt = 0
-    // The thumbnail this page was opened from, already in the image
-    // cache: it stands in for the display image while that loads, so
-    // the page opens with the picture in it rather than a spinner on
-    // black.
+    // The thumbnail, already cached, stands in while the display image
+    // loads, so the page doesn't open on a spinner on black.
     @State private var preview: PlatformImage?
 
     private enum LoadState {

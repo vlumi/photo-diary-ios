@@ -8,13 +8,8 @@ import AppKit
 private typealias PlatformColor = NSColor
 #endif
 
-/// Renders a deterministic gradient tile per `photodiary-demo://` URL.
-/// Fills the visual chain (grids, viewer, map thumbnails) while real
-/// licensed demo bytes are being picked — same URL renders the same
-/// tile every time, so the app behaves as if photos are real.
-///
-/// When bundled image resources land, the loader will look them up by
-/// URL id first and fall back to the tile only for missing entries.
+/// The same URL draws the same tile, so the demo behaves as if its
+/// photos were real.
 public struct DemoImageLoader: ImageLoader {
     public init() {}
 
@@ -46,8 +41,7 @@ public struct DemoImageLoader: ImageLoader {
         }
     }
 
-    /// Two-color gradient derived from the seed's hash. Same seed →
-    /// same colors across runs.
+    /// Stable within a run only: Hasher reseeds per process.
     private static func gradientColors(for seed: String) -> (PlatformColor, PlatformColor) {
         var hasher = Hasher()
         hasher.combine(seed)

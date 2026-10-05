@@ -3,7 +3,6 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// What the todo-pin editor sheet is opened for.
 enum MapEditorPresentation: Identifiable {
     case create(CLLocationCoordinate2D)
     case edit(TodoPin)
@@ -23,7 +22,6 @@ enum MapEditorPresentation: Identifiable {
     }
 }
 
-/// Where a pin is being dragged to, live, before it's saved.
 struct MovingPin: Equatable {
     let id: UUID
     let coordinate: CLLocationCoordinate2D
@@ -35,17 +33,9 @@ struct MovingPin: Equatable {
     }
 }
 
-/// The todo-pin layer: every saved pin (the one being dragged follows
-/// the finger), plus the provisional pin while the user long-presses to
-/// place a new one. MapContent can't hold state, so the live positions
-/// come in from MapPhotoView and gesture results go back out as
-/// coordinates — converted here through the MapProxy, since the drag
-/// reports screen points.
-///
-/// Long-press-then-drag on a pin is a high-priority gesture so a press
-/// that starts on a pin moves it instead of dropping a new one under it;
-/// the pin lifts (reports itself as moving) as soon as the press
-/// completes, before the map's own long-press could fire.
+/// MapContent can't hold state, so live positions come in from
+/// MapPhotoView. A pin's long-press-then-drag is high priority, so a press
+/// that starts on a pin moves it instead of dropping a new one under it.
 struct TodoPinsMapContent: MapContent {
     let pins: [TodoPin]
     let moving: MovingPin?

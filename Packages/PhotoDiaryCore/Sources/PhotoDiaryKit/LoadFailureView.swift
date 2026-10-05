@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// What a screen keeps when its load fails: the error's sentence, and
-/// whether it was the session being rejected, which gets its own state.
 struct LoadFailure: Equatable {
     let message: String
     let sessionExpired: Bool
@@ -21,11 +19,8 @@ struct LoadFailure: Equatable {
     }
 }
 
-/// The full-surface failure state every loading screen shows: what
-/// failed, the error's own sentence, and a Retry that re-runs the load.
-/// A rejected session shows "Pair again" instead, opening the pairing
-/// sheet; dismissing it retries, so a successful re-pair reloads in
-/// place.
+/// Dismissing the "Pair again" sheet retries, so a successful re-pair
+/// reloads in place.
 struct LoadFailureView: View {
     let title: LocalizedStringKey
     let failure: LoadFailure
@@ -60,9 +55,8 @@ struct LoadFailureView: View {
     }
 }
 
-/// What a dead session offers: the pairing sheet, and the site itself
-/// — its "Pair a device" page hands the ticket back through "Open in
-/// app", so the round trip lands in the sheet without typing.
+/// The site's "Pair a device" page hands the ticket back through "Open
+/// in app", so the round trip lands in the sheet without typing.
 struct SessionExpiredActions: View {
     let instance: (any Instance)?
     let onPaired: () -> Void

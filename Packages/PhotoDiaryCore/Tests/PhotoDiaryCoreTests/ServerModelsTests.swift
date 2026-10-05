@@ -3,8 +3,6 @@ import XCTest
 
 @testable import PhotoDiaryCore
 
-/// The mapping from the server's shapes (generated from its OpenAPI
-/// document) to the app's own, over realistic responses.
 final class ServerModelsTests: XCTestCase {
     private let root = URL(string: "https://photos.example.test/")!
 

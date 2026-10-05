@@ -41,7 +41,6 @@ struct TodoPinPhotoImage: View {
     }
 }
 
-/// The photo on its own, full screen, from the map callout.
 struct TodoPinPhotoViewer: View {
     let data: Data
     let onClose: () -> Void
@@ -62,7 +61,6 @@ struct TodoPinPhotoViewer: View {
     }
 }
 
-/// The system camera, for a todo pin's snapshot.
 struct CameraPicker: UIViewControllerRepresentable {
     let onCapture: (UIImage) -> Void
     let onCancel: () -> Void

@@ -4,7 +4,6 @@ import SwiftUI
 import UIKit
 #endif
 
-/// Where a permission the app was refused can be given back.
 struct OpenSettingsButton: View {
     @Environment(\.openURL) private var openURL
 

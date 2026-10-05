@@ -1,10 +1,6 @@
 import SwiftUI
 
-/// Async-loaded square thumbnail backed by our ImageLoader (not
-/// SwiftUI's AsyncImage — that one is URLSession-only and doesn't
-/// know about photodiary-demo://). Placeholder while loading, subtle
-/// warning tint on failure. Grids can drop these in with no per-cell
-/// state management.
+/// Not AsyncImage: it can't load photodiary-demo:// URLs.
 public struct PhotoThumbnail: View {
     private let url: URL
     private let loader: any ImageLoader

@@ -17,20 +17,9 @@ private enum MapLoadState {
     case failed(LoadFailure)
 }
 
-/// Map of every geotagged photo across the active instance's
-/// galleries. Tapping a pin shows a callout; tapping that opens the
-/// paging viewer.
-///
-/// Pins are culled to the viewport and grid-clustered on every camera
-/// settle (MapClustering), so thousands of photos render as a few
-/// dozen annotations. A cluster zooms into its bounding box on tap;
-/// a pile at one exact spot shows a callout to browse its photos.
-///
-/// Load fans out to every gallery on the active instance so a photo
-/// pinned in gallery A shows up next to a pin in gallery B — matches
-/// the site's per-instance map. Photos without coordinates are
-/// silently omitted; if the whole result is empty, the surface shows
-/// an unavailable state.
+/// Every geotagged photo in the scope, culled and clustered to the
+/// viewport (MapClustering) on every camera settle. A cluster zooms into
+/// its bounds on tap; a pile at one exact spot shows a callout instead.
 public struct MapPhotoView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.imageLoader) private var loaderBox
@@ -46,29 +35,19 @@ public struct MapPhotoView: View {
     // shows a thin bar instead.
     @State private var isRefreshing = false
     @State private var notice: MapNotice?
-    // MapKit's selection drives every tap: no Button per annotation, so
-    // a pinch that lands on a pin isn't claimed as a tap first.
     @State var selection: String?
     @State var cameraPosition: MapCameraPosition = .automatic
     @State private var presented: PhotoPagerSelection?
     // The tag whose callout is showing (a single photo or a pile); nil
     // when nothing is selected or the selection zoomed instead.
     @State var calloutFor: String?
-    // Keep the loaded photos around so tap-to-viewer can resolve a
-    // pin's photoId back to a full Photo without a re-fetch.
+    // Resolves a pin's photoId to its Photo without a re-fetch.
     @State private var photosById: [String: Photo] = [:]
     @State var locator = UserLocationController()
     @State var follow = FollowState()
-    // The tag a pin's own tap gesture selected, when, and whether the
-    // selection change for it has been handled. MapKit reports the
-    // same tap as a selection about half a second later, after its
-    // double-tap wait; within that window the map's tap-to-deselect
-    // stands down, and a cluster's second arrival (its echo, after it
-    // already zoomed) is dropped.
+    // MapKit reports a tap as a selection again ~0.6 s later, after its
+    // double-tap wait; within that window the echo is dropped.
     @State var ownTap: OwnTap?
-    // The tag the map's own tap-to-deselect cleared, and when: MapKit
-    // reports that same tap half a second later as a selection of it
-    // again, which is dropped unless a newer own tap chose it.
     @State var ownDeselect: OwnTap?
     @Environment(\.scenePhase) private var scenePhase
     @State var editorPresentation: MapEditorPresentation?
@@ -149,9 +128,7 @@ public struct MapPhotoView: View {
         case .failed(let failure):
             LoadFailureView(title: "Couldn't load map", failure: failure) { attempt += 1 }
         case .empty:
-            // Instance had zero geotagged photos, but todo pins can
-            // still be dropped anywhere so keep the map interactive
-            // instead of hiding it behind an empty-state view.
+            // Todo pins can still be dropped anywhere.
             map(pins: [])
         case .loaded(let pins):
             map(pins: pins)
@@ -234,8 +211,6 @@ public struct MapPhotoView: View {
         )
     }
 
-    // Tags are "kind:id" so one selection binding covers every layer.
-    // Returns whether the selection should stay (a callout is showing).
     @ViewBuilder
     private func calloutView(_ callout: MapCalloutContent) -> some View {
         calloutContentView(callout)
@@ -262,16 +237,12 @@ public struct MapPhotoView: View {
         }
     }
 
-    /// The selected photo or pile, resolved against the current
-    /// clusters; nil once reclustering has moved it out of view.
     private var calloutContent: MapCalloutContent? {
         MapCalloutContent.resolve(
             tag: calloutFor, clusters: clusters, photosById: photosById,
             todoPins: todoPins, moving: moving)
     }
 
-    /// The camera came to rest: remember where (for a relaunch), redo
-    /// the pins under it, and treat a user move as the end of a locate.
     private func cameraSettled(_ region: MKCoordinateRegion, pins: [PhotoMapPin]) {
         currentRegion = region
         if let scope = registry.scope {
@@ -337,7 +308,6 @@ public struct MapPhotoView: View {
             place(try await gather(from: instance, cached: false) ?? [])
         } catch {
             if registry.evictIfAccessLost(error) { return }
-            // A failed refresh keeps the pins already on screen and says so.
             if havePins {
                 notice = .refreshFailed(error.localizedDescription)
             } else {
@@ -356,8 +326,6 @@ public struct MapPhotoView: View {
         show(pins: PhotoMapping.pins(from: photos), of: photos)
     }
 
-    /// Pins on screen: recluster under the standing camera on a
-    /// refresh, or open around the latest photo on a first load.
     private func show(pins: [PhotoMapPin], of photos: [Photo]) {
         if pins.isEmpty {
             state = .empty
@@ -367,17 +335,12 @@ public struct MapPhotoView: View {
             notice = nil
             state = .loaded(pins)
             if let region = currentRegion {
-                // A refresh: the user's camera stands; only the pins
-                // under it are recomputed.
                 recluster(pins: pins, region: region)
             } else if let latest = PhotoMapping.latestGeotagged(in: photos),
                 let coord = latest.location.coordinates
             {
-                // Open where the diary most recently was, zoomed well
-                // out. Fitting every pin instead gave a world view of
-                // scattered dots. Explicit rather than .automatic: the
-                // annotation set is derived from the region, so the
-                // region has to be known first.
+                // Fitting every pin gives a world of scattered dots. Explicit,
+                // not .automatic: clustering needs the region up front.
                 let region = MKCoordinateRegion(
                     MapRegion(
                         centerLatitude: coord.latitude,
@@ -394,7 +357,6 @@ public struct MapPhotoView: View {
         }
     }
 
-    /// "Show on map" from the viewer: frame the photo's spot closely.
     /// Called when the request arrives and again once pins have loaded,
     /// whichever comes second.
     private func applyPendingFocus() {
@@ -426,9 +388,7 @@ extension MapPhotoView {
 #else
 import SwiftUI
 
-/// MapKit isn't available on all platforms (notably: Linux — Swift-on-server
-/// paths for the package). This stub keeps the module importable everywhere
-/// while the actual surface only exists on iOS.
+/// Lets `swift test` build the package on macOS, which has no UIKit.
 public struct MapPhotoView: View {
     public init() {}
     public var body: some View { EmptyView() }

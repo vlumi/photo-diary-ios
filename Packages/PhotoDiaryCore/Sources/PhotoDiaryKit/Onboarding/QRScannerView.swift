@@ -2,14 +2,8 @@
 import SwiftUI
 import VisionKit
 
-/// Live camera scanner for the pairing QR. Delivers the first QR
-/// payload it sees, once, then stops — the caller decides whether it
-/// parses as a pairing link.
-///
-/// VisionKit asks for camera permission itself (the usage string is
-/// in the Info.plist). `isAvailable` is false on the simulator and on
-/// devices without a suitable camera; the caller shows the paste path
-/// instead.
+/// Delivers the first QR payload once, then stops. `isAvailable` is false
+/// on the simulator and without a suitable camera.
 struct QRScannerView: UIViewControllerRepresentable {
     let onCode: (String) -> Void
 

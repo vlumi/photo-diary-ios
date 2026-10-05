@@ -3,7 +3,6 @@ import Testing
 @testable import PhotoDiaryCore
 
 struct LaunchStageTests {
-    /// A staged launch with these arguments after the stage flag.
     private func stage(_ arguments: String...) throws -> LaunchStage {
         try #require(LaunchStage(arguments: ["app", "-photodiary-stage"] + arguments))
     }

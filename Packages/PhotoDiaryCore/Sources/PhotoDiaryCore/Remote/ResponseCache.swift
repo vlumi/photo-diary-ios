@@ -13,7 +13,6 @@ public struct ResponseCache: Sendable {
         self.root = root
     }
 
-    /// The app's cache: `Caches/PhotoDiary/responses`.
     public static func inCaches() -> ResponseCache {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         return ResponseCache(root: caches.appending(path: "PhotoDiary/responses"))
@@ -34,13 +33,10 @@ public struct ResponseCache: Sendable {
         #endif
     }
 
-    /// Everything cached for one instance — on forget, or when its
-    /// access is gone.
     public func clear(origin: String) {
         try? FileManager.default.removeItem(at: directory(origin: origin))
     }
 
-    /// One answer — a gallery that is gone.
     public func clear(origin: String, key: String) {
         try? FileManager.default.removeItem(at: url(origin: origin, key: key))
     }

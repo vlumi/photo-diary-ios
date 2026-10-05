@@ -23,7 +23,6 @@ extension MapRegion {
     }
 }
 
-/// The map camera as saved for restoration: center and span.
 struct MapCamera: Codable, Sendable {
     let latitude: Double
     let longitude: Double

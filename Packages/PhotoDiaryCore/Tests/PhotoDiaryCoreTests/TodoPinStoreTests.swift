@@ -11,8 +11,6 @@ final class TodoPinStoreTests: XCTestCase {
     private var store: TodoPinStore!
 
     override func setUp() async throws {
-        // In-memory store so tests don't touch the on-disk container
-        // and each test starts empty.
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try ModelContainer(for: TodoPin.self, configurations: config)
         store = TodoPinStore(context: container.mainContext)

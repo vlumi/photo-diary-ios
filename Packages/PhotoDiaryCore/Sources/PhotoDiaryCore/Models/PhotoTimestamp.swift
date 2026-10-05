@@ -1,11 +1,8 @@
 import Foundation
 
-/// EXIF wall-clock capture time. No timezone: EXIF `DateTimeOriginal` is
-/// tagless per the spec, and the server stores + returns the digits as
-/// the photographer saw them. Comparisons + calendar-bucketing use the
-/// component fields directly rather than a `Date` that would drag in a
-/// timezone. The optional `Date` accessor is a convenience for UI
-/// formatting.
+/// Wall-clock capture time with no timezone, as EXIF `DateTimeOriginal`
+/// has none. Comparisons and calendar bucketing use the fields, not a
+/// `Date`, which would drag a timezone in.
 public struct PhotoTimestamp: Hashable, Sendable, Comparable {
     public let year: Int
     public let month: Int
@@ -23,9 +20,7 @@ public struct PhotoTimestamp: Hashable, Sendable, Comparable {
         self.second = second
     }
 
-    /// A `Date` in the current calendar's local timezone, useful for
-    /// short-form display (e.g. `RelativeDateTimeFormatter`). The
-    /// digits above are the source of truth.
+    /// For display only; the fields are the source of truth.
     public var asLocalDate: Date? {
         var components = DateComponents()
         components.year = year
