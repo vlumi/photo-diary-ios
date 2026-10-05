@@ -33,7 +33,7 @@ public struct PhotoThumbnail: View {
         case .loading:
             Color.secondary.opacity(0.1)
         case .loaded(let image):
-            swiftUIImage(image)
+            Image(platformImage: image)
                 .resizable()
                 .scaledToFill()
         case .failed:
@@ -41,14 +41,6 @@ public struct PhotoThumbnail: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-
-    private func swiftUIImage(_ image: PlatformImage) -> Image {
-        #if canImport(UIKit)
-        Image(uiImage: image)
-        #else
-        Image(nsImage: image)
-        #endif
     }
 
     private func load() async {

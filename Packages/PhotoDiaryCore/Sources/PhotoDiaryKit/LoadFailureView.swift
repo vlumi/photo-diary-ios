@@ -17,6 +17,10 @@ struct LoadFailure: Equatable {
         self.message = message
         sessionExpired = false
     }
+
+    static var noActiveInstance: LoadFailure {
+        LoadFailure(message: String(localized: "No active instance."))
+    }
 }
 
 /// Dismissing the "Pair again" sheet retries, so a successful re-pair

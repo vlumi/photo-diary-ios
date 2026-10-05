@@ -113,15 +113,7 @@ struct TodoPinListSheet: View {
 
     private var ordered: [TodoPin] {
         guard sort == .nearest, let mapCenter else { return pins }
-        let origin = CLLocation(latitude: mapCenter.latitude, longitude: mapCenter.longitude)
-        return pins.sorted { a, b in
-            if a.isStarred != b.isStarred { return a.isStarred }
-            return distance(of: a, from: origin) < distance(of: b, from: origin)
-        }
-    }
-
-    private func distance(of pin: TodoPin, from origin: CLLocation) -> CLLocationDistance {
-        CLLocation(latitude: pin.latitude, longitude: pin.longitude).distance(from: origin)
+        return TodoPinStore.nearestFirst(pins, to: mapCenter)
     }
 
     private func row(for pin: TodoPin) -> some View {
@@ -154,8 +146,8 @@ struct TodoPinListSheet: View {
         guard let mapCenter else {
             return String(format: "%.5f, %.5f  ·  ", pin.latitude, pin.longitude) + date
         }
-        let origin = CLLocation(latitude: mapCenter.latitude, longitude: mapCenter.longitude)
-        let meters = Measurement(value: distance(of: pin, from: origin), unit: UnitLength.meters)
+        let meters = Measurement(
+            value: TodoPinStore.distance(of: pin, from: mapCenter), unit: UnitLength.meters)
         return meters.formatted(.measurement(width: .abbreviated, usage: .road)) + "  ·  " + date
     }
 

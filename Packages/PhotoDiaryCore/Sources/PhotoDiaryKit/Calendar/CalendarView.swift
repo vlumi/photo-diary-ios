@@ -65,15 +65,21 @@ public enum CalendarRoute: Hashable, Codable, Sendable {
     case grid(galleryId: String, year: Int, month: Int?)
 
     /// The stack tapping down would have built, so the back button walks
-    /// up the same way.
+    /// up the same way. A gallery scope's root is already its year list.
+    static func path(
+        galleryId: String, year: Int? = nil, month: Int? = nil, inGalleryScope: Bool
+    ) -> [CalendarRoute] {
+        var path: [CalendarRoute] = inGalleryScope ? [] : [.years(galleryId: galleryId)]
+        guard let year else { return path }
+        path.append(.months(galleryId: galleryId, year: year))
+        if let month { path.append(.grid(galleryId: galleryId, year: year, month: month)) }
+        return path
+    }
+
     static func path(to photo: Photo, inGalleryScope: Bool) -> [CalendarRoute] {
-        let gallery = photo.galleryId
-        let year = photo.timestamp.year
-        let down: [CalendarRoute] = [
-            .months(galleryId: gallery, year: year),
-            .grid(galleryId: gallery, year: year, month: photo.timestamp.month),
-        ]
-        return inGalleryScope ? down : [.years(galleryId: gallery)] + down
+        path(
+            galleryId: photo.galleryId, year: photo.timestamp.year,
+            month: photo.timestamp.month, inGalleryScope: inGalleryScope)
     }
 }
 
@@ -126,7 +132,7 @@ struct GalleryListView: View {
 
     private func load() async {
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
+            state = .failed(LoadFailure.noActiveInstance)
             return
         }
         await LoadState.load(
@@ -234,7 +240,7 @@ struct MonthListView: View {
     }
 
     private func monthName(_ month: Int) -> String {
-        let symbols = DateFormatter().monthSymbols ?? []
+        let symbols = Calendar.current.standaloneMonthSymbols
         guard (1...12).contains(month), month - 1 < symbols.count else {
             return String(format: "%02d", month)
         }
@@ -250,7 +256,7 @@ private func loadCalendarSlice(
     into update: (LoadState<[Int]>) -> Void, derive: ([Photo]) -> [Int]
 ) async {
     guard let instance = registry.activeInstance else {
-        update(.failed(LoadFailure(message: String(localized: "No active instance."))))
+        update(.failed(LoadFailure.noActiveInstance))
         return
     }
     await LoadState.load(

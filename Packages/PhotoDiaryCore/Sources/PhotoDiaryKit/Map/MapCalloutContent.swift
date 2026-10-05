@@ -31,7 +31,7 @@ struct MapCalloutContent {
                 selection: .cluster(id), coordinate: cluster.coordinate, kind: .photos(photos))
         case .todo(let id):
             guard let pin = todoPins.first(where: { $0.id == id }) else { return nil }
-            let coordinate = draggedPin?.id == pin.id ? draggedPin!.coordinate : pin.coordinate
+            let coordinate = pin.coordinate(draggedBy: draggedPin)
             return MapCalloutContent(selection: .todo(id), coordinate: coordinate, kind: .todo(pin))
         case .callout, nil:
             return nil

@@ -1,4 +1,5 @@
 #if canImport(SwiftData)
+import CoreLocation
 import Foundation
 import SwiftData
 
@@ -58,6 +59,23 @@ public struct TodoPinStore {
 
     public func all() throws -> [TodoPin] {
         try context.fetch(FetchDescriptor<TodoPin>(sortBy: Self.sortOrder))
+    }
+
+    /// Starred pins stay on top; within each group, nearest first.
+    public static func nearestFirst(
+        _ pins: [TodoPin], to center: CLLocationCoordinate2D
+    ) -> [TodoPin] {
+        pins.sorted { a, b in
+            if a.isStarred != b.isStarred { return a.isStarred }
+            return distance(of: a, from: center) < distance(of: b, from: center)
+        }
+    }
+
+    public static func distance(
+        of pin: TodoPin, from center: CLLocationCoordinate2D
+    ) -> CLLocationDistance {
+        CLLocation(latitude: pin.latitude, longitude: pin.longitude)
+            .distance(from: CLLocation(latitude: center.latitude, longitude: center.longitude))
     }
 }
 #endif

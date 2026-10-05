@@ -1,7 +1,10 @@
+import Foundation
+
 /// Cached, nil when any gallery is missing. A photo linked into two
 /// galleries arrives twice; one is kept.
-enum MapPhotoGathering {
-    static func photos(of scope: Scope, from instance: any Instance, cached: Bool) async throws
+public enum MapPhotoGathering {
+    public static func photos(of scope: Scope, from instance: any Instance, cached: Bool)
+        async throws
         -> [Photo]?
     {
         let galleryIds: [String]

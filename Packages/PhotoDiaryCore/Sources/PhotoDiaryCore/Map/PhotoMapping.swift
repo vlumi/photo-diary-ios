@@ -41,24 +41,6 @@ public enum PhotoMapping {
             .max { $0.timestamp < $1.timestamp }
     }
 
-    /// nil when there are no pins.
-    public static func boundingBox(of pins: [PhotoMapPin]) -> BoundingBox? {
-        guard let first = pins.first else { return nil }
-        var minLat = first.coordinate.latitude
-        var maxLat = first.coordinate.latitude
-        var minLng = first.coordinate.longitude
-        var maxLng = first.coordinate.longitude
-        for pin in pins.dropFirst() {
-            let lat = pin.coordinate.latitude
-            let lng = pin.coordinate.longitude
-            if lat < minLat { minLat = lat }
-            if lat > maxLat { maxLat = lat }
-            if lng < minLng { minLng = lng }
-            if lng > maxLng { maxLng = lng }
-        }
-        return BoundingBox(minLat: minLat, maxLat: maxLat, minLng: minLng, maxLng: maxLng)
-    }
-
     public struct BoundingBox: Hashable, Sendable {
         public let minLat: Double
         public let maxLat: Double

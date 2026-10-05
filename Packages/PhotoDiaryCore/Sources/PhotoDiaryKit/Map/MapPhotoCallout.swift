@@ -22,7 +22,7 @@ struct MapPhotoCallout: View {
                 }
             }
             if photos.indices.contains(index) {
-                Text(caption(for: photos[index]))
+                Text(photos[index].caption(at: index, of: photos.count))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -53,11 +53,6 @@ struct MapPhotoCallout: View {
             .accessibilityLabel(photo.accessibilityDescription)
             .accessibilityHint("Opens the photo.")
         }
-    }
-
-    private func caption(for photo: Photo) -> String {
-        let date = photo.timestamp.display
-        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
     private func chevron(_ systemName: String, enabled: Bool, action: @escaping () -> Void)

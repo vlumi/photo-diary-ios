@@ -33,7 +33,6 @@ extension Instance {
 public enum InstanceError: Error, Sendable {
     case galleryNotFound(String)
     case photoNotFound(String)
-    case notImplemented
     case sessionExpired
     case server(status: Int)
     case transport(String)
@@ -61,8 +60,6 @@ extension InstanceError: LocalizedError {
             String(localized: "This gallery no longer exists on the server.", bundle: .module)
         case .photoNotFound:
             String(localized: "This photo no longer exists on the server.", bundle: .module)
-        case .notImplemented:
-            String(localized: "This isn't supported by the app yet.", bundle: .module)
         case .sessionExpired:
             String(localized: "Your session has expired. Pair this device again.", bundle: .module)
         case .server(let status):

@@ -50,7 +50,7 @@ struct TodoPinsMapContent: MapContent {
     var body: some MapContent {
         ForEach(pins) { pin in
             let lifted = draggedPin?.id == pin.id
-            let coordinate = lifted ? draggedPin!.coordinate : pin.coordinate
+            let coordinate = pin.coordinate(draggedBy: draggedPin)
             let selection = MapPinSelection.todo(pin.id)
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
@@ -87,6 +87,12 @@ struct TodoPinsMapContent: MapContent {
 extension TodoPin {
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    /// Where the pin shows: under the finger while it's the one dragged.
+    func coordinate(draggedBy dragged: DraggedPin?) -> CLLocationCoordinate2D {
+        guard let dragged, dragged.id == id else { return coordinate }
+        return dragged.coordinate
     }
 }
 #endif

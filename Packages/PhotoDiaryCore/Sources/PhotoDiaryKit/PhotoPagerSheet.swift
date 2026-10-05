@@ -11,9 +11,6 @@ public struct PhotoPagerSelection: Identifiable, Hashable, Sendable {
         self.index = index
     }
 
-    public init(photo: Photo) {
-        self.init(photos: [photo], index: 0)
-    }
 }
 
 /// A paging ScrollView, not a page-style TabView: each page's drag gesture
@@ -111,7 +108,7 @@ public struct PhotoPagerSheet: View {
             HStack(alignment: .top) {
                 Spacer()
                 if let current {
-                    Text(caption(for: current))
+                    Text(current.caption(at: index, of: photos.count))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -167,11 +164,6 @@ public struct PhotoPagerSheet: View {
             }
             .padding(16)
         }
-    }
-
-    private func caption(for photo: Photo) -> String {
-        let date = photo.timestamp.display
-        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
     private func jumpButton(
@@ -230,7 +222,7 @@ private struct PhotoPage: View {
             case .loading:
                 ZStack {
                     if let preview {
-                        swiftUIImage(preview)
+                        Image(platformImage: preview)
                             .resizable()
                             .scaledToFit()
                             .ignoresSafeArea()
@@ -275,11 +267,4 @@ private struct PhotoPage: View {
         }
     }
 
-    private func swiftUIImage(_ image: PlatformImage) -> Image {
-        #if canImport(UIKit)
-        Image(uiImage: image)
-        #else
-        Image(nsImage: image)
-        #endif
-    }
 }

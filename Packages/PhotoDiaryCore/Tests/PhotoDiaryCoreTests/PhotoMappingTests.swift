@@ -21,24 +21,6 @@ final class PhotoMappingTests: XCTestCase {
         XCTAssertEqual(pins.map(\.photoId), ["third", "first", "second"])
     }
 
-    func testBoundingBoxSpansExtremes() {
-        let pins = [
-            PhotoMapPin(photoId: "a", coordinate: .init(latitude: 60, longitude: 24)),
-            PhotoMapPin(photoId: "b", coordinate: .init(latitude: 35, longitude: 139)),
-            PhotoMapPin(photoId: "c", coordinate: .init(latitude: 48, longitude: -3)),
-        ]
-        let box = PhotoMapping.boundingBox(of: pins)
-        XCTAssertEqual(
-            box,
-            PhotoMapping.BoundingBox(
-                minLat: 35, maxLat: 60, minLng: -3, maxLng: 139
-            ))
-    }
-
-    func testBoundingBoxIsNilForEmpty() {
-        XCTAssertNil(PhotoMapping.boundingBox(of: []))
-    }
-
     func testLatestGeotaggedPicksNewestPhotoWithCoordinates() {
         let photos = [
             fixture(id: "old", lat: 35, lng: 139, day: 1),

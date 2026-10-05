@@ -7,7 +7,7 @@ import Testing
 /// Foundation fallback "The operation couldn't be completed".
 struct ErrorMessagesTests {
     private static let instanceErrors: [InstanceError] = [
-        .galleryNotFound("g"), .photoNotFound("p"), .notImplemented, .sessionExpired,
+        .galleryNotFound("g"), .photoNotFound("p"), .sessionExpired,
         .server(status: 503), .transport("The Internet connection appears to be offline."),
         .decoding("missing field"),
     ]

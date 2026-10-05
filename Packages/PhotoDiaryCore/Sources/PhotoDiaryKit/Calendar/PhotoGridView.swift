@@ -147,7 +147,7 @@ public struct PhotoGridView: View {
 
     private func load() async {
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
+            state = .failed(LoadFailure.noActiveInstance)
             return
         }
         await LoadState.load(

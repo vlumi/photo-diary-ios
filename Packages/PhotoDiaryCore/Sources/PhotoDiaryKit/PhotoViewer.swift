@@ -21,7 +21,7 @@ public struct PhotoViewer: View {
         GeometryReader { geometry in
             Color.black
                 .overlay(
-                    swiftUIImage
+                    Image(platformImage: image)
                         .resizable()
                         .scaledToFit()
                         .scaleEffect(zoom)
@@ -37,14 +37,6 @@ public struct PhotoViewer: View {
                 )
                 .ignoresSafeArea()
         }
-    }
-
-    private var swiftUIImage: Image {
-        #if canImport(UIKit)
-        Image(uiImage: image)
-        #else
-        Image(nsImage: image)
-        #endif
     }
 
     private var zoomGesture: some Gesture {

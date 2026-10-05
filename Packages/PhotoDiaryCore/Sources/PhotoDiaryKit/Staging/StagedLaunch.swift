@@ -40,22 +40,12 @@ extension LaunchStage {
         store.save(camera, .camera, in: scope)
         if let calendar {
             store.save(
-                Self.calendarPath(to: calendar, inGalleryScope: scope.galleryId != nil),
+                CalendarRoute.path(
+                    galleryId: calendar.galleryId, year: calendar.year, month: calendar.month,
+                    inGalleryScope: scope.galleryId != nil),
                 .calendar, in: scope)
         }
         return store
-    }
-
-    /// A gallery scope's root is already its year list.
-    static func calendarPath(to stop: CalendarStop, inGalleryScope: Bool) -> [CalendarRoute] {
-        var path: [CalendarRoute] = inGalleryScope ? [] : [.years(galleryId: stop.galleryId)]
-        if let year = stop.year {
-            path.append(.months(galleryId: stop.galleryId, year: year))
-            if let month = stop.month {
-                path.append(.grid(galleryId: stop.galleryId, year: year, month: month))
-            }
-        }
-        return path
     }
 
     @MainActor

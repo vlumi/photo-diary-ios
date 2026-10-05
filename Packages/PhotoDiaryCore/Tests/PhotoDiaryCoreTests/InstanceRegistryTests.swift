@@ -116,6 +116,6 @@ private struct StubInstance: Instance {
     func listGalleries() async throws -> [Gallery] { [] }
     func listPhotos(inGallery galleryId: String) async throws -> [Photo] { [] }
     func getPhoto(id: String, inGallery galleryId: String) async throws -> Photo {
-        throw InstanceError.notImplemented
+        throw InstanceError.server(status: 500)
     }
 }

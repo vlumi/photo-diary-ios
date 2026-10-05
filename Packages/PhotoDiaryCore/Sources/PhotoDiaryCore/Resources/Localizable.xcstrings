@@ -171,23 +171,6 @@
         }
       }
     },
-    "This isn't supported by the app yet." : {
-      "comment" : "Error for a server feature the app does not implement.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This isn't supported by the app yet."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この機能にはまだ対応していません。"
-          }
-        }
-      }
-    },
     "This photo no longer exists on the server." : {
       "comment" : "Error shown in place of a photo when the server reports the photo is gone.",
       "localizations" : {
