@@ -3,7 +3,7 @@ import Foundation
 
 /// A map viewport in plain degrees — MKCoordinateRegion without the
 /// MapKit dependency, so clustering stays testable from Core.
-public struct MapRegion: Hashable, Sendable {
+public struct MapRegion: Hashable, Sendable, Codable {
     public var centerLatitude: Double
     public var centerLongitude: Double
     public var latitudeDelta: Double
@@ -19,6 +19,13 @@ public struct MapRegion: Hashable, Sendable {
         self.centerLongitude = centerLongitude
         self.latitudeDelta = latitudeDelta
         self.longitudeDelta = longitudeDelta
+    }
+
+    // The names a saved map camera has always had on disk.
+    private enum CodingKeys: String, CodingKey {
+        case centerLatitude = "latitude"
+        case centerLongitude = "longitude"
+        case latitudeDelta, longitudeDelta
     }
 
     /// The zoom as a distance: the shorter of the two spans, in meters.
@@ -48,8 +55,6 @@ public struct MapRegion: Hashable, Sendable {
     }
 }
 
-/// One rendered map annotation: either a single photo or a pile of
-/// them sharing a grid cell at the current zoom.
 public struct MapCluster: Identifiable, Hashable, Sendable {
     public let id: String
     public let latitude: Double
@@ -63,7 +68,7 @@ public struct MapCluster: Identifiable, Hashable, Sendable {
     public var count: Int { photoIds.count }
     public var isSingle: Bool { photoIds.count == 1 }
     /// Every photo at (effectively) one coordinate: zooming can't
-    /// separate them, so the UI lists them instead.
+    /// separate them.
     public var isPile: Bool {
         !isSingle
             && boundingBox.maxLat - boundingBox.minLat < 1e-6
@@ -71,23 +76,15 @@ public struct MapCluster: Identifiable, Hashable, Sendable {
     }
 }
 
-/// What tapping a cluster should do.
 public enum ClusterTapAction: Hashable, Sendable {
-    /// Zooming to this region separates at least two of its photos.
     case zoom(MapRegion)
-    /// Zooming wouldn't split it (a pile, or photos closer than the
-    /// finest cell) — list the photos instead.
+    /// A pile, or photos closer than the finest cell.
     case list
 }
 
-/// Viewport culling + grid clustering. Thousands of pins become at
-/// most a few dozen annotations: only pins inside the region (plus a
-/// margin) are considered, and those are bucketed into square cells
-/// whose size is a power of two in degrees chosen so about `columns`
-/// cells span the viewport. Cells are anchored to absolute
-/// coordinates, not to the viewport, so panning doesn't reshuffle
-/// clusters — only zooming does. The considered area is grown to
-/// whole cells for the same reason: a cell cut by the edge would
+/// Cells are anchored to absolute coordinates, not to the viewport, so
+/// panning doesn't reshuffle clusters; only zooming does. The area is
+/// grown to whole cells for the same reason: a cell cut by the edge would
 /// report a different count and centroid after every pan.
 public enum MapClustering {
     /// How far past the viewport pins are always built, as a fraction
@@ -154,10 +151,8 @@ public enum MapClustering {
         }
     }
 
-    /// Decides a cluster tap so it always makes progress: simulate the
-    /// zoom the tap would perform and, if the cluster's own photos would
-    /// still fall into one cell there, list them instead of zooming
-    /// into the same picture again.
+    /// Always makes progress: if the cluster's photos would still share
+    /// one cell after the zoom, they are listed instead.
     public static func tapAction(
         for cluster: MapCluster,
         pins: [PhotoMapPin],
@@ -171,14 +166,8 @@ public enum MapClustering {
         return after.count > 1 ? .zoom(target) : .list
     }
 
-    /// Largest power of two (in degrees) that fits `columns` times into
-    /// the viewport's longitude span. Floored to a sane minimum so a
-    /// fully zoomed-in map doesn't produce sub-meter cells.
-    /// Whether the clusters built for `clustered` have stopped serving
-    /// `region`: the zoom crossed into another cell size, or the
-    /// viewport came close to the built area's edge.
-    /// Checked while the camera moves, so pins are rebuilt ahead of a
-    /// pan rather than after it.
+    /// True once the zoom crosses into another cell size, or the viewport
+    /// nears the built area's edge.
     public static func isStale(
         clustered: MapRegion,
         for region: MapRegion,
@@ -215,6 +204,9 @@ public enum MapClustering {
         )
     }
 
+    /// Largest power of two (in degrees) that fits `columns` times into
+    /// the span. Floored so a fully zoomed-in map doesn't produce
+    /// sub-meter cells.
     static func cellSize(for longitudeDelta: Double, columns: Int) -> Double {
         let target = max(longitudeDelta, 1e-6) / Double(max(columns, 1))
         let exponent = (log2(target)).rounded(.down)

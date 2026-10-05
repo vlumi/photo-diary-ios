@@ -1,13 +1,10 @@
 import CoreLocation
 import Foundation
 
-/// Fixture-backed Instance: the App Store review path, the screenshot
-/// source, and the offline fallback. Data lives in this file — small
-/// enough that a separate resource JSON would be more indirection than
-/// help. Photo bytes are `photodiary-demo://<id>.jpg` URLs, which
-/// `DemoImageLoader` answers with a drawn tile.
+/// The App Store review path and the screenshot source. The fixture
+/// lives in code; a resource JSON would be more indirection than help.
 public struct DemoInstance: Instance {
-    /// Registry sentinel: the one id that isn't a hostname.
+    /// Registry sentinel: the one id that isn't an origin.
     public static let instanceId = "demo"
     public let id = DemoInstance.instanceId
     public let displayName = "Demo"
@@ -66,12 +63,6 @@ public struct DemoInstance: Instance {
 }
 
 // MARK: - Fixture data
-//
-// Two galleries with plausible-looking EXIF + GPS + timestamps. GPS
-// coordinates point at real cities so the map surface has something
-// meaningful to cluster; EXIF fields reference real bodies + lenses so
-// the metadata panel reads correctly. Image bytes are TBD — see the
-// comment on the URL scheme above.
 
 private struct DailyAnchor {
     let day: Int
@@ -163,9 +154,6 @@ extension DemoInstance {
         )
     }
 
-    // A daily project across ~three weeks. Same camera + lens
-    // (mirroring an operator who shoots on one body), rotating between
-    // neighborhoods in Tokyo.
     private static let dailyAnchors: [DailyAnchor] = [
         .init(day: 1, lat: 35.6595, lng: 139.7005, place: "Shibuya"),
         .init(day: 2, lat: 35.6580, lng: 139.7016, place: "Shibuya"),
@@ -189,9 +177,7 @@ extension DemoInstance {
         .init(day: 20, lat: 35.7091, lng: 139.8104, place: "Sumida"),
     ]
 
-    // A family gallery: several trips, mixed bodies, less regular
-    // cadence. Locations across a few countries so the map isn't just
-    // Tokyo.
+    // Across a few countries so the map isn't just Tokyo.
     private static let familyEntries: [FamilyEntry] = [
         .init(
             id: "family-2022-04-11", year: 2022, month: 4, day: 11,
@@ -245,10 +231,7 @@ extension DemoInstance {
         ),
     ]
 
-    /// Custom scheme so the eventual image loader knows to route these
-    /// through the bundled-resource path rather than URLSession. Kept
-    /// distinct from the app's own `photodiary://` scheme (that one is
-    /// for SSO pairing).
+    /// Not `photodiary://`, which is for pairing.
     private static func demoImageURL(kind: String, id: String) -> URL {
         URL(string: "photodiary-demo://\(kind)/\(id).jpg")!
     }

@@ -3,17 +3,15 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// The map's annotation views. Plain views, no Buttons: MapKit's
-/// selection binding handles taps (tags are "kind:id"), so a pinch that
-/// lands on a pin isn't claimed as a tap first. The user marker is drawn
-/// last by the caller so it paints above pins and clusters (UserAnnotation
-/// sits beneath them), with hit testing off so it never steals a tap.
+/// No Buttons: a pinch that lands on a pin isn't claimed as a tap. The
+/// caller draws the user marker last so it paints above pins and clusters
+/// (UserAnnotation sits beneath them).
 @MainActor
 enum MapAnnotations {
     static func photo(
-        _ pin: PhotoMapPin, label: String, onTap: @escaping (String) -> Void
+        _ pin: PhotoMapPin, label: String, onTap: @escaping (MapPinSelection) -> Void
     ) -> some MapContent {
-        let tag = "photo:\(pin.photoId)"
+        let selection = MapPinSelection.photo(pin.photoId)
         return Annotation("", coordinate: pin.coordinate) {
             Image(systemName: "camera.fill")
                 .font(.caption)
@@ -30,14 +28,15 @@ enum MapAnnotations {
                 // cover the same area or MapKit wins the edge taps.
                 .padding(10)
                 .contentShape(Circle())
-                .onTapGesture { onTap(tag) }
+                .onTapGesture { onTap(selection) }
         }
-        .tag(tag)
+        .tag(selection)
     }
 
-    static func cluster(_ cluster: MapCluster, onTap: @escaping (String) -> Void) -> some MapContent
-    {
-        let tag = "cluster:\(cluster.id)"
+    static func cluster(
+        _ cluster: MapCluster, onTap: @escaping (MapPinSelection) -> Void
+    ) -> some MapContent {
+        let selection = MapPinSelection.cluster(cluster.id)
         return Annotation("", coordinate: cluster.coordinate) {
             Text("\(cluster.count)")
                 .font(.caption.weight(.bold))
@@ -53,12 +52,12 @@ enum MapAnnotations {
                 .accessibilityAddTraits(.isButton)
                 .padding(8)
                 .contentShape(Capsule())
-                .onTapGesture { onTap(tag) }
+                .onTapGesture { onTap(selection) }
         }
-        .tag(tag)
+        .tag(selection)
     }
 
-    /// The todo marker. `lifted` while being placed or dragged.
+    /// `lifted` while being placed or dragged.
     static func todoMarker(lifted: Bool, note: String) -> some View {
         Image(systemName: "checklist")
             .font(.caption)

@@ -1,8 +1,13 @@
 import SwiftUI
 
 extension Photo {
-    /// What VoiceOver reads for this photo anywhere it appears: the
-    /// title when there is one, and the date either way.
+    /// The date, after the photo's place in its set when there's more
+    /// than one.
+    func caption(at index: Int, of count: Int) -> String {
+        let date = timestamp.display
+        return count > 1 ? "\(index + 1) / \(count) · \(date)" : date
+    }
+
     var accessibilityDescription: String {
         let date = timestamp.display
         return title.isEmpty

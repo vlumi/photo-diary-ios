@@ -1,8 +1,6 @@
 import PhotoDiaryCore
 import SwiftUI
 
-/// Settings and About in one sheet, opened from the front page: the
-/// app has one setting, and the rest is what it is and whose.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var language: AppLanguage

@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Root of the calendar surface. Owns the navigation stack; each row
-/// pushes a typed CalendarRoute so back-navigation and deep links can
-/// both target the same destinations.
+/// Rows push typed CalendarRoutes, so a restored path and "Show in
+/// calendar" reach the same destinations as taps.
 public struct CalendarView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.restoration) private var restoration
@@ -34,25 +33,22 @@ public struct CalendarView: View {
                     }
                 }
         }
-        // The path belongs to its scope: restored when one opens
-        // (including at launch), saved as it changes.
+        // The path belongs to its scope.
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }
-            path = restoration.load([CalendarRoute].self, forKey: "calendar." + scope.key) ?? []
+            path = restoration.load([CalendarRoute].self, .calendar, in: scope) ?? []
         }
         .onChange(of: path) {
             guard let scope = registry.scope else { return }
-            restoration.save(path, forKey: "calendar." + scope.key)
+            restoration.save(path, .calendar, in: scope)
         }
         .onChange(of: focus.pendingInCalendar?.id, initial: true) {
-            // "Show in calendar" from the map: open the photo's month.
             // The grid then scrolls to the photo and takes the request.
             guard let photo = focus.pendingInCalendar else { return }
             path = CalendarRoute.path(to: photo, inGalleryScope: registry.scope?.galleryId != nil)
         }
     }
 
-    /// A gallery in scope skips the gallery list.
     @ViewBuilder
     private var root: some View {
         if let galleryId = registry.scope?.galleryId {
@@ -68,18 +64,22 @@ public enum CalendarRoute: Hashable, Codable, Sendable {
     case months(galleryId: String, year: Int)
     case grid(galleryId: String, year: Int, month: Int?)
 
-    /// The stack a user would have built by tapping down to the
-    /// photo's month, so the back button walks up the same way. In a
-    /// gallery scope the year list is the root, so the path starts
-    /// below it.
+    /// The stack tapping down would have built, so the back button walks
+    /// up the same way. A gallery scope's root is already its year list.
+    static func path(
+        galleryId: String, year: Int? = nil, month: Int? = nil, inGalleryScope: Bool
+    ) -> [CalendarRoute] {
+        var path: [CalendarRoute] = inGalleryScope ? [] : [.years(galleryId: galleryId)]
+        guard let year else { return path }
+        path.append(.months(galleryId: galleryId, year: year))
+        if let month { path.append(.grid(galleryId: galleryId, year: year, month: month)) }
+        return path
+    }
+
     static func path(to photo: Photo, inGalleryScope: Bool) -> [CalendarRoute] {
-        let gallery = photo.galleryId
-        let year = photo.timestamp.year
-        let down: [CalendarRoute] = [
-            .months(galleryId: gallery, year: year),
-            .grid(galleryId: gallery, year: year, month: photo.timestamp.month),
-        ]
-        return inGalleryScope ? down : [.years(galleryId: gallery)] + down
+        path(
+            galleryId: photo.galleryId, year: photo.timestamp.year,
+            month: photo.timestamp.month, inGalleryScope: inGalleryScope)
     }
 }
 
@@ -132,7 +132,7 @@ struct GalleryListView: View {
 
     private func load() async {
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
+            state = .failed(LoadFailure.noActiveInstance)
             return
         }
         await LoadState.load(
@@ -223,8 +223,6 @@ struct MonthListView: View {
             LoadFailureView(title: "Couldn't load photos", failure: failure) { attempt += 1 }
         case .loaded(let months):
             List {
-                // Year-wide grid entry so the user can browse the whole
-                // year without picking a month.
                 NavigationLink(
                     value: CalendarRoute.grid(galleryId: galleryId, year: year, month: nil)
                 ) {
@@ -242,7 +240,7 @@ struct MonthListView: View {
     }
 
     private func monthName(_ month: Int) -> String {
-        let symbols = DateFormatter().monthSymbols ?? []
+        let symbols = Calendar.current.standaloneMonthSymbols
         guard (1...12).contains(month), month - 1 < symbols.count else {
             return String(format: "%02d", month)
         }
@@ -258,7 +256,7 @@ private func loadCalendarSlice(
     into update: (LoadState<[Int]>) -> Void, derive: ([Photo]) -> [Int]
 ) async {
     guard let instance = registry.activeInstance else {
-        update(.failed(LoadFailure(message: String(localized: "No active instance."))))
+        update(.failed(LoadFailure.noActiveInstance))
         return
     }
     await LoadState.load(

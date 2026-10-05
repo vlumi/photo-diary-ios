@@ -4,10 +4,9 @@ import SwiftUI
 import AVFoundation
 #endif
 
-/// Adds a real instance. Three ways in — QR scan, pasted link, or a
-/// ticket handed over from a `photodiary://` launch — all converge on
-/// the same "Add <host>?" confirmation before anything is consumed,
-/// so a mis-scanned or hostile code can't pair silently.
+/// Every way in (scan, paste, `photodiary://` launch) ends at the same
+/// confirmation before anything is consumed, so a mis-scanned or hostile
+/// code can't pair silently.
 public struct PairingView: View {
     @Environment(InstanceRegistry.self) private var registry
     @Environment(\.dismiss) private var dismiss
@@ -216,8 +215,7 @@ public struct PairingView: View {
 }
 
 extension View {
-    /// A pasted URL wants none of the text-entry conveniences; the
-    /// modifiers involved are iOS-only, hence the shim.
+    /// The modifiers involved are iOS-only, hence the shim.
     fileprivate func pairingInputStyle() -> some View {
         #if os(iOS)
         return

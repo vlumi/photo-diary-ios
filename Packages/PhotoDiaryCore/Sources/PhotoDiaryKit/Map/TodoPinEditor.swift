@@ -2,10 +2,6 @@
 import SwiftData
 import SwiftUI
 
-/// Sheet for editing a todo pin's note and photo. Create-mode drops a
-/// new pin; edit-mode edits an existing one. Delete only appears in
-/// edit mode. A new or removed photo waits for Save like the note, and
-/// unsaved changes keep the sheet from being swiped away.
 struct TodoPinEditor: View {
     enum Mode {
         case create(latitude: Double, longitude: Double)
@@ -63,14 +59,7 @@ struct TodoPinEditor: View {
                 }
             }
             .interactiveDismissDisabled(hasChanges)
-            .alert(
-                "Couldn't save the pin",
-                isPresented: Binding(get: { failure != nil }, set: { if !$0 { failure = nil } })
-            ) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(failure ?? "")
-            }
+            .pinWriteFailureAlert($failure)
             .onAppear {
                 if case .edit(let pin) = mode {
                     note = pin.note

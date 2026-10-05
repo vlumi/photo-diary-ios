@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Callout shown above a selected pin: one photo's thumbnail, or for a
-/// pile a mini pager with chevrons and a counter. Tapping the thumbnail
-/// opens the full viewer at that photo. Sized to sit over the map
-/// without hiding much of it.
 struct MapPhotoCallout: View {
     let photos: [Photo]
     let loader: any ImageLoader
@@ -26,7 +22,7 @@ struct MapPhotoCallout: View {
                 }
             }
             if photos.indices.contains(index) {
-                Text(caption(for: photos[index]))
+                Text(photos[index].caption(at: index, of: photos.count))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -57,11 +53,6 @@ struct MapPhotoCallout: View {
             .accessibilityLabel(photo.accessibilityDescription)
             .accessibilityHint("Opens the photo.")
         }
-    }
-
-    private func caption(for photo: Photo) -> String {
-        let date = photo.timestamp.display
-        return photos.count > 1 ? "\(index + 1) / \(photos.count) · \(date)" : date
     }
 
     private func chevron(_ systemName: String, enabled: Bool, action: @escaping () -> Void)

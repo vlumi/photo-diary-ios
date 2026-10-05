@@ -1,43 +1,26 @@
 import Foundation
 
-/// The single data-access boundary every UI surface sits above. Two
-/// concrete implementations plan to live behind it:
-///
-/// - `DemoInstance` — bundled fixture data, no network. Ships in v1
-///   for App Store review credentials, screenshots, and offline dev.
-/// - `RemoteInstance` — talks to a real Photo Diary server via
-///   /api/v1/*. Auth cookies keyed per host in the Keychain.
-///
-/// Async, throws on failure. All methods are read-only — this app
-/// never writes to the server.
+/// Read-only: the app never writes to the server.
 public protocol Instance: Sendable {
-    /// Stable id used to key credentials + preferences per instance.
-    /// Hostname for remote instances; a fixed sentinel for the demo
-    /// instance.
+    /// Keys sessions and saved state: the origin for a remote instance,
+    /// a sentinel for the demo.
     var id: String { get }
 
-    /// User-facing name for the instance list.
     var displayName: String { get }
 
-    /// True when this instance renders fixture data instead of talking
-    /// to a server. Consumers use it to hide auth-only chrome (e.g.
-    /// the "signed in as ..." Settings row) in demo mode.
+    /// The demo has no site to link to and is labeled apart on the
+    /// front page.
     var isDemo: Bool { get }
 
-    /// All galleries visible to the current session on this instance.
     func listGalleries() async throws -> [Gallery]
 
-    /// All photos in the given gallery. Ordering: EXIF timestamp
-    /// ascending — the same order the site's calendar views use.
+    /// Ascending by capture time, as on the site.
     func listPhotos(inGallery galleryId: String) async throws -> [Photo]
 
-    /// A single photo by id. Used when navigating directly (e.g. a
-    /// map-pin popup) without loading the whole gallery.
     func getPhoto(id: String, inGallery galleryId: String) async throws -> Photo
 
-    /// The last answers this instance gave, without touching the
-    /// network — what a screen shows while the fresh one loads. nil
-    /// when nothing is cached.
+    /// What a screen shows while the fresh answer loads; nil when
+    /// nothing is cached.
     func cachedGalleries() async -> [Gallery]?
     func cachedPhotos(inGallery galleryId: String) async -> [Photo]?
 }
@@ -50,21 +33,15 @@ extension Instance {
 public enum InstanceError: Error, Sendable {
     case galleryNotFound(String)
     case photoNotFound(String)
-    case notImplemented
-    /// The refresh token was rejected; the user must pair again.
     case sessionExpired
-    /// Non-2xx from the server that isn't a session problem.
     case server(status: Int)
-    /// Network-level failure (offline, DNS, TLS).
     case transport(String)
-    /// The response didn't match the wire shape we expect.
     case decoding(String)
 }
 
 extension InstanceError {
-    /// True when the scope this came from can no longer be shown at
-    /// all — as opposed to a network blip or a server hiccup, after
-    /// which what's cached still stands.
+    /// Unlike a network blip or a server hiccup, after which what's
+    /// cached still stands.
     public var deniesAccess: Bool {
         switch self {
         case .sessionExpired, .galleryNotFound: true
@@ -83,8 +60,6 @@ extension InstanceError: LocalizedError {
             String(localized: "This gallery no longer exists on the server.", bundle: .module)
         case .photoNotFound:
             String(localized: "This photo no longer exists on the server.", bundle: .module)
-        case .notImplemented:
-            String(localized: "This isn't supported by the app yet.", bundle: .module)
         case .sessionExpired:
             String(localized: "Your session has expired. Pair this device again.", bundle: .module)
         case .server(let status):

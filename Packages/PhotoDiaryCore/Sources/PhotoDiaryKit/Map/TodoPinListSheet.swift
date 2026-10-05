@@ -3,10 +3,6 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// Sheet listing every saved todo pin, starred first, then by last edit
-/// or by distance from the map's center (the toggle is remembered).
-/// Tap a row to center the map on that pin; the star pins it to the
-/// top; the pencil opens its editor; swipe-to-delete for cleanup.
 struct TodoPinListSheet: View {
     enum Sort: String, CaseIterable {
         // Raw values are what the user's choice is stored under.
@@ -31,6 +27,7 @@ struct TodoPinListSheet: View {
     @Environment(\.modelContext) private var context
     @Query(sort: TodoPinStore.sortOrder) private var pins: [TodoPin]
     @State private var editing: TodoPin?
+    @State private var failure: String?
     @AppStorage("todoPinListSort") private var sort: Sort = .recent
 
     var body: some View {
@@ -48,6 +45,7 @@ struct TodoPinListSheet: View {
                     }
                 }
         }
+        .pinWriteFailureAlert($failure)
         .sheet(item: $editing) { pin in
             TodoPinEditor(mode: .edit(pin)) { editing = nil }
         }
@@ -86,7 +84,7 @@ struct TodoPinListSheet: View {
                         .buttonStyle(.plain)
                         .accessibilityHint("Shows it on the map.")
                         Button {
-                            try? TodoPinStore(context: context).setStarred(pin, !pin.isStarred)
+                            failure = context.pinWrite { try $0.setStarred(pin, !pin.isStarred) }
                         } label: {
                             Image(systemName: pin.isStarred ? "star.fill" : "star")
                                 .font(.body.weight(.semibold))
@@ -115,19 +113,9 @@ struct TodoPinListSheet: View {
         }
     }
 
-    /// Starred pins stay on top in either mode; "nearest" reorders each
-    /// group by distance from the map's center.
     private var ordered: [TodoPin] {
         guard sort == .nearest, let mapCenter else { return pins }
-        let origin = CLLocation(latitude: mapCenter.latitude, longitude: mapCenter.longitude)
-        return pins.sorted { a, b in
-            if a.isStarred != b.isStarred { return a.isStarred }
-            return distance(of: a, from: origin) < distance(of: b, from: origin)
-        }
-    }
-
-    private func distance(of pin: TodoPin, from origin: CLLocation) -> CLLocationDistance {
-        CLLocation(latitude: pin.latitude, longitude: pin.longitude).distance(from: origin)
+        return TodoPinStore.nearestFirst(pins, to: mapCenter)
     }
 
     private func row(for pin: TodoPin) -> some View {
@@ -160,15 +148,15 @@ struct TodoPinListSheet: View {
         guard let mapCenter else {
             return String(format: "%.5f, %.5f  ·  ", pin.latitude, pin.longitude) + date
         }
-        let origin = CLLocation(latitude: mapCenter.latitude, longitude: mapCenter.longitude)
-        let meters = Measurement(value: distance(of: pin, from: origin), unit: UnitLength.meters)
+        let meters = Measurement(
+            value: TodoPinStore.distance(of: pin, from: mapCenter), unit: UnitLength.meters)
         return meters.formatted(.measurement(width: .abbreviated, usage: .road)) + "  ·  " + date
     }
 
     private func delete(_ offsets: IndexSet) {
-        let store = TodoPinStore(context: context)
-        for index in offsets {
-            try? store.delete(ordered[index])
+        let doomed = offsets.map { ordered[$0] }
+        failure = context.pinWrite { store in
+            for pin in doomed { try store.delete(pin) }
         }
     }
 }

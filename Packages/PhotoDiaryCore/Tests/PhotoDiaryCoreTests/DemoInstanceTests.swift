@@ -20,10 +20,7 @@ final class DemoInstanceTests: XCTestCase {
     }
 
     func testEveryPhotoInDailyHasCoordinates() async throws {
-        // Daily is intentionally fully geotagged so the map surface
-        // has something to render out of the box. Family is more
-        // realistic — mixed coordinate coverage — but daily should
-        // be plottable in full.
+        // So the map has something to show out of the box.
         let instance = DemoInstance()
         let daily = try await instance.listPhotos(inGallery: "daily")
         for photo in daily {

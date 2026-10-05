@@ -21,6 +21,13 @@ final class CalendarRouteTests: XCTestCase {
             ])
     }
 
+    func testAPathStopsAtTheDepthGiven() {
+        XCTAssertEqual(CalendarRoute.path(galleryId: "daily", inGalleryScope: true), [])
+        XCTAssertEqual(
+            CalendarRoute.path(galleryId: "daily", year: 2024, inGalleryScope: false),
+            [.years(galleryId: "daily"), .months(galleryId: "daily", year: 2024)])
+    }
+
     func testInAGalleryScopeTheYearListIsTheRootSoThePathStartsBelowIt() {
         XCTAssertEqual(
             CalendarRoute.path(to: photo, inGalleryScope: true),

@@ -1,35 +1,14 @@
 import Foundation
 
-/// A launch staged for the store screenshots: where the app opens and
-/// what is on screen, from launch arguments, so `make shots` can set up
-/// every shot without a hand on the simulator. Only a launch carrying
-/// `-photodiary-stage` is staged; the app then keeps the stage's state
-/// in memory and leaves what it has saved alone.
-///
-/// Arguments, each a flag followed by its value:
-/// `-photodiary-scope front|<instance>` and `-photodiary-gallery <id>`,
-/// `-photodiary-tab map|calendar`, `-photodiary-camera lat,lng,span`
-/// (or `lat,lng,latSpan,lngSpan`), `-photodiary-calendar
-/// <gallery>[/<year>[/<month>]]`, `-photodiary-photo <id>` (opened once
-/// its month's grid loads), `-photodiary-pins "lat,lng,note|…"`,
-/// `-photodiary-select <map tag>` (`todo` for the first pin),
-/// `-photodiary-sheet settings|pins`, and `-photodiary-sign-in <host>`
-/// with `-photodiary-user` and `-photodiary-password` to sign in to an
-/// instance for the launch. Debug builds only: a release build is never
-/// staged.
+/// A launch set up from arguments for the store screenshots, so
+/// `make shots` needs no hand on the simulator; Scripts/stage.sh lists
+/// them. Debug builds only.
 public struct LaunchStage: Equatable, Sendable {
     public enum Opening: Equatable, Sendable {
         /// Whatever was open when the app was last left.
         case unchanged
         case frontPage
         case scope(Scope)
-    }
-
-    public struct Camera: Equatable, Sendable {
-        public let latitude: Double
-        public let longitude: Double
-        public let latitudeDelta: Double
-        public let longitudeDelta: Double
     }
 
     public struct CalendarStop: Equatable, Sendable {
@@ -51,6 +30,13 @@ public struct LaunchStage: Equatable, Sendable {
         public let password: String
     }
 
+    /// What the map selects once it's up: a pin by name, or the first
+    /// todo pin, whose id a staged launch can't know in advance.
+    public enum Selection: Equatable, Sendable {
+        case firstTodo
+        case pin(MapPinSelection)
+    }
+
     public enum Sheet: String, Sendable {
         case settings
         case pins
@@ -59,17 +45,16 @@ public struct LaunchStage: Equatable, Sendable {
     public var opening: Opening = .unchanged
     /// `map` or `calendar`; kept as text so Core needn't know the tabs.
     public var tab: String?
-    public var camera: Camera?
+    public var camera: MapRegion?
     public var calendar: CalendarStop?
     public var photoId: String?
     public var pins: [Pin] = []
-    public var selection: String?
+    public var selection: Selection?
     public var sheet: Sheet?
     public var signIn: SignIn?
 
     static let flag = "-photodiary-stage"
 
-    /// The stage these arguments describe, or nil for an ordinary launch.
     public init?(arguments: [String]) {
         guard arguments.contains(Self.flag) else { return nil }
         func value(_ name: String) -> String? {
@@ -89,7 +74,9 @@ public struct LaunchStage: Equatable, Sendable {
         calendar = value("calendar").flatMap(Self.calendarStop)
         photoId = value("photo")
         pins = value("pins").map(Self.pins) ?? []
-        selection = value("select")
+        selection = value("select").flatMap { name in
+            name == "todo" ? .firstTodo : MapPinSelection(name: name).map(Selection.pin)
+        }
         sheet = value("sheet").flatMap(Sheet.init(rawValue:))
         if let host = value("sign-in"), let user = value("user"), let password = value("password") {
             signIn = SignIn(
@@ -105,7 +92,6 @@ public struct LaunchStage: Equatable, Sendable {
         #endif
     }
 
-    /// The scope the stage opens, when it names one.
     public var scope: Scope? {
         if case .scope(let scope) = opening { return scope }
         return nil
@@ -117,18 +103,18 @@ public struct LaunchStage: Equatable, Sendable {
         value == DemoInstance.instanceId ? value : RemoteInstanceFactory.canonicalOrigin(value)
     }
 
-    private static func camera(_ value: String) -> Camera? {
+    private static func camera(_ value: String) -> MapRegion? {
         let numbers = value.split(separator: ",").compactMap {
             Double($0.trimmingCharacters(in: .whitespaces))
         }
         switch numbers.count {
         case 3:
-            return Camera(
-                latitude: numbers[0], longitude: numbers[1],
+            return MapRegion(
+                centerLatitude: numbers[0], centerLongitude: numbers[1],
                 latitudeDelta: numbers[2], longitudeDelta: numbers[2])
         case 4:
-            return Camera(
-                latitude: numbers[0], longitude: numbers[1],
+            return MapRegion(
+                centerLatitude: numbers[0], centerLongitude: numbers[1],
                 latitudeDelta: numbers[2], longitudeDelta: numbers[3])
         default:
             return nil

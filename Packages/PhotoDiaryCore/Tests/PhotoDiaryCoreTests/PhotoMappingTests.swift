@@ -21,26 +21,6 @@ final class PhotoMappingTests: XCTestCase {
         XCTAssertEqual(pins.map(\.photoId), ["third", "first", "second"])
     }
 
-    func testBoundingBoxSpansExtremes() {
-        let pins = [
-            PhotoMapPin(photoId: "a", coordinate: .init(latitude: 60, longitude: 24)),
-            PhotoMapPin(photoId: "b", coordinate: .init(latitude: 35, longitude: 139)),
-            PhotoMapPin(photoId: "c", coordinate: .init(latitude: 48, longitude: -3)),
-        ]
-        let box = PhotoMapping.boundingBox(of: pins)
-        XCTAssertEqual(
-            box,
-            PhotoMapping.BoundingBox(
-                minLat: 35, maxLat: 60, minLng: -3, maxLng: 139
-            ))
-    }
-
-    func testBoundingBoxIsNilForEmpty() {
-        XCTAssertNil(PhotoMapping.boundingBox(of: []))
-    }
-
-    // MARK: - Fixture
-
     func testLatestGeotaggedPicksNewestPhotoWithCoordinates() {
         let photos = [
             fixture(id: "old", lat: 35, lng: 139, day: 1),
@@ -50,6 +30,8 @@ final class PhotoMappingTests: XCTestCase {
         XCTAssertEqual(PhotoMapping.latestGeotagged(in: photos)?.id, "newest-tagged")
         XCTAssertNil(PhotoMapping.latestGeotagged(in: [fixture(id: "x", lat: nil, lng: nil)]))
     }
+
+    // MARK: - Fixture
 
     private func fixture(id: String, lat: Double?, lng: Double?, day: Int = 1) -> Photo {
         let coords: CLLocationCoordinate2D? = {

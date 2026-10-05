@@ -195,7 +195,7 @@ final class MapClusteringTests: XCTestCase {
     }
 
     func testTapOnASpreadClusterZoomsToIt() {
-        // ~50 m apart: a 1 km window would not have split these before.
+        // ~50 m apart.
         let pins = [pin("a", 35.6800, 139.7600), pin("b", 35.6804, 139.7605)]
         let cluster = MapClustering.clusters(pins: pins, in: tokyo)[0]
         XCTAssertEqual(cluster.count, 2)

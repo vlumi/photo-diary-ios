@@ -1,9 +1,6 @@
 import Foundation
 
-/// Exposure settings pulled from EXIF. All fields optional — cameras
-/// vary in what they tag, and older / phone-only photos may lack
-/// several. Presented in the metadata panel; the map / calendar don't
-/// read them.
+/// All optional: cameras vary in what they tag.
 public struct PhotoExposure: Hashable, Sendable {
     public let focalLength: Double?
     public let focalLength35mmEquiv: Double?

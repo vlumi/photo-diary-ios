@@ -1,11 +1,8 @@
 import Foundation
 
-/// The language the app runs in: the device's, or one forced for this
-/// app alone. Forcing writes `AppleLanguages` into the app's own
-/// defaults, the same place the system's per-app language setting
-/// writes, so the two never disagree. The system reads it at launch:
-/// strings, date formats and the map's labels all follow, from the
-/// next start.
+/// Forcing writes `AppleLanguages` into the app's own defaults, where the
+/// system's per-app language setting writes too, so the two never
+/// disagree. It takes effect at the next launch.
 public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
     case system
     case english
@@ -65,8 +62,6 @@ public struct AppLanguageStore {
         }
     }
 
-    /// Whether `selection` would start the app in another localization
-    /// than the one it is running in now.
     public static func needsRestart(
         selection: AppLanguage,
         running: String?,

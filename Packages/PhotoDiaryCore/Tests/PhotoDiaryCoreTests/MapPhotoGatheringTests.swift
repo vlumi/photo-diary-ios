@@ -1,8 +1,7 @@
 import Foundation
-import PhotoDiaryCore
 import XCTest
 
-@testable import PhotoDiaryKit
+@testable import PhotoDiaryCore
 
 final class MapPhotoGatheringTests: XCTestCase {
     /// Two galleries; `gone` is listed but answers 404 when asked for

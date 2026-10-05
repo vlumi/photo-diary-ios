@@ -52,8 +52,6 @@ extension String {
     }
 }
 
-/// What the rest of Core calls: the generated client over one host's
-/// session, with its failures turned into the app's own errors.
 struct PhotoDiaryClient: Sendable {
     let api: PhotoDiaryAPI
     let client: Client

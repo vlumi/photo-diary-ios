@@ -1,7 +1,6 @@
 import Foundation
 
-/// Clusters for a viewport, and how far past it they reach (as a
-/// fraction of the viewport's span on each side).
+/// `margin` is a fraction of the viewport's span on each side.
 public struct MapClusterBuild: Hashable, Sendable {
     public let clusters: [MapCluster]
     public let margin: Double

@@ -1,13 +1,7 @@
 import SwiftUI
 
-/// A full-viewport photo with pinch-to-zoom, pan, and double-tap-zoom.
-/// Chrome (close button, metadata panel) is layered on top by
-/// callers — this view is just the image + gestures.
-///
-/// Zoom is clamped to [1, maxZoom]. At 1× the pan gesture is masked
-/// off so a paging container underneath gets the swipe; above 1× pan
-/// is bounded so the image can't leave the viewport, and the container
-/// is told (`onZoomChange`) so it can stop paging meanwhile.
+/// At 1× pan is masked off so a paging container underneath gets the
+/// swipe; zoomed in, `onZoomChange` lets the container stop paging.
 public struct PhotoViewer: View {
     private let image: PlatformImage
     private let onZoomChange: ((Bool) -> Void)?
@@ -27,7 +21,7 @@ public struct PhotoViewer: View {
         GeometryReader { geometry in
             Color.black
                 .overlay(
-                    swiftUIImage
+                    Image(platformImage: image)
                         .resizable()
                         .scaledToFit()
                         .scaleEffect(zoom)
@@ -43,14 +37,6 @@ public struct PhotoViewer: View {
                 )
                 .ignoresSafeArea()
         }
-    }
-
-    private var swiftUIImage: Image {
-        #if canImport(UIKit)
-        Image(uiImage: image)
-        #else
-        Image(nsImage: image)
-        #endif
     }
 
     private var zoomGesture: some Gesture {

@@ -1,8 +1,7 @@
 import Foundation
 
-/// Builds RemoteInstances whose cookie changes flow into the
-/// SessionStore, so a session survives relaunch without the instance
-/// knowing anything about persistence.
+/// Cookie changes flow into the SessionStore, so an instance knows
+/// nothing about persistence.
 public struct RemoteInstanceFactory: Sendable {
     private let sessionStore: any SessionStore
     /// Where instances keep their last answers; nil in tests.
@@ -43,8 +42,6 @@ public struct RemoteInstanceFactory: Sendable {
         )
     }
 
-    /// An instance paired in an earlier launch, with whatever session
-    /// was persisted for it.
     public func restore(origin: String) -> RemoteInstance {
         let cookies = (try? sessionStore.load(host: origin)) ?? SessionCookies()
         return RemoteInstance(

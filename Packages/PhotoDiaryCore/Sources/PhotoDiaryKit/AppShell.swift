@@ -1,14 +1,8 @@
 import SwiftData
 import SwiftUI
 
-/// Root view. Owns the `InstanceRegistry` for the process and shows
-/// either the front page (no scope open) or the Map / Calendar tabs
-/// for the open scope. Also mounts the SwiftData ModelContainer for
-/// todo pins so any surface that wants @Query'd pins gets one, and
-/// catches `photodiary://` launches to route a pairing ticket into the
-/// onboarding sheet. A staged launch (LaunchStage, for the store
-/// screenshots) opens where its arguments say and keeps all of it in
-/// memory.
+/// Root view. A staged launch (LaunchStage, for the store screenshots)
+/// keeps everything in memory.
 public struct AppShell: View {
     @State private var registry: InstanceRegistry
     private let imageLoader: any ImageLoader
@@ -48,11 +42,8 @@ public struct AppShell: View {
             self.todoPinContainer =
                 try stage?.todoPinContainer() ?? ModelContainer(for: TodoPin.self)
         } catch {
-            // A ModelContainer failure at launch is not recoverable
-            // and indicates a genuine environmental problem
-            // (permissions, disk full, corrupt store). Better to
-            // crash loudly with the underlying reason than to
-            // present a maimed app that silently loses writes.
+            // Unrecoverable (permissions, disk full, corrupt store): crash
+            // with the reason rather than run on and silently lose writes.
             fatalError("Failed to create TodoPin ModelContainer: \(error)")
         }
     }
@@ -70,14 +61,13 @@ public struct AppShell: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: registry.scope == nil)
         .environment(registry)
         .environment(focus)
-        .environment(\.imageLoader, ImageLoaderBox(imageLoader))
+        .environment(\.imageLoader, imageLoader)
         .environment(\.restoration, restoration)
         .environment(\.stageCues, stageCues)
         .modelContainer(todoPinContainer)
         .task { await stage?.signIn(into: registry) }
         .onOpenURL { url in
             // Same-device pairing: the site's "Open in app" link.
-            // Anything that isn't a pairing link is ignored.
             if let ticket = PairingTicket.parse(url) {
                 pendingTicket = ticket
             }
@@ -99,38 +89,26 @@ public struct AppShell: View {
                 .tag(AppTab.calendar)
         }
         .onChange(of: focus.pendingOnMap?.id) {
-            // "Show on map" from the calendar: switch; the map frames it.
             if focus.pendingOnMap != nil { selectedTab = .map }
         }
         .onChange(of: focus.pendingInCalendar?.id) {
-            // "Show in calendar" from the map: switch; the calendar
-            // opens the photo's month and scrolls to it.
             if focus.pendingInCalendar != nil { selectedTab = .calendar }
         }
         .onChange(of: registry.scope, initial: true) {
             guard let scope = registry.scope else { return }
-            selectedTab = restoration.load(AppTab.self, forKey: "tab." + scope.key) ?? .map
+            selectedTab = restoration.load(AppTab.self, .tab, in: scope) ?? .map
         }
         .onChange(of: selectedTab) {
             guard let scope = registry.scope else { return }
-            restoration.save(selectedTab, forKey: "tab." + scope.key)
+            restoration.save(selectedTab, .tab, in: scope)
         }
     }
 }
 
-// MARK: - Environment plumbing for the loader
-//
-// Wraps `any ImageLoader` in a concrete type so it can ride the
-// SwiftUI environment (existentials need a wrapper). Read-only from
-// the app's perspective — the loader is chosen at AppShell init.
-
-struct ImageLoaderBox {
-    let loader: any ImageLoader
-    init(_ loader: any ImageLoader) { self.loader = loader }
-}
+// MARK: - Environment
 
 private struct ImageLoaderKey: EnvironmentKey {
-    static let defaultValue = ImageLoaderBox(SchemeRoutingImageLoader())
+    static let defaultValue: any ImageLoader = SchemeRoutingImageLoader()
 }
 
 private struct RestorationKey: EnvironmentKey {
@@ -138,7 +116,7 @@ private struct RestorationKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    var imageLoader: ImageLoaderBox {
+    var imageLoader: any ImageLoader {
         get { self[ImageLoaderKey.self] }
         set { self[ImageLoaderKey.self] = newValue }
     }

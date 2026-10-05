@@ -2,12 +2,9 @@
 import SwiftUI
 import UIKit
 
-/// A downward pan on the pager's scroll view, recognized at UIKit
-/// level: a SwiftUI DragGesture inside a horizontal ScrollView never
-/// sees a vertical drag, the scroll view claims it first. This pan is
-/// added to that scroll view and begins only for a mostly vertical,
-/// downward drag while `isEnabled`; the scroll view's own pan waits
-/// for it to fail, which for a horizontal drag is immediate.
+/// UIKit, because a SwiftUI DragGesture inside a horizontal ScrollView
+/// never sees a vertical drag. The scroll view's own pan waits for this
+/// one to fail, which for a horizontal drag is immediate.
 struct PullDownRecognizer: UIViewRepresentable {
     let isEnabled: () -> Bool
     let onChange: (CGFloat) -> Void

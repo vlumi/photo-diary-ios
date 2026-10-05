@@ -1,26 +1,17 @@
 import SwiftUI
 
-/// Grid of photos for a year+month slice of a gallery. Sectioned by
-/// day; each cell is a PhotoThumbnail that opens the paging viewer on
-/// tap.
-///
-/// Loads its own photo list from the active instance in .task — no
-/// upstream fetching needed. Empty and error states are rendered in
-/// place so the caller doesn't have to.
 public struct PhotoGridView: View {
     private let galleryId: String
     private let year: Int
     private let month: Int?
 
     @Environment(InstanceRegistry.self) private var registry
-    @Environment(\.imageLoader) private var loaderBox
+    @Environment(\.imageLoader) private var imageLoader
     @Environment(PhotoFocusStore.self) private var focus
     @Environment(\.stageCues) private var stageCues
     @State private var state: LoadState<[PhotoCalendar.DaySection]> = .loading
     @State private var attempt = 0
     @State private var presented: PhotoPagerSelection?
-    /// The photo "Show in calendar" asked for, marked for a moment
-    /// after the grid has scrolled to it.
     @State private var spotlit: String?
     /// The day section at the top of the scroll view; set to bring a
     /// day into view, updated by the scrolling itself.
@@ -37,7 +28,7 @@ public struct PhotoGridView: View {
             .navigationTitle(navTitle)
             .navigationBarTitleDisplayModeInline()
             .task(id: reloadKey) { await load() }
-            .photoViewerCover(item: $presented, loader: loaderBox.loader) { photo in
+            .photoViewerSheet(item: $presented, loader: imageLoader) { photo in
                 presented = nil
                 focus.showOnMap(photo)
             }
@@ -92,7 +83,7 @@ public struct PhotoGridView: View {
                             presented = PhotoPagerSelection(photos: ordered, index: i)
                         }
                     } label: {
-                        PhotoThumbnail(url: photo.thumbnailURL, loader: loaderBox.loader)
+                        PhotoThumbnail(url: photo.thumbnailURL, loader: imageLoader)
                             .overlay {
                                 if spotlit == photo.id {
                                     Rectangle().strokeBorder(Color.accentColor, lineWidth: 4)
@@ -115,14 +106,13 @@ public struct PhotoGridView: View {
         }
     }
 
-    /// "Show in calendar" from the map: once this grid is the photo's,
-    /// bring its day to the top and mark the photo for a moment, so
-    /// the eye lands on it among that day's other photos.
+    /// The photo is marked for a moment so the eye lands on it among
+    /// that day's others.
     private func spotlight(in sections: [PhotoCalendar.DaySection]) {
         guard let photo = focus.pendingInCalendar,
             let day = sections.first(where: { $0.photos.contains { $0.id == photo.id } })
         else { return }
-        _ = focus.consumeForCalendar()
+        focus.settledInCalendar()
         topDay = day.id
         spotlit = photo.id
         Task { @MainActor in
@@ -157,7 +147,7 @@ public struct PhotoGridView: View {
 
     private func load() async {
         guard let instance = registry.activeInstance else {
-            state = .failed(LoadFailure(message: String(localized: "No active instance.")))
+            state = .failed(LoadFailure.noActiveInstance)
             return
         }
         await LoadState.load(
@@ -190,9 +180,8 @@ extension View {
         #endif
     }
 
-    /// The viewer as a sheet: a swipe down closes it, the way a
-    /// photo is put away everywhere else.
-    fileprivate func photoViewerCover(
+    /// A sheet, not a cover: a swipe down closes it, as everywhere else.
+    fileprivate func photoViewerSheet(
         item: Binding<PhotoPagerSelection?>,
         loader: any ImageLoader,
         onShowOnMap: @escaping (Photo) -> Void

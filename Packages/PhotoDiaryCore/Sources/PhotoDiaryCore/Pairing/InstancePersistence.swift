@@ -1,8 +1,7 @@
 import Foundation
 
-/// The registry's durable shape: which instance ids exist (hosts, plus
-/// the demo sentinel) and which scope was open. Cookies live in the
-/// SessionStore, not here.
+/// Instance ids (origins, plus the demo sentinel) and the open scope.
+/// Cookies live in the SessionStore.
 public protocol InstancePersistence: Sendable {
     /// nil means nothing was ever saved — first launch.
     func loadInstanceIds() -> [String]?

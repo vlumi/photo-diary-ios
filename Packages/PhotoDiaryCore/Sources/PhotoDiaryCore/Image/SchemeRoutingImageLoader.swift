@@ -1,8 +1,5 @@
 import Foundation
 
-/// The app-wide loader: one instance, every scheme. Demo tiles and
-/// real photos live behind the same ImageLoader protocol, so surfaces
-/// never care which instance a URL came from.
 public struct SchemeRoutingImageLoader: ImageLoader {
     private let demo: DemoImageLoader
     private let remote: any ImageLoader

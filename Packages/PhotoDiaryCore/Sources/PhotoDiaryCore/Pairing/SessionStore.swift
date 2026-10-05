@@ -1,15 +1,13 @@
 import Foundation
 import Security
 
-/// Where a host's session cookies live between launches. Keyed by
-/// host, which is also the RemoteInstance id.
+/// Keyed by origin, which is also the RemoteInstance id.
 public protocol SessionStore: Sendable {
     func load(host: String) throws -> SessionCookies?
     func save(_ cookies: SessionCookies, host: String) throws
     func delete(host: String) throws
 }
 
-/// Test / preview store. Nothing survives the process.
 public final class InMemorySessionStore: SessionStore, @unchecked Sendable {
     private let lock = NSLock()
     private var entries: [String: SessionCookies] = [:]
@@ -31,7 +29,7 @@ public struct KeychainError: Error, Sendable {
     public let status: OSStatus
 }
 
-/// Generic-password Keychain items: service = app, account = host,
+/// Generic-password Keychain items: service = app, account = origin,
 /// value = JSON-encoded SessionCookies. Kept to this device: a restore
 /// or a new phone pairs again rather than carrying the session over.
 /// After first unlock rather than while unlocked, so a launch iOS

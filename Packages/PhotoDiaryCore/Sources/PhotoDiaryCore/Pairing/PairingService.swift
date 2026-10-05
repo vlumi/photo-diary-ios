@@ -25,11 +25,8 @@ public enum PairingError: Error, Sendable, LocalizedError {
     }
 }
 
-/// Turns a pairing ticket into a working RemoteInstance: consumes the
-/// one-shot SSO ticket (the 302's Set-Cookie is the session), then
-/// proves the session with GET /tokens before handing the instance
-/// back. Only a proven session is saved, so a failed pairing leaves
-/// nothing behind and can't overwrite one that works.
+/// Only a proven session is saved, so a failed pairing leaves nothing
+/// behind and can't overwrite one that works.
 public struct PairingService: Sendable {
     private let factory: RemoteInstanceFactory
 
@@ -55,7 +52,6 @@ public struct PairingService: Sendable {
         guard await api.currentCookies.refresh != nil else {
             throw PairingError.noSession
         }
-        // Proves the session before the instance is handed back.
         try await client.call { client in
             switch try await client.getSession() {
             case .ok: return

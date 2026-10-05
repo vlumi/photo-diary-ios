@@ -1,11 +1,8 @@
 #if canImport(SwiftData)
+import CoreLocation
 import Foundation
 import SwiftData
 
-/// Convenience wrapper around SwiftData's ModelContext for TodoPin
-/// CRUD. Kept small on purpose — views can read pins directly with
-/// @Query where reactivity matters and use this only for write paths
-/// where the imperative shape is clearer.
 @MainActor
 public struct TodoPinStore {
     public let context: ModelContext
@@ -14,8 +11,6 @@ public struct TodoPinStore {
         self.context = context
     }
 
-    /// Persist a new pin at the given coordinate. Returns the saved
-    /// entity so the caller can immediately show it in the UI.
     @discardableResult
     public func create(
         latitude: Double, longitude: Double, note: String = "", photo: Data? = nil
@@ -26,15 +21,12 @@ public struct TodoPinStore {
         return pin
     }
 
-    /// Update a pin's note. Bumps updatedAt.
     public func updateNote(_ pin: TodoPin, note: String) throws {
         pin.note = note
         pin.updatedAt = .now
         try context.save()
     }
 
-    /// Attach, replace or (with nil) remove the pin's photo. Bumps
-    /// updatedAt.
     public func setPhoto(_ pin: TodoPin, _ photo: Data?) throws {
         pin.photo = photo
         pin.updatedAt = .now
@@ -46,7 +38,6 @@ public struct TodoPinStore {
         try context.save()
     }
 
-    /// Relocate a pin (drag-to-move on the map). Bumps updatedAt.
     public func move(_ pin: TodoPin, latitude: Double, longitude: Double) throws {
         pin.latitude = latitude
         pin.longitude = longitude
@@ -60,18 +51,31 @@ public struct TodoPinStore {
         try context.save()
     }
 
-    /// Starred pins first (latest star first — nulls sort last when
-    /// descending), then most recently edited. The @Query sites use the
-    /// same descriptors.
+    /// Nil sorts last when descending, so starred pins come first.
     public static let sortOrder: [SortDescriptor<TodoPin>] = [
         SortDescriptor(\.starredAt, order: .reverse),
         SortDescriptor(\.updatedAt, order: .reverse),
     ]
 
-    /// Views that want reactivity should use @Query instead; this
-    /// exists for one-off reads.
     public func all() throws -> [TodoPin] {
         try context.fetch(FetchDescriptor<TodoPin>(sortBy: Self.sortOrder))
+    }
+
+    /// Starred pins stay on top; within each group, nearest first.
+    public static func nearestFirst(
+        _ pins: [TodoPin], to center: CLLocationCoordinate2D
+    ) -> [TodoPin] {
+        pins.sorted { a, b in
+            if a.isStarred != b.isStarred { return a.isStarred }
+            return distance(of: a, from: center) < distance(of: b, from: center)
+        }
+    }
+
+    public static func distance(
+        of pin: TodoPin, from center: CLLocationCoordinate2D
+    ) -> CLLocationDistance {
+        CLLocation(latitude: pin.latitude, longitude: pin.longitude)
+            .distance(from: CLLocation(latitude: center.latitude, longitude: center.longitude))
     }
 }
 #endif

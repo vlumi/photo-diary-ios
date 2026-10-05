@@ -3,26 +3,18 @@ import CoreLocation
 import Observation
 import UIKit
 
-/// CLLocationManager wrapper for the map: keeps `lastLocation` fresh
-/// while the map is on screen (so the marker follows the user) and
-/// serves the locate button: the map centers on `lastLocation` at once
-/// and `freshFix` ticks when the fix requested by the tap arrives.
-///
-/// Tracking runs only between startTracking() / stopTracking() — the
-/// map calls them on appear / disappear — with a 10 m distance filter,
-/// so there is no background draw and no jitter from GPS noise.
+/// Tracks only while the map is on screen, with a 10 m distance filter:
+/// no background draw and no jitter from GPS noise.
 @MainActor
 @Observable
 public final class UserLocationController: NSObject {
     public private(set) var authorization: CLAuthorizationStatus
     public private(set) var lastLocation: CLLocationCoordinate2D?
     public private(set) var lastError: String?
-    /// Bumped once per locate() when its requested fix lands, so the
-    /// map can re-center on that one update and not on later ones. A
-    /// counter, not the coordinate: a stationary device gets the same
-    /// fix back, and a same-value change would never fire onChange.
+    /// Bumped when the fix a locate() asked for lands. A counter, not the
+    /// coordinate: a stationary device gets the same fix back, and an
+    /// unchanged value never fires onChange.
     public private(set) var freshFix = 0
-    /// Bumped on every position update, for the map to follow along.
     public private(set) var updateCount = 0
     private var fixRequested = false
 
@@ -48,11 +40,8 @@ public final class UserLocationController: NSObject {
         manager.stopUpdatingLocation()
     }
 
-    /// Ask for permission if not yet decided, then request one fresh
-    /// fix, reported through `freshFix`. With Best accuracy that can
-    /// take several seconds, which is why the map centers on the known
-    /// `lastLocation` first rather than waiting for this. If permission
-    /// is denied, sets lastError for the banner.
+    /// With Best accuracy a fresh fix can take seconds, which is why the
+    /// map centers on `lastLocation` first.
     public func locate() {
         lastError = nil
         switch manager.authorizationStatus {

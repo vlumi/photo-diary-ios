@@ -55,7 +55,6 @@ func stubbedAPI(
     )
 }
 
-/// The gallery list, through the generated client and this session.
 private func listGalleries(_ api: PhotoDiaryAPI) async throws -> [Components.Schemas.Gallery] {
     try await PhotoDiaryClient(api: api).call { client in
         switch try await client.listGalleries() {

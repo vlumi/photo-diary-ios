@@ -1,10 +1,8 @@
 import Foundation
 import Nuke
 
-/// http(s) image loading through a Nuke pipeline: memory + disk cache,
-/// in-flight request coalescing, cancellation on task cancel. Photo
-/// bytes are served by nginx as public static files, so no session
-/// cookies are involved — the default pipeline is enough.
+/// Photo bytes are public static files, so no session cookies are
+/// involved and the default pipeline is enough.
 public final class RemoteImageLoader: ImageLoader {
     private let pipeline: ImagePipeline
 

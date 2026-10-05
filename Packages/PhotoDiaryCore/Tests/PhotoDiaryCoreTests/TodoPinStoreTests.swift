@@ -1,4 +1,5 @@
 #if canImport(SwiftData)
+import CoreLocation
 import Foundation
 import SwiftData
 import XCTest
@@ -11,8 +12,6 @@ final class TodoPinStoreTests: XCTestCase {
     private var store: TodoPinStore!
 
     override func setUp() async throws {
-        // In-memory store so tests don't touch the on-disk container
-        // and each test starts empty.
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try ModelContainer(for: TodoPin.self, configurations: config)
         store = TodoPinStore(context: container.mainContext)
@@ -80,6 +79,17 @@ final class TodoPinStoreTests: XCTestCase {
         XCTAssertEqual(pin.longitude, 139.76)
         XCTAssertEqual(pin.note, "keep me")
         XCTAssertGreaterThan(pin.updatedAt, before)
+    }
+
+    func testNearestFirstKeepsStarredPinsOnTop() throws {
+        let far = try store.create(latitude: 35.80, longitude: 139.70, note: "far")
+        let near = try store.create(latitude: 35.68, longitude: 139.76, note: "near")
+        let starredFar = try store.create(latitude: 36.50, longitude: 140.00, note: "starred")
+        try store.setStarred(starredFar, true)
+        let center = CLLocationCoordinate2D(latitude: 35.681, longitude: 139.767)
+        XCTAssertEqual(
+            TodoPinStore.nearestFirst([far, near, starredFar], to: center).map(\.note),
+            ["starred", "near", "far"])
     }
 }
 #endif

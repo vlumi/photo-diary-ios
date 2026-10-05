@@ -3,7 +3,6 @@ import Testing
 @testable import PhotoDiaryCore
 
 struct LaunchStageTests {
-    /// A staged launch with these arguments after the stage flag.
     private func stage(_ arguments: String...) throws -> LaunchStage {
         try #require(LaunchStage(arguments: ["app", "-photodiary-stage"] + arguments))
     }
@@ -33,7 +32,8 @@ struct LaunchStageTests {
         #expect(
             square.camera
                 == .init(
-                    latitude: 35.68, longitude: 139.76, latitudeDelta: 0.2, longitudeDelta: 0.2))
+                    centerLatitude: 35.68, centerLongitude: 139.76, latitudeDelta: 0.2,
+                    longitudeDelta: 0.2))
         let wide = try stage("-photodiary-camera", "35.68,139.76,0.2,0.4")
         #expect(wide.camera?.longitudeDelta == 0.4)
         #expect(try stage("-photodiary-camera", "x").camera == nil)

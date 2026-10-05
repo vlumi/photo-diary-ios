@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Banner above a selected todo pin: the photo's thumbnail when it has
-/// one, the note (or a placeholder) and a pencil to open the editor.
-/// Tapping elsewhere on the map deselects, which closes it.
 struct TodoPinCallout: View {
     let note: String
     let photo: Data?

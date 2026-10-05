@@ -6,10 +6,8 @@ import SwiftUI
 // MARK: - Location following
 
 extension MapPhotoView {
-    /// Switching on centers on the fix already in hand so the button
-    /// responds at once — zooming in to street level from far out,
-    /// never out — and asks for a fresh one. Switching off just stops
-    /// following.
+    /// Centers on the fix already in hand so the button responds at
+    /// once, then asks for a fresh one.
     func toggleFollow() {
         if follow.isOn {
             follow.stop()
@@ -29,7 +27,6 @@ extension MapPhotoView {
         locator.locate()
     }
 
-    /// Following: move to the position at the zoom the user has.
     func keepUp(with coord: CLLocationCoordinate2D) {
         withAnimation { frame(coord, meters: currentMeters) }
         follow.recentered()
@@ -61,17 +58,17 @@ extension MapPhotoView {
     func openPendingAdd() {
         guard let center = addingAt else { return }
         addingAt = nil
-        placing = center
+        provisionalPin = center
         editorPresentation = .create(center)
     }
 
     func movePinToCenter(_ pin: TodoPin) {
         guard let center = currentRegion?.center else { return }
-        try? TodoPinStore(context: modelContext).move(
-            pin, latitude: center.latitude, longitude: center.longitude)
+        pinWriteFailure = modelContext.pinWrite {
+            try $0.move(pin, latitude: center.latitude, longitude: center.longitude)
+        }
     }
 
-    /// Until dismissed, while there are no pins yet, outside staged shots.
     var showsPinHint: Bool {
         !pinHintSeen && todoPins.isEmpty && !stageCues.isStaged
     }
@@ -80,14 +77,18 @@ extension MapPhotoView {
 // MARK: - Staged launch
 
 extension MapPhotoView {
-    /// A staged launch's selection (as a tap would make it; `todo` is
-    /// the first pin) and its pin list, once the camera first settles:
-    /// a selection made before the map is up is dropped by MapKit.
+    /// Run once the camera first settles: MapKit drops a selection made
+    /// before the map is up.
     func takeStagedCues() {
-        if var tag = stageCues.takeSelection() {
-            if tag == "todo", let first = todoPins.first { tag = "todo:\(first.id.uuidString)" }
-            ownTap = OwnTap(tag: tag, at: Date(), handled: false)
-            selection = tag
+        let staged: MapPinSelection? =
+            switch stageCues.takeSelection() {
+            case .firstTodo: todoPins.first.map { .todo($0.id) }
+            case .pin(let pin): pin
+            case nil: nil
+            }
+        if let staged {
+            ownTap = OwnTap(selection: staged, at: Date(), handled: false)
+            selection = staged
         }
         if stageCues.takeSheet(.pins) { showingList = true }
     }
@@ -96,20 +97,23 @@ extension MapPhotoView {
 // MARK: - Selection
 
 extension MapPhotoView {
-    /// The selection binding changed — from a pin's own tap gesture, or
-    /// from MapKit, which reports the same tap again about half a
-    /// second later after its double-tap wait.
-    func selectionChanged(_ selected: String?, pins: [PhotoMapPin]) {
-        if let selected, let closed = ownDeselect, selected == closed.tag,
-            Date().timeIntervalSince(closed.at) < 0.7,
+    // MapKit reports a tap as a selection again ~0.6 s later, after its
+    // double-tap wait: within `selectionEcho` the echo is dropped, and the
+    // map's own tap stands down for `ownTapClaim` after a pin took it.
+    static let selectionEcho: TimeInterval = 0.7
+    static let ownTapClaim: TimeInterval = 0.3
+
+    func selectionChanged(_ selected: MapPinSelection?, pins: [PhotoMapPin]) {
+        if let selected, let closed = ownDeselect, selected == closed.selection,
+            Date().timeIntervalSince(closed.at) < Self.selectionEcho,
             (ownTap.map { $0.at < closed.at } ?? true)
         {
             selection = nil
             return
         }
-        if let selected, var tap = ownTap, selected == tap.tag {
-            if tap.handled, selected.hasPrefix("cluster:"),
-                Date().timeIntervalSince(tap.at) < 0.7
+        if let selected, var tap = ownTap, selected == tap.selection {
+            if tap.handled, selected.isCluster,
+                Date().timeIntervalSince(tap.at) < Self.selectionEcho
             {
                 // MapKit's echo of a cluster tap that already zoomed:
                 // don't zoom twice. A photo or todo echo is harmless.
@@ -120,41 +124,35 @@ extension MapPhotoView {
             ownTap = tap
         }
         guard let selected else {
-            calloutFor = nil
+            calloutSelection = nil
             return
         }
-        if !handleSelection(selected, pins: pins) { selection = nil }
+        if !showsCallout(for: selected, pins: pins) { selection = nil }
     }
 
-    func handleSelection(_ tag: String, pins: [PhotoMapPin]) -> Bool {
-        let parts = tag.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return false }
-        switch parts[0] {
-        case "photo":
-            calloutFor = tag
+    /// Returns whether the selection should stay (a callout is showing).
+    func showsCallout(for selected: MapPinSelection, pins: [PhotoMapPin]) -> Bool {
+        switch selected {
+        case .photo, .todo:
+            calloutSelection = selected
             return true
-        case "cluster":
-            guard let cluster = clusters.first(where: { $0.id == parts[1] }) else { return false }
+        case .cluster(let id):
+            guard let cluster = clusters.first(where: { $0.id == id }) else { return false }
             switch MapClustering.tapAction(for: cluster, pins: pins) {
             case .zoom(let region):
-                calloutFor = nil
+                calloutSelection = nil
                 cameraPosition = .region(MKCoordinateRegion(region))
                 return false
             case .list:
-                calloutFor = tag
+                calloutSelection = selected
                 return true
             }
-        case "callout":
-            // A tap inside the callout (its thumbnail or chevrons) also
-            // selects the callout annotation; keep the underlying pin
-            // selected so the callout stays put.
-            selection = parts[1]
+        case .callout(let pin):
+            // A tap inside the callout (its thumbnail or chevrons) selects
+            // the callout's own annotation; the pin stays selected so the
+            // callout stays put.
+            selection = pin
             return true
-        case "todo":
-            calloutFor = tag
-            return true
-        default:
-            return false
         }
     }
 
@@ -163,10 +161,10 @@ extension MapPhotoView {
 // MARK: - Todo pin gestures
 
 extension MapPhotoView {
-    func placementGesture(_ proxy: MapProxy) -> some Gesture {
+    func touchGestures(_ proxy: MapProxy) -> some Gesture {
         MapTouchGestures(
-            proxy: proxy, isMovingPin: { moving != nil },
-            pressPoint: $pressPoint, placing: $placing,
+            proxy: proxy, isDraggingPin: { draggedPin != nil },
+            pressPoint: $pressPoint, provisionalPin: $provisionalPin,
             onPlaced: { editorPresentation = .create($0) },
             onTap: {
                 // A tap on empty map closes the callout; one a pin or the
@@ -174,9 +172,9 @@ extension MapPhotoView {
                 // before theirs does, so look again a moment later.
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(60))
-                    if let ownTap, Date().timeIntervalSince(ownTap.at) < 0.3 { return }
+                    if let ownTap, Date().timeIntervalSince(ownTap.at) < Self.ownTapClaim { return }
                     if let current = selection {
-                        ownDeselect = OwnTap(tag: current, at: Date(), handled: true)
+                        ownDeselect = OwnTap(selection: current, at: Date(), handled: true)
                     }
                     selection = nil
                 }
@@ -185,11 +183,13 @@ extension MapPhotoView {
     }
 
     func finishMove(_ pin: TodoPin) {
-        if let moving, moving.id == pin.id {
-            try? TodoPinStore(context: modelContext).move(
-                pin, latitude: moving.coordinate.latitude, longitude: moving.coordinate.longitude)
+        if let draggedPin, draggedPin.id == pin.id {
+            let to = draggedPin.coordinate
+            pinWriteFailure = modelContext.pinWrite {
+                try $0.move(pin, latitude: to.latitude, longitude: to.longitude)
+            }
         }
-        moving = nil
+        draggedPin = nil
     }
 }
 #endif

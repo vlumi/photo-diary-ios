@@ -22,8 +22,6 @@ public struct SessionCookies: Hashable, Sendable, Codable {
 
     public var isEmpty: Bool { access == nil && refresh == nil }
 
-    /// Value for an outgoing `Cookie` header, or nil when there's
-    /// nothing to send.
     var headerValue: String? {
         var parts: [String] = []
         if let access { parts.append("\(Self.accessName)=\(access)") }
@@ -31,9 +29,7 @@ public struct SessionCookies: Hashable, Sendable, Codable {
         return parts.isEmpty ? nil : parts.joined(separator: "; ")
     }
 
-    /// Fold a response's Set-Cookie headers in. A cookie the server
-    /// clears (past expiry, as `clearCookie` emits) becomes nil.
-    /// Unknown cookie names are ignored.
+    /// A cookie the server clears (past expiry) becomes nil.
     mutating func apply(response: HTTPURLResponse, url: URL) {
         guard let setCookie = response.value(forHTTPHeaderField: "Set-Cookie") else { return }
         let cookies = HTTPCookie.cookies(

@@ -1,14 +1,8 @@
 import Foundation
 
-/// A real photo-diary server. Read-only, cookie-authenticated via
-/// PhotoDiaryAPI. The id is the origin (scheme://host[:port]), which
-/// is also what the Keychain entry is keyed by. The display name
-/// drops a plain `https://` but keeps `http://…` visible, so an
-/// unencrypted local instance always looks like one.
-///
-/// The photo root (where display/thumbnail bytes live) comes from the
-/// instance's `meta.cdn` when set and the API host otherwise — the
-/// same rule the SPA applies. Resolved once on first use.
+/// The display name drops a plain `https://` but keeps `http://`, so an
+/// unencrypted local instance always looks like one. The photo root is
+/// `meta.cdn` when set and the API host otherwise, as on the site.
 public actor RemoteInstance: Instance {
     public nonisolated let id: String
     public nonisolated let displayName: String
@@ -22,11 +16,9 @@ public actor RemoteInstance: Instance {
     private let lang: String
     private let now: @Sendable () -> Date
 
-    /// The calendar drill-down asks for a gallery's photos at every
-    /// level and the map asks for every gallery; a real gallery is a
-    /// multi-MB JSON, so repeats are served from memory. Short TTL so
-    /// photos added on the site appear on the next navigation without
-    /// an explicit refresh.
+    /// Every calendar level asks for a gallery's photos, a multi-MB JSON,
+    /// so repeats come from memory. Short, so photos added on the site
+    /// appear on the next navigation.
     public static let photoCacheTTL: TimeInterval = 5 * 60
     private struct CachedPhotos {
         let photos: [Photo]
@@ -54,11 +46,9 @@ public actor RemoteInstance: Instance {
         self.now = now
     }
 
-    /// Ends the session on the server too, once the app forgets the
-    /// instance or replaces its session. Saving stops first: the
-    /// server's answer clears the cookies, which must not reach the
-    /// Keychain, where a new session for this origin may already be.
-    /// Best effort; offline, the session simply runs out.
+    /// Saving stops first: the server's answer clears the cookies, which
+    /// must not reach the Keychain, where a new session for this origin
+    /// may already be. Best effort; offline, the session simply runs out.
     public func signOut() async {
         await api.stopPersisting()
         _ = try? await client.call { client in try await client.logOut() }
@@ -189,10 +179,8 @@ public actor RemoteInstance: Instance {
         return apiBase
     }
 
-    // The disk cache keeps each answer as the JSON the server sent, so
-    // an entry written before the generated client reads the same way.
-    // Written before returning: a write landing later could undo a
-    // forget or an eviction that cleared the cache in between.
+    // Synchronous: a write landing later could undo a forget or an
+    // eviction that cleared the cache in between.
     private func save<T: Encodable>(_ value: T, key: String) {
         guard let data = try? JSONEncoder().encode(value) else { return }
         cache?.save(data, origin: id, key: key)

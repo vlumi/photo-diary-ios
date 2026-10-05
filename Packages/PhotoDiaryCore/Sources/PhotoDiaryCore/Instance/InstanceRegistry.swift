@@ -1,23 +1,16 @@
 import Foundation
 import Observation
 
-/// The app's list of configured instances plus the open scope: which
-/// instance (and optionally which of its galleries) the Map and
-/// Calendar show, or nil while the front page is up. `@Observable` so
-/// SwiftUI views can rebind when the registry mutates.
-///
-/// Durable: the id list and scope go to InstancePersistence on every
-/// change, so a relaunch lands where the app was; remote sessions live
-/// in the SessionStore and are rebuilt into RemoteInstances on launch.
-/// The demo instance is just another id in the list — seeded on first
+/// The id list and scope are saved on every change, so a relaunch lands
+/// where the app was. The demo is just another id: seeded on first
 /// launch, gone once removed.
 @Observable
 @MainActor
 public final class InstanceRegistry {
     public private(set) var instances: [any Instance] = []
     public private(set) var scope: Scope?
-    /// Why the last scope was left involuntarily, for the front page
-    /// to say; cleared when read off, or when a scope opens.
+    /// For the front page to say; cleared by dismissEviction() or when a
+    /// scope opens.
     public private(set) var eviction: Eviction?
     /// Shared with the pairing flow so a freshly paired instance
     /// persists its cookies the same way a restored one does.
@@ -35,9 +28,7 @@ public final class InstanceRegistry {
         )
     }
 
-    /// Restores whatever was persisted. On first launch (nothing
-    /// saved yet) seeds the demo instance when `seedingDemo`. A saved
-    /// scope whose instance is gone is dropped: the front page shows.
+    /// A saved scope whose instance is gone is dropped.
     public init(
         persistence: any InstancePersistence,
         sessionStore: any SessionStore,
@@ -72,8 +63,7 @@ public final class InstanceRegistry {
         return instances.first(where: { $0.id == id })
     }
 
-    /// Open the Map and Calendar on this scope. Ignored for an
-    /// instance the registry doesn't know.
+    /// Ignored for an instance the registry doesn't know.
     public func enter(_ scope: Scope) {
         guard instances.contains(where: { $0.id == scope.instanceId }) else { return }
         self.scope = scope
@@ -81,10 +71,8 @@ public final class InstanceRegistry {
         persist()
     }
 
-    /// A refresh inside the scope failed: if the failure means the
-    /// scope can no longer be shown, leave it for the front page with
-    /// the reason, drop what was cached for it, and return true. Any
-    /// other failure is the screen's to show; the scope stays.
+    /// True when the failure meant the scope can no longer be shown and
+    /// it was left. Any other failure is the screen's to show.
     @discardableResult
     public func evictIfAccessLost(_ error: any Error) -> Bool {
         guard let scope, let error = error as? InstanceError, error.deniesAccess else {
@@ -116,16 +104,12 @@ public final class InstanceRegistry {
         eviction = nil
     }
 
-    /// Back to the front page.
     public func leaveScope() {
         scope = nil
         persist()
     }
 
     public func add(_ instance: any Instance) {
-        // Preserve identity: if an instance with the same id is
-        // already registered, replace it rather than appending a
-        // duplicate.
         if let idx = instances.firstIndex(where: { $0.id == instance.id }) {
             if let replaced = instances[idx] as? RemoteInstance, replaced !== instance as AnyObject
             {
@@ -138,8 +122,6 @@ public final class InstanceRegistry {
         persist()
     }
 
-    /// Forgets the instance and, for a remote one, its session. If it
-    /// was the open scope, the front page shows.
     public func remove(id: String) {
         guard let removed = instances.first(where: { $0.id == id }) else { return }
         instances.removeAll(where: { $0.id == id })

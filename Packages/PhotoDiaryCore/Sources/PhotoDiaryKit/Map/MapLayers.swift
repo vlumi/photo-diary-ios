@@ -8,14 +8,14 @@ import SwiftUI
 struct MapLayers<Callout: View>: MapContent {
     let clusters: [MapCluster]
     let todoPins: [TodoPin]
-    let moving: MovingPin?
-    let placing: CLLocationCoordinate2D?
+    let draggedPin: DraggedPin?
+    let provisionalPin: CLLocationCoordinate2D?
     let userLocation: CLLocationCoordinate2D?
     let callout: MapCalloutContent?
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
-    let onTapPin: (String) -> Void
+    let onTapPin: (MapPinSelection) -> Void
     let onMovePinToCenter: (TodoPin) -> Void
     let photoLabel: (String) -> String
     @ViewBuilder let calloutView: (MapCalloutContent) -> Callout
@@ -32,7 +32,7 @@ struct MapLayers<Callout: View>: MapContent {
             }
         }
         TodoPinsMapContent(
-            pins: todoPins, moving: moving, placing: placing, proxy: proxy,
+            pins: todoPins, draggedPin: draggedPin, provisionalPin: provisionalPin, proxy: proxy,
             onMoveChanged: onMoveChanged, onMoveEnded: onMoveEnded, onTap: onTapPin,
             onMoveToCenter: onMovePinToCenter
         )
@@ -47,7 +47,7 @@ struct MapLayers<Callout: View>: MapContent {
                 calloutView(callout).padding(.bottom, 24)
             }
             .annotationTitles(.hidden)
-            .tag("callout:\(callout.tag)")
+            .tag(MapPinSelection.callout(callout.selection))
         }
     }
 }

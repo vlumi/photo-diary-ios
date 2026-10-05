@@ -3,7 +3,6 @@ import MapKit
 import SwiftData
 import SwiftUI
 
-/// What the todo-pin editor sheet is opened for.
 enum MapEditorPresentation: Identifiable {
     case create(CLLocationCoordinate2D)
     case edit(TodoPin)
@@ -23,59 +22,50 @@ enum MapEditorPresentation: Identifiable {
     }
 }
 
-/// Where a pin is being dragged to, live, before it's saved.
-struct MovingPin: Equatable {
+struct DraggedPin: Equatable {
     let id: UUID
     let coordinate: CLLocationCoordinate2D
 
-    static func == (lhs: MovingPin, rhs: MovingPin) -> Bool {
+    static func == (lhs: DraggedPin, rhs: DraggedPin) -> Bool {
         lhs.id == rhs.id
             && lhs.coordinate.latitude == rhs.coordinate.latitude
             && lhs.coordinate.longitude == rhs.coordinate.longitude
     }
 }
 
-/// The todo-pin layer: every saved pin (the one being dragged follows
-/// the finger), plus the provisional pin while the user long-presses to
-/// place a new one. MapContent can't hold state, so the live positions
-/// come in from MapPhotoView and gesture results go back out as
-/// coordinates — converted here through the MapProxy, since the drag
-/// reports screen points.
-///
-/// Long-press-then-drag on a pin is a high-priority gesture so a press
-/// that starts on a pin moves it instead of dropping a new one under it;
-/// the pin lifts (reports itself as moving) as soon as the press
-/// completes, before the map's own long-press could fire.
+/// MapContent can't hold state, so live positions come in from
+/// MapPhotoView. A pin's long-press-then-drag is high priority, so a press
+/// that starts on a pin moves it instead of dropping a new one under it.
 struct TodoPinsMapContent: MapContent {
     let pins: [TodoPin]
-    let moving: MovingPin?
-    let placing: CLLocationCoordinate2D?
+    let draggedPin: DraggedPin?
+    let provisionalPin: CLLocationCoordinate2D?
     let proxy: MapProxy
     let onMoveChanged: (TodoPin, CLLocationCoordinate2D) -> Void
     let onMoveEnded: (TodoPin) -> Void
-    let onTap: (String) -> Void
+    let onTap: (MapPinSelection) -> Void
     /// Moving without a drag, for VoiceOver.
     let onMoveToCenter: (TodoPin) -> Void
 
     var body: some MapContent {
         ForEach(pins) { pin in
-            let lifted = moving?.id == pin.id
-            let coordinate = lifted ? moving!.coordinate : pin.coordinate
-            let tag = "todo:\(pin.id.uuidString)"
+            let lifted = draggedPin?.id == pin.id
+            let coordinate = pin.coordinate(draggedBy: draggedPin)
+            let selection = MapPinSelection.todo(pin.id)
             Annotation("", coordinate: coordinate) {
                 MapAnnotations.todoMarker(lifted: lifted, note: pin.note)
                     .highPriorityGesture(moveGesture(for: pin))
                     // Simultaneous, not plain: the high-priority long press
                     // claims the touch and starves an ordinary tap gesture.
-                    .simultaneousGesture(TapGesture().onEnded { onTap(tag) })
+                    .simultaneousGesture(TapGesture().onEnded { onTap(selection) })
                     .accessibilityAction(named: Text("Move to map center")) {
                         onMoveToCenter(pin)
                     }
             }
-            .tag(tag)
+            .tag(selection)
         }
-        if let placing {
-            Annotation("", coordinate: placing) {
+        if let provisionalPin {
+            Annotation("", coordinate: provisionalPin) {
                 MapAnnotations.todoMarker(lifted: true, note: "")
             }
             .annotationTitles(.hidden)
@@ -97,6 +87,12 @@ struct TodoPinsMapContent: MapContent {
 extension TodoPin {
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    /// Where the pin shows: under the finger while it's the one dragged.
+    func coordinate(draggedBy dragged: DraggedPin?) -> CLLocationCoordinate2D {
+        guard let dragged, dragged.id == id else { return coordinate }
+        return dragged.coordinate
     }
 }
 #endif
