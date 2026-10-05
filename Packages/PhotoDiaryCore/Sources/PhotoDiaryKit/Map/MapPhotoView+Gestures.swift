@@ -64,8 +64,9 @@ extension MapPhotoView {
 
     func movePinToCenter(_ pin: TodoPin) {
         guard let center = currentRegion?.center else { return }
-        try? TodoPinStore(context: modelContext).move(
-            pin, latitude: center.latitude, longitude: center.longitude)
+        pinWriteFailure = modelContext.pinWrite {
+            try $0.move(pin, latitude: center.latitude, longitude: center.longitude)
+        }
     }
 
     var showsPinHint: Bool {
@@ -183,9 +184,10 @@ extension MapPhotoView {
 
     func finishMove(_ pin: TodoPin) {
         if let draggedPin, draggedPin.id == pin.id {
-            try? TodoPinStore(context: modelContext).move(
-                pin, latitude: draggedPin.coordinate.latitude,
-                longitude: draggedPin.coordinate.longitude)
+            let to = draggedPin.coordinate
+            pinWriteFailure = modelContext.pinWrite {
+                try $0.move(pin, latitude: to.latitude, longitude: to.longitude)
+            }
         }
         draggedPin = nil
     }

@@ -63,7 +63,8 @@ extension LaunchStage {
 
 /// Each cue is taken once, so closing what it opened doesn't bring it
 /// back.
-final class StageCues: @unchecked Sendable {
+@MainActor
+final class StageCues {
     private var photoId: String?
     private var selection: LaunchStage.Selection?
     private var sheet: LaunchStage.Sheet?
@@ -71,7 +72,7 @@ final class StageCues: @unchecked Sendable {
     /// first-run hints.
     let isStaged: Bool
 
-    init(_ stage: LaunchStage? = nil) {
+    nonisolated init(_ stage: LaunchStage? = nil) {
         isStaged = stage != nil
         photoId = stage?.photoId
         selection = stage?.selection

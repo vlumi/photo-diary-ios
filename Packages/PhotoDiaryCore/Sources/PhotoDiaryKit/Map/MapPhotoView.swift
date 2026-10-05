@@ -61,6 +61,7 @@ public struct MapPhotoView: View {
     @State var clusteredRegion: MapRegion?
     @State var clusteredMargin = MapClustering.defaultMargin
     @State var draggedPin: DraggedPin?
+    @State var pinWriteFailure: String?
     @State var provisionalPin: CLLocationCoordinate2D?
     @State var pressPoint: CGPoint?
     @Query(sort: TodoPinStore.sortOrder) var todoPins: [TodoPin]
@@ -146,6 +147,7 @@ public struct MapPhotoView: View {
             layers(proxy: proxy)
         }
         .simultaneousGesture(touchGestures(proxy))
+        .pinWriteFailureAlert($pinWriteFailure)
         .sensoryFeedback(.impact(weight: .medium), trigger: provisionalPin != nil) { _, lifted in
             lifted
         }

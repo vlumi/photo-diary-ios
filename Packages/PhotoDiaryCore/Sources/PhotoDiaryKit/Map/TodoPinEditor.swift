@@ -59,14 +59,7 @@ struct TodoPinEditor: View {
                 }
             }
             .interactiveDismissDisabled(hasChanges)
-            .alert(
-                "Couldn't save the pin",
-                isPresented: Binding(get: { failure != nil }, set: { if !$0 { failure = nil } })
-            ) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(failure ?? "")
-            }
+            .pinWriteFailureAlert($failure)
             .onAppear {
                 if case .edit(let pin) = mode {
                     note = pin.note
