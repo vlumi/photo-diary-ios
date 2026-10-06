@@ -8,7 +8,7 @@ The site is where you upload, edit, and administer. This app is what you carry i
 
 ## Status
 
-v0.1.0 is in TestFlight. The App Store listing, screenshots and review setup live in [`Scripts/asc/`](Scripts/asc/README.md); submitting for review is the remaining v1.0 step. See [ROADMAP.md](ROADMAP.md) for what is left and [CHANGELOG.md](CHANGELOG.md) for what each build brought.
+1.0.0 is on the [App Store](https://apps.apple.com/app/id6808160193); its page is [photodiary.misaki.fi/app](https://photodiary.misaki.fi/app/). See [ROADMAP.md](ROADMAP.md) for what comes next and [CHANGELOG.md](CHANGELOG.md) for what each build brought.
 
 ## What it does
 

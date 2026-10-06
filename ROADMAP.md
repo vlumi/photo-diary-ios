@@ -4,18 +4,11 @@ Living record of what the app is aiming for. Once something ships, its bullet mo
 
 ## v1.0 — App Store launch
 
-Everything but the submission has shipped to TestFlight; [CHANGELOG.md](CHANGELOG.md) has the detail per build.
-
-- **Shipped:** the toolchain and CI; the `Instance` protocol with the built-in demo instance; the instance registry; the shared photo viewer; the map with clustering, location following and todo pins; the calendar; the app shell; the real API client; SSO pairing (the server side landed in photo-diary 1.0.7, [vlumi/photo-diary#744](https://github.com/vlumi/photo-diary/issues/744)); and the polish pass (error, loading and empty states, accessibility, launch screen, app icon, privacy manifest).
-- **Also shipped, brought forward from v1.1:** the front page that picks an instance or one gallery as the scope, full restoration of where the app was after a relaunch, the on-disk response cache with lazy refresh, a Japanese UI, and Settings with an app language and About.
-
-What is left:
-
-- **App Store submission.** The English store listing and the screenshot flow are set up in [`Scripts/asc/`](Scripts/asc/README.md); what's left is taking the screenshots and the review. **Reviewers get two paths:** the demo instance, which is there out of the box and needs no server, and a test account on a live instance with the pairing steps in the review notes, so the real sign-in flow can be exercised. If review insists on signing in inside the app, a username and password form is the fallback; it is deliberately not built otherwise (see [ARCHITECTURE.md](ARCHITECTURE.md#onboarding--sso-pairing)).
+Shipped on 2026-10-07: [Photo Diary Companion on the App Store](https://apps.apple.com/app/id6808160193). [CHANGELOG.md](CHANGELOG.md) has what each build brought.
 
 ## v1.1 — post-launch polish
 
-- **Universal Links** for the pairing "Open in app" button, closing the custom scheme's weakness that another app can claim `photodiary://` and catch the ticket. The app can only claim domains it lists, so the link has to point at a site of the app's own (e.g. `photodiary.misaki.fi/pair`, the ticket in the fragment), with the server's pairing dialog emitting it.
+- **Universal Links** for the pairing "Open in app" button, closing the custom scheme's weakness that another app can claim `photodiary://` and catch the ticket. The app can only claim domains it lists, so the link has to point at a site of the app's own (e.g. `photodiary.misaki.fi/pair`, the ticket in the fragment), with the server's pairing dialog emitting it. The site side is live (photodiary.misaki.fi serves the association file for `/pair`); what's left is the app's Associated Domains entitlement and link handling, and the server's dialog.
 - **Stats surface.** Reduced version — KPIs and category cards, skip charts initially. ~1-2 days.
 - **Real demo photos.** The demo instance draws a gradient tile per photo; licensed photos bundled with the app would make the screenshots and the first impression better.
 
