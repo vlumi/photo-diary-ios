@@ -12,6 +12,8 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
+- The first App Store release.
+
 ### build 13 — 2026-10-05
 
 - A todo pin that fails to move, star or delete says so and goes back to how it was, instead of looking changed until the next launch.
