@@ -8,11 +8,15 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 **One bullet, one line — no hard wrapping.** Order the list by what a user notices, not by merge order, and fold entries that tell one story into one bullet.
 
-## v0.1.0
+## v1.0.0
 
 ### Unreleased (next build)
 
+### build 14 — 2026-10-06
+
 - The first App Store release.
+
+## v0.1.0
 
 ### build 13 — 2026-10-05
 
