@@ -12,7 +12,7 @@ Each version's top section, **Unreleased (next build)**, collects entries merged
 
 ### Unreleased (next build)
 
-- Version 1.0.0, the first App Store release: what build 13 brought, under its own version.
+- The first App Store release.
 
 ### build 13 — 2026-10-05
 
