@@ -37,13 +37,12 @@ memory only: the front page holds the built-in demo and that instance, on any
 simulator, with nothing paired by hand and nothing saved. Only Debug builds
 can be staged, so the store build carries neither the sign-in nor any host.
 
-The values in `shots.json` stage the built-in demo, which draws gradient
-tiles, to prove the flow. For the real set, set `instance` to
-`photos.misaki.fi` (or `INSTANCE=photos.misaki.fi make shots`) and swap each
-shot's gallery, month, photo id, camera and selection to its photos. Map tags
+`shots.json` stages that instance's Daily B/W gallery: Naka-Meguro on the
+map, September 2026 in the calendar, and the 11th in the viewer. Map tags
 are `photo:<id>` or `cluster:<id>`; a photo inside a pile at the shot's zoom
-has no tag of its own, so pick a camera where it stands alone, or select the
-pile. `SIGN_IN=` stages the simulator's own pairings instead.
+has no callout of its own, so the map shot selects one that stands alone at
+its zoom (zoom in until it does). `SIGN_IN=` stages the simulator's own
+pairings instead.
 
 ## Size
 
