@@ -4,14 +4,12 @@
   "capture": [
     "map",
     "photo",
-    "calendar",
     "todo",
     "todo-list",
     "front"
   ],
   "store": [
     "map",
-    "calendar",
     "photo",
     "todo",
     "todo-list",
@@ -28,19 +26,9 @@
         "SELECT": "photo:2022-12-06T09-07-48-593128c4d95e48c6.jpg"
       }
     },
-    "calendar": {
-      "title": "A month of photos by day",
-      "about": "The calendar's month grid, sectioned by day: the diary read the way it was written.",
-      "stage": {
-        "SCOPE": "{instance}",
-        "GALLERY": "dailybw",
-        "TAB": "calendar",
-        "CALENDAR": "dailybw/2026/9"
-      }
-    },
     "photo": {
       "title": "One photo, full screen",
-      "about": "The viewer on one photo, its date, place and camera beneath; swipe for the next.",
+      "about": "The viewer on one photo, reached through the calendar: its date and its place in the month; swipe for the next.",
       "stage": {
         "SCOPE": "{instance}",
         "GALLERY": "dailybw",
