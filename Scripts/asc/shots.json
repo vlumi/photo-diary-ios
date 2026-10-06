@@ -1,17 +1,15 @@
 {
-  "_comment": "The App Store screenshots, one entry each: what it shows and the stage.sh variables that stage it (SCOPE/GALLERY/TAB/CAMERA/CALENDAR/PHOTO/PINS/SELECT/SHEET). `stage_<lang>` would override per language; `{instance}` is the instance below, or INSTANCE= from the environment. `store` is the carousel order; shoot.sh walks `capture` order and stages each shot by relaunching the app, so nothing is set up by hand. A `by_hand` note pauses the capture for something that still is. The values here stage the built-in demo; for the real set, point `instance` at the account the shots come from and swap the galleries, dates, photo ids and camera to its photos. See SCREENSHOTS.md.",
-  "instance": "demo",
+  "_comment": "The App Store screenshots, one entry each: what it shows and the stage.sh variables that stage it (SCOPE/GALLERY/TAB/CAMERA/CALENDAR/PHOTO/PINS/SELECT/SHEET). `stage_<lang>` would override per language; `{instance}` is the instance below, or INSTANCE= from the environment. `store` is the carousel order; shoot.sh walks `capture` order and stages each shot by relaunching the app, so nothing is set up by hand. A `by_hand` note pauses the capture for something that still is. The values stage photos.misaki.fi's Daily B/W gallery as its read-only guest account sees it (stage.sh signs in as guest by default); a map selection must be a photo that stands alone at the shot's zoom, or MapKit shows no callout. See SCREENSHOTS.md.",
+  "instance": "photos.misaki.fi",
   "capture": [
     "map",
     "photo",
-    "calendar",
     "todo",
     "todo-list",
     "front"
   ],
   "store": [
     "map",
-    "calendar",
     "photo",
     "todo",
     "todo-list",
@@ -24,29 +22,19 @@
       "stage": {
         "SCOPE": "{instance}",
         "TAB": "map",
-        "CAMERA": "35.685,139.76,0.16",
-        "SELECT": "photo:daily-2024-06-12"
-      }
-    },
-    "calendar": {
-      "title": "A month of photos by day",
-      "about": "The calendar's month grid, sectioned by day: the diary read the way it was written.",
-      "stage": {
-        "SCOPE": "{instance}",
-        "GALLERY": "daily",
-        "TAB": "calendar",
-        "CALENDAR": "daily/2024/6"
+        "CAMERA": "35.64007,139.6964,0.008",
+        "SELECT": "photo:2022-12-06T09-07-48-593128c4d95e48c6.jpg"
       }
     },
     "photo": {
       "title": "One photo, full screen",
-      "about": "The viewer on one photo, its date, place and camera beneath; swipe for the next.",
+      "about": "The viewer on one photo, reached through the calendar: its date and its place in the month; swipe for the next.",
       "stage": {
         "SCOPE": "{instance}",
-        "GALLERY": "daily",
+        "GALLERY": "dailybw",
         "TAB": "calendar",
-        "CALENDAR": "daily/2024/6",
-        "PHOTO": "daily-2024-06-14"
+        "CALENDAR": "dailybw/2026/9",
+        "PHOTO": "2026-09-11T08-21-40-25b5d086641f479c.jpg"
       }
     },
     "todo": {
@@ -55,8 +43,8 @@
       "stage": {
         "SCOPE": "{instance}",
         "TAB": "map",
-        "CAMERA": "35.69,139.77,0.12",
-        "PINS": "35.7148,139.7735,Yanaka cemetery at dusk, cats on the wall|35.6650,139.7708,Ginza crossing in the rain|35.7100,139.8107,Skytree from the river",
+        "CAMERA": "35.6418,139.6995,0.012",
+        "PINS": "35.64280,139.69980,Wooden house on the river path, in morning light|35.63820,139.70310,The shotengai's rooftop water tanks|35.64570,139.69520,Gate with the ivy: come back in autumn",
         "SELECT": "todo"
       }
     },
@@ -66,8 +54,8 @@
       "stage": {
         "SCOPE": "{instance}",
         "TAB": "map",
-        "CAMERA": "35.69,139.77,0.12",
-        "PINS": "35.7148,139.7735,Yanaka cemetery at dusk, cats on the wall|35.6650,139.7708,Ginza crossing in the rain|35.7100,139.8107,Skytree from the river",
+        "CAMERA": "35.6418,139.6995,0.012",
+        "PINS": "35.64280,139.69980,Wooden house on the river path, in morning light|35.63820,139.70310,The shotengai's rooftop water tanks|35.64570,139.69520,Gate with the ivy: come back in autumn",
         "SHEET": "pins"
       }
     },

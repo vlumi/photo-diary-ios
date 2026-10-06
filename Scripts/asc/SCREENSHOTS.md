@@ -37,13 +37,12 @@ memory only: the front page holds the built-in demo and that instance, on any
 simulator, with nothing paired by hand and nothing saved. Only Debug builds
 can be staged, so the store build carries neither the sign-in nor any host.
 
-The values in `shots.json` stage the built-in demo, which draws gradient
-tiles, to prove the flow. For the real set, set `instance` to
-`photos.misaki.fi` (or `INSTANCE=photos.misaki.fi make shots`) and swap each
-shot's gallery, month, photo id, camera and selection to its photos. Map tags
+`shots.json` stages that instance's Daily B/W gallery: Naka-Meguro on the
+map, and September 11, 2026 in the viewer. Map tags
 are `photo:<id>` or `cluster:<id>`; a photo inside a pile at the shot's zoom
-has no tag of its own, so pick a camera where it stands alone, or select the
-pile. `SIGN_IN=` stages the simulator's own pairings instead.
+has no callout of its own, so the map shot selects one that stands alone at
+its zoom (zoom in until it does). `SIGN_IN=` stages the simulator's own
+pairings instead.
 
 ## Size
 
@@ -57,12 +56,14 @@ submission.
 What each shows and why is in `shots.json` (`python3 Scripts/asc/shots.py en`
 prints it). In **store order**:
 
-1. **map**: the city's photo pins and piles, one opened to its thumbnails.
-2. **calendar**: a month's grid by day.
-3. **photo**: one photo in the viewer.
-4. **todo**: todo pins among the photos, one open with its note.
-5. **todo-list**: the pins as a list, with how far each one is.
-6. **front**: the paired instances and their galleries.
+1. **map**: the city's photo pins and piles, one opened to its callout.
+2. **photo**: one photo in the viewer.
+3. **todo**: todo pins among the photos, one open with its note.
+4. **todo-list**: the pins as a list, with how far each one is.
+5. **front**: the paired instances and their galleries.
+
+No calendar shot: on a one-photo-a-day gallery the month grid is mostly
+day headings.
 
 The store listing is English only, so the set is too (the app itself also
 runs in Japanese). Dark mode is not in the set.
